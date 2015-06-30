@@ -1,6 +1,6 @@
-function mod=applyStaticBoundaryConditionsToMatrix(M, N)
-  indeciesToDelete = getBoundaryConditionIndicies(N);
-  indecies=1:6*(N+1);
+function mod=applyStaticBoundaryConditionsToMatrix(M, staticIndecies)
+  indeciesToDelete = staticIndecies;
+  indecies=1:length(M);
   indecies(indeciesToDelete)=[];
   mod=M(indecies, indecies);
 end
