@@ -2,11 +2,13 @@ function [ oArgs ] = MatrixD( iArgs )
 %K Summary of this function goes here
 %   Detailed explanation goes here
 
-h = iArgs(1);
-l = iArgs(2);
-K = iArgs(3);
-E = iArgs(4);
-v = iArgs(5);
+  h = iArgs(1);
+	l = iArgs(2);
+	K = iArgs(3);
+  rho = iArgs(4);
+	E = iArgs(5);
+	v = iArgs(6);
+	N = iArgs(7);
 
 hInv=1/h;
 
