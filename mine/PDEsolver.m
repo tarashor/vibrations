@@ -3,17 +3,17 @@ clear;
 
 N = 20;
 l = 1;
-h = 0.01;
+h = 0.1;
 K = 0;
 E = 100000;
 v=0.3;
-rho=8000;
+rho=9000;
 
-iArgs = GetModel(h,l,K,rho,E,v,N);
+iArgs = GetModel(0,h,l,K,rho,E,v,N);
 staticIndecies = getBoundaryConditionIndicies(N);
 [vec lam xVector] = solve(iArgs, staticIndecies);
 
-lam
+
 %count = length(lam);
 %countEnd = count-2;
 %for j=count:-1:countEnd

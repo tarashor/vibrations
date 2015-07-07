@@ -1,17 +1,17 @@
 function [eigvec eigval x]=solve(iArgs, staticIndecies)
-%[h,l,K,rho,E,v,N];
-  h = iArgs(1);
-	l = iArgs(2);
-	K = iArgs(3);
-  rho = iArgs(4);
-	E = iArgs(5);
-	v = iArgs(6);
-	N = iArgs(7);
+%[h0,h1,l,K,rho,E,v,N];
+  h0 = iArgs(1);
+  h1 = iArgs(2);
+	l = iArgs(3);
+	K = iArgs(4);
+  rho = iArgs(5);
+	E = iArgs(6);
+	v = iArgs(7);
+	N = iArgs(8);
   
   [meshBegin, meshEnd] = GenerateMesh(N, l);
   
   x = [meshBegin meshEnd(N)];
-  
   s = StiffnessMatrix(iArgs, meshBegin, meshEnd);
   m = rho*MassMatrix(iArgs, meshBegin, meshEnd);
   s = applyStaticBoundaryConditionsToMatrix(s, staticIndecies);

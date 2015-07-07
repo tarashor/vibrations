@@ -1,11 +1,5 @@
 function [ oArgs ] = StiffnessMatrix( iArgs, meshBegin, meshEnd )
-  h = iArgs(1);
-	l = iArgs(2);
-	K = iArgs(3);
-  rho = iArgs(4);
-	E = iArgs(5);
-	v = iArgs(6);
-	N = iArgs(7);
+	N = iArgs(8);
 
 	A = MatrixA(iArgs);
 	D = MatrixD(iArgs);
