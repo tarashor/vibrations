@@ -14,7 +14,7 @@ function [ oArgs ] = MassMatrix( iArgs, meshBegin, meshEnd )
 
 	MassMatrix = zeros(count, count);
 
-  M = baseAlfa3Functions(h);
+  M = rho*baseAlfa3Functions(h);
 	for i=1:N
 		localMatrix = GetLocalMassMatrix(M, meshBegin(i), meshEnd(i));
 		MassMatrix = SumMatrix(MassMatrix, localMatrix, i);

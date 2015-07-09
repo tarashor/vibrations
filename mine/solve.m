@@ -13,7 +13,7 @@ function [eigvec eigval x]=solve(iArgs, staticIndecies)
   
   x = [meshBegin meshEnd(N)];
   s = StiffnessMatrix(iArgs, meshBegin, meshEnd);
-  m = rho*MassMatrix(iArgs, meshBegin, meshEnd);
+  m = MassMatrix(iArgs, meshBegin, meshEnd);
   s = applyStaticBoundaryConditionsToMatrix(s, staticIndecies);
   m = applyStaticBoundaryConditionsToMatrix(m, staticIndecies);
   [vec, lam] = eig (s, m);
