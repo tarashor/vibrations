@@ -1,4 +1,4 @@
-function [v l]=sortResults(vin, lin)
+function [v l]=SortEigenvaluesAndEigenVectors(vin, lin)
   lin = diag(lin);
   l=sort(lin);
   n=length(l);

@@ -1,8 +1,6 @@
-function [ oArgs ] = StiffnessMatrix( iArgs, meshBegin, meshEnd )
-	N = iArgs(8);
-
-	A = MatrixA(iArgs);
-	D = MatrixD(iArgs);
+function [ oArgs ] = StiffnessMatrix(model, curvature, N, meshBegin, meshEnd)
+	A = MatrixA(model);
+	D = MatrixD(model, curvature);
 
 	M = D' * A * D;
 

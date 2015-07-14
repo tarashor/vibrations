@@ -1,13 +1,9 @@
-function [ oArgs ] = MassMatrix( iArgs, meshBegin, meshEnd )
-%[h0,h1,l,K,rho,E,v,N];
-  h0 = iArgs(1);
-  h1 = iArgs(2);
-	l = iArgs(3);
-	K = iArgs(4);
-  rho = iArgs(5);
-	E = iArgs(6);
-	v = iArgs(7);
-	N = iArgs(8);
+function [ oArgs ] = MassMatrix( model, N, meshBegin, meshEnd )
+  h0 = model(1);
+  h1 = model(2);
+  rho = model(3);
+	E = model(4);
+	v = model(5);
   h=h1-h0;
 
 	count = 6 * (N + 1);

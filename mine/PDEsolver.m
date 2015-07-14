@@ -6,20 +6,19 @@ l = 1;
 K = 0;
 
 h = 0.04;
-E = 210000000000;
-v=0.3;
-rho=8000;
+[E v rho] = GetSteel();
 
-iArgs = GetModel(0,h,l,K,rho,E,v,N);
+model = GetLayerModel(-h/2,h/2,rho,E,v);
+
 staticIndecies = getBoundaryConditionIndicies(N);
-[vec lam xVector] = solve(iArgs, staticIndecies);
+[vec lam xVector] = solveOneLayer([l K], model, N, staticIndecies);
 
 
 %count = length(lam);
 %countEnd = count-2;
 %for j=count:-1:countEnd
 %  ind=j;
-  ind = 4;
+  ind = 1;
   lam(ind)
   resVector = vec(:, ind);
   for i=1:N+1

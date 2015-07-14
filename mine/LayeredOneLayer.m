@@ -7,17 +7,12 @@ K = 0;
 
 geom=[l,K];
 
-h1 = 0.02;
+h1 = 0.04;
 [E1 v1 rho1] = GetSteel();
 
-h2 = 0.01;
-[E2 v2 rho2] = GetRubber();
-
-layersCount=3;
+layersCount=1;
 layers=cell(1,layersCount);
 layers{1} = GetLayerModel(0, h1, rho1, E1, v1);
-layers{2} = GetLayerModel(h1, h1+h2, rho2, E2, v2);
-layers{3} = GetLayerModel(h1+h2, h1+h2+h1, rho1, E1, v1);
 
 staticIndecies = getBoundaryConditionIndiciesForLayeredMatrix(N, layersCount);
 [vec lam x] = solveLayered(geom, layers, N, staticIndecies);

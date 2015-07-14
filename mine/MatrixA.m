@@ -4,12 +4,9 @@ function [ oArgs ] = MatrixA( iArgs )
 
   h0 = iArgs(1);
   h1 = iArgs(2);
-	l = iArgs(3);
-	K = iArgs(4);
-  rho = iArgs(5);
-	E = iArgs(6);
-	v = iArgs(7);
-	N = iArgs(8);
+  rho = iArgs(3);
+	E = iArgs(4);
+	v = iArgs(5);
   h=h1-h0;
 
   C1 = (E * (1 - v)) / ((1 + v) * (1 - 2 * v));

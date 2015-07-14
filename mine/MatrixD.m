@@ -1,15 +1,13 @@
-function [ oArgs ] = MatrixD( iArgs )
+function [ oArgs ] = MatrixD( iArgs, K )
 %K Summary of this function goes here
 %   Detailed explanation goes here
 
   h0 = iArgs(1);
   h1 = iArgs(2);
-	l = iArgs(3);
-	K = iArgs(4);
-  rho = iArgs(5);
-	E = iArgs(6);
-	v = iArgs(7);
-	N = iArgs(8);
+  rho = iArgs(3);
+	E = iArgs(4);
+	v = iArgs(5);
+  
   h=h1-h0;
   hInv=1/h;
 
