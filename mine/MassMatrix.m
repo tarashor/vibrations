@@ -1,16 +1,16 @@
-function [ oArgs ] = MassMatrix( iArgs, meshBegin, meshEnd )
-	h = iArgs(1);
-	l = iArgs(2);
-	K = iArgs(3);
-	E = iArgs(4);
-	v = iArgs(5);
-	N = iArgs(6);
+function [ oArgs ] = MassMatrix( model, N, meshBegin, meshEnd )
+  h0 = model(1);
+  h1 = model(2);
+  rho = model(3);
+	E = model(4);
+	v = model(5);
+  h=h1-h0;
 
 	count = 6 * (N + 1);
 
 	MassMatrix = zeros(count, count);
 
-  M = baseAlfa3Functions(h);
+  M = rho*baseAlfa3Functions(h);
 	for i=1:N
 		localMatrix = GetLocalMassMatrix(M, meshBegin(i), meshEnd(i));
 		MassMatrix = SumMatrix(MassMatrix, localMatrix, i);
