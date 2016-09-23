@@ -1,6 +1,4 @@
 function [Matrix] = SumLayerMatrix(GlobalMatrix, LayerMatrix, k, layersCount)
-%UNTITLED Summary of this function goes here
-%   Detailed explanation goes here
   [rows columns] = size(LayerMatrix);
   for i=1:rows
       i_new=getGlobalI(i, k, layersCount);

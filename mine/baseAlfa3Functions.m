@@ -1,4 +1,4 @@
-function [m] = baseAlfa4Functions(h)
+function [m] = baseAlfa3Functions(h)
   a = zeros(6, 6);
   
   h2 = h / 3;
