@@ -1,0 +1,1 @@
+function [ ind ] = getGlobalIndex(i, feIndex, N, M)  ind=globalMatrix;end

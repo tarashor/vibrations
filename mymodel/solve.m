@@ -1,6 +1,4 @@
 function [eigvec eigval x]=solve(geom, model, N, M, staticIndecies)  
-  l = geom(1);
-	curvature = geom(2);
 
   SMatrix = StiffnessMatrix(model, geom, N, M);
   MMatrix = MassMatrix(model, N, meshBegin, meshEnd);

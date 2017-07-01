@@ -14,7 +14,7 @@ function [ oArgs ] = StiffnessMatrix(model, geom, N, M)
 
 	for i=1:feCount
 		localMatrix = GetLocalStiffnessMatrix(E, v, curvature, hDelta, lDelta, i, N, model(2));
-		HardMatrix = SumMatrix(HardMatrix, localMatrix, i);
+		HardMatrix = SumMatrix(HardMatrix, localMatrix, i, N, M);
 	end
 	oArgs = HardMatrix;
 end
