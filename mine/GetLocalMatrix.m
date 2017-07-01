@@ -1,8 +1,4 @@
 function [ oArgs ] = GetLocalMatrix(M, b, e)
-%UNTITLED2 Summary of this function goes here
-%   Detailed explanation goes here
-            
-
 gn(1) = -sqrt(3/5);
 gn(2) = 0;
 gn(3) = sqrt(3/5);

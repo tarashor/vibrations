@@ -1,6 +1,6 @@
 clc;
 clear;
-N=2;
+N=20;
 K=3;
 
 dimOneLayer = 3*2*(N+1);
@@ -41,3 +41,6 @@ c = sortrows(c, 4);
 for j=1:rows
   printf("U(%d) %d%d => %d\n", c(j, 1), c(j, 2), c(j, 3), c(j, 4));
 end
+
+
+getBoundaryConditionIndiciesForLayeredMatrix(N, K)

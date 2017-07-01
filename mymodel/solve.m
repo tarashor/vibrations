@@ -1,4 +1,4 @@
-function [eigvec eigval x]=solveLayered(geom, layers, N, staticIndecies)  
+function [eigvec eigval x]=solve(geom, layer, N, M, staticIndecies)  
   l = geom(1);
 	curvature = geom(2);
   
@@ -18,8 +18,6 @@ function [eigvec eigval x]=solveLayered(geom, layers, N, staticIndecies)
     SMatrix = SumLayerMatrix(SMatrix, s, k, layersCount);
     MMatrix = SumLayerMatrix(MMatrix, m, k, layersCount);
   end
-
-  size(SMatrix)
 
   SMatrix = applyStaticBoundaryConditionsToMatrix(SMatrix, staticIndecies);
   MMatrix = applyStaticBoundaryConditionsToMatrix(MMatrix, staticIndecies);

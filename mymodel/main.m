@@ -1,43 +1,23 @@
 clc;
 clear;
 
-R = 2;
-fi0 = pi/4;
-lDivHCoef = 0.00625;
-
-layersCount=5;
-
-l = 2*fi0*R
-hTotal = l*lDivHCoef;
-K = 1/R;
-hLayer = hTotal/layersCount;
-N = 20;
-[ESteel vSteel rhoSteel] = GetSteel();
-%[ERubber vRubber rhoRubber] = GetSteel();
-[ERubber vRubber rhoRubber] = GetRubber();
+l = 1;
+K = 0;
+h= 0.04;
 
 geom=[l,K];
+[E v rho] = GetSteel();
 
-layers=cell(1,layersCount);
-hCurrent = 0;
-for i=1:layersCount
-  E = ESteel;
-  v = vSteel;
-  rho = rhoSteel;
-  if (rem(i,2) == 0)
-    E = ERubber;
-    v = vRubber;
-    rho = rhoRubber;
-  endif
-  layers{i} = GetLayerModel(hCurrent, hCurrent + hLayer, rho, E, v);  
-  hCurrent += hLayer
-end
+N = 20;
+M=6;
+
+layerModel = GetLayerModel(-h/2, h/2, rho, E, v);
 
 staticIndecies = getBoundaryConditionIndiciesForLayeredMatrix(N, layersCount);
-[vec lam x] = solveLayered(geom, layers, N, staticIndecies);
+[vec lam x] = solve(geom, layerModel, N, M, staticIndecies);
 
 ind = 1;
-sqrt(lam(ind))
+lam(ind)
 resVector = vec(:, ind);
 
 %layerToShow = fix(K./2)+1;
@@ -60,12 +40,11 @@ end
 %plot(x, midPaneResult);
 
 w=sqrt(lam(ind));
-midPaneResult
 y = cos(w*0).*midPaneResult;
 h = plot(x, y);
 axis([0 l -1 1]);
 for t = 0.001:0.0001:5
   y = cos(w*t).*midPaneResult;
   set(h, 'YData', y);
-  pause(0.01);
+  pause(0.1);
 end
