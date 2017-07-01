@@ -5,15 +5,15 @@ l = 1;
 K = 0;
 h= 0.04;
 
-geom=[l,K];
-[E v rho] = GetSteel();
-
 N = 20;
 M=6;
 
+geom=[l,K];
+[E v rho] = GetSteel();
+
 layerModel = GetLayerModel(-h/2, h/2, rho, E, v);
 
-staticIndecies = getBoundaryConditionIndiciesForLayeredMatrix(N, layersCount);
+staticIndecies = getBoundaryConditionIndiciesForLayeredMatrix(N, M);
 [vec lam x] = solve(geom, layerModel, N, M, staticIndecies);
 
 ind = 1;
