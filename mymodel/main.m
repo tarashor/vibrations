@@ -3,7 +3,7 @@ clear;
 
 l = 1;
 K = 0;
-h= 0.04;
+h= 0.1;
 
 N = 20;
 M=6;
@@ -13,7 +13,7 @@ geom=[l,K];
 
 layerModel = GetLayerModel(-h/2, h/2, rho, E, v);
 
-staticIndecies = getBoundaryConditionIndiciesForLayeredMatrix(N, M);
+staticIndecies = getBoundaryConditionIndicies(N, M);
 [vec lam x] = solve(geom, layerModel, N, M, staticIndecies);
 
 ind = 1;
