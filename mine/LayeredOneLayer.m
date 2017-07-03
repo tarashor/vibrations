@@ -7,7 +7,7 @@ K = 0;
 
 geom=[l,K];
 
-h1 = 0.04;
+h1 = 0.1;
 [E1 v1 rho1] = GetSteel();
 
 layersCount=1;
@@ -18,7 +18,7 @@ staticIndecies = getBoundaryConditionIndiciesForLayeredMatrix(N, layersCount);
 [vec lam x] = solveLayered(geom, layers, N, staticIndecies);
 
 ind = 1;
-lam(ind)
+printf ("Minimum frequancy = %f\n", sqrt(lam(ind)/rho1));
 resVector = vec(:, ind);
 
 %layerToShow = fix(K./2)+1;

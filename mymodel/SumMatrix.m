@@ -5,8 +5,7 @@ function [ Matrix ] = SumMatrix( globalMatrix, localMatrix, feIndex, N, M)
       gI = getGlobalIndex(i, feIndex, N, M);
       gJ = getGlobalIndex(j, feIndex, N, M);
 
-      temp = globalMatrix(gI, gJ);
-      globalMatrix(gI, gJ) = temp + localMatrix(i, j);
+      globalMatrix(gI, gJ) += localMatrix(i, j);
     end
   end
   Matrix=globalMatrix;

@@ -14,11 +14,14 @@ geom=[l,K];
 layerModel = GetLayerModel(-h/2, h/2, rho, E, v);
 
 staticIndecies = getBoundaryConditionIndicies(N, M);
-[vec lam x] = solve(geom, layerModel, N, M, staticIndecies);
+[vec lam] = solve(geom, layerModel, N, M, staticIndecies);
 
 ind = 1;
-lam(ind)
+
+printf ("Minimum frequancy = %f\n", sqrt(lam(ind)/rho));
 resVector = vec(:, ind);
+
+printf ("Norm of resVector = %f\n", sqrt(resVector'*resVector));
 
 %layerToShow = fix(K./2)+1;
 %midPaneResult=zeros(N+1,1);

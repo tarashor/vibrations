@@ -1,1 +1,1 @@
-function [ ind ] = getGlobalIndex(i, feIndex, N, M)  gi = feIndex+fix(feIndex/N);  if (rem(i,4) == 2)    gi += 1;  elseif (rem(i,4) == 3)    gi += N + 2;  elseif (rem(i,4) == 4)    gi += N + 1;  end    if (i > 4)    gi += (N + 1)*(M + 1);  end    ind=gi;end
+function [ ind ] = getGlobalIndex(i, feIndex, N, M)  gi = fix((feIndex-1)/(N))*(N+1)+rem(feIndex - 1, N) + 1;  if (rem(i,4) == 2)    gi += 1;  elseif (rem(i,4) == 3)    gi += N + 2;  elseif (rem(i,4) == 0)    gi += N + 1;  end    if (i > 4)    gi += (N + 1)*(M + 1);  end    ind=gi;end
