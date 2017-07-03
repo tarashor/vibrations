@@ -1,11 +1,11 @@
 clc;
 clear;
 
-l = 1;
-K = 0;
-h= 0.1;
+l = 2;
+K = 0.8;
+h= 0.05;
 
-N = 20;
+N = 40;
 M=6;
 
 geom=[l,K];
@@ -31,23 +31,23 @@ printf ("Norm of resVector = %f\n", sqrt(resVector'*resVector));
 %  midPaneResult(l) = temp;
 %end
 
-layerToShow = 1;
 midPaneResult=zeros(N+1,1);
 for p=1:N+1
-  i_new = (2*layersCount+1)*(2*p-1)+(layerToShow-1)*2;
-  temp=resVector(i_new+1);
+  i_new = (M+1)*(N+1)+(M/2)*(N + 1) + p;
+  temp=resVector(i_new);
   midPaneResult(p) = temp;
 end
 
 %figure(ind);
 %plot(x, midPaneResult);
 
-w=sqrt(lam(ind));
-y = cos(w*0).*midPaneResult;
+w=sqrt(lam(ind)/rho);
+y = (cos(w*0)+sin(w*0)).*midPaneResult;
+x=0:l/N:l;
 h = plot(x, y);
 axis([0 l -1 1]);
 for t = 0.001:0.0001:5
-  y = cos(w*t).*midPaneResult;
+  y = (cos(w*t)+sin(w*t)).*midPaneResult;
   set(h, 'YData', y);
   pause(0.1);
 end
