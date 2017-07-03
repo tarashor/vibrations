@@ -1,6 +1,6 @@
 
-g_a = 0.03;
-g_f = 20;
+g_a = 0.05;
+g_f = 11;
 
 R = 1;
 
@@ -18,8 +18,8 @@ a2 = 0;
 
 ar = (pi*R+L)/(2*R) - a1/R;
 
-x=(R + a2 + g_a.*cos(g_f.*ar)).*cos(ar);
-y=(R + a2 + g_a.*cos(g_f.*ar)).*sin(ar);
+x=(R + a2 + g_a.*sin(g_f.*ar)).*cos(ar);
+y=(R + a2 + g_a.*sin(g_f.*ar)).*sin(ar);
 
 %ar_grad = ar*180/pi
 
