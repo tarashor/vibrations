@@ -1,7 +1,18 @@
 
+class Model:
+
+	SHARNIR = 1
+	JORSTKO_LEFT = 2
+	JORSTKO_LEFT_RIGHT = 3
+
+	def __init__(self, geometry, layers, boundary_conditions):
+		self.geometry = geometry
+		self.layers = layers
+		self.boundary_conditions = boundary_conditions
+
 class Geometry:
-	def __init__(self, length, curvature, wave_amp, wave_frequency):
-		self.length = length
+	def __init__(self, width, curvature, wave_amp, wave_frequency):
+		self.width = width
 		self.curvature = curvature
 		self.wave_amp = wave_amp
 		self.wave_frequency = wave_frequency
@@ -17,10 +28,63 @@ class Material:
 		return Material(210000000000, 0.3, 8000)
 
 class Layer:
-	def __init__(self, bottomX, topX, material):
-		self.bottomX = bottomX
-		self.topX = topX
+	def __init__(self, bottom, top, material):
+		self.bottom = bottom
+		self.top = top
 		self.material = material	
+
+	def height(self):
+		return self.top - self.bottom
+
+class MeshNode(object):
+	"""docstring for MeshNode"""
+	def __init__(self, x, y):
+		self.x = x
+		self.y = y
+		
+
+class MeshElement(object):
+	"""docstring for MeshElement"""
+	def __init__(self, left_x, right_x, top_y, bottom_y): #, top_left_index, top_right_index, bottom_right_index, bottom_left_index):
+		self.left_x = left_x
+		self.top_y = top_y
+		self.right_x = right_x
+		self.bottom_y = bottom_y
+		
+	def height(self):
+		return self.top_y - self.bottom_y
+
+	def width(self):
+		return self.right_x - self.left_x
+
+class Mesh(object):
+	"""docstring for Mesh"""
+	def __init__(self, elements):
+		self.elements = elements
+
+	@staticmethod
+	def generate(width, layers, elements_width, elements_height_per_layer):
+		d_x = width / elements_width
+		# d_y = {}
+		# for layer in layers:
+		# 	d_y[layer] = layer.height() / elements_height_per_layer
+		elements = []
+
+		for layer in layers:
+			d_y = layer.height() / elements_height_per_layer
+			y = layer.top
+			for i in range(elements_height_per_layer):
+				x = 0
+				for j in range(elements_width):
+					element = MeshElement(x, x+d_x, y, y-d_y)
+					elements.append(element)
+					x += d_x
+				y -= d_y
+
+		return Mesh(elements)
+
+# def solve(model, mesh):
+# 	pass
 
 
 l = 2
@@ -34,10 +98,15 @@ N = 40
 M = 6
 
 geometry = Geometry(l,K, gA, gV)
-material = Material.steel()
-layer = Layer(-h/2, h/2, material)
+layer = Layer(-h/2, h/2, Material.steel())
+layers = [layer]
+print(layers)
+model = Model(geometry, layers, Model.SHARNIR)
 
-# staticIndecies = getBoundaryConditionIndicies(N, M);
+mesh = Mesh.generate(model.geometry.width, layers, N, M)
+print(mesh.elements)
+
+
 # [vec lam] = solve(geom, layerModel, N, M, staticIndecies);
 
 # ind = 1;
