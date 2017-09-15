@@ -24,7 +24,7 @@ model = fem.model.Model(geometry, layers, fem.model.Model.SHARNIR)
 
 mesh = fem.mesh.Mesh.generate(model.geometry.width, layers, N, M)
 print(mesh.elements)
-print(len(mesh.elements))
+# print(len(mesh.elements))
 
 
 # [vec lam] = solve(geom, layerModel, N, M, staticIndecies);

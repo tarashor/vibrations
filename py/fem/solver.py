@@ -1,13 +1,20 @@
 import numpy as np
-import numpy.matlib as M
+from numpy import linalg as la
 
 def solve(model, mesh):
-	pass
+	s = stiffness_matrix(model, mesh)
+	m = mass_matrix(model, mesh)
 
-print(dir(M))
+	s = mesh.apply_boundary_conditions(s)
+	m = mesh.apply_boundary_conditions(m)
+	lam, vec = la.eig(s,m)
+	return lam
 
-a=np.array([[1,0], [0,1]])
-b=np.array([[1,2], [3,4]])
+def stiffness_matrix(model, mesh):
+	return np.zeros((2,2))
 
+def mass_matrix(model, mesh):
+	return np.zeros((2,2))
 
+# b=np.array([[1,2], [3,4]])
 # print(a.dot(b)==b)
