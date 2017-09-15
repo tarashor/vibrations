@@ -1,104 +1,11 @@
-
-class Model:
-
-	SHARNIR = 1
-	JORSTKO_LEFT = 2
-	JORSTKO_LEFT_RIGHT = 3
-
-	def __init__(self, geometry, layers, boundary_conditions):
-		self.geometry = geometry
-		self.layers = layers
-		self.boundary_conditions = boundary_conditions
-
-class Geometry:
-	def __init__(self, width, curvature, wave_amp, wave_frequency):
-		self.width = width
-		self.curvature = curvature
-		self.wave_amp = wave_amp
-		self.wave_frequency = wave_frequency
-
-class Material:
-	def __init__(self, E, v, rho):
-		self.E = E
-		self.v = v
-		self.rho = rho
-
-	@staticmethod
-	def steel():
-		return Material(210000000000, 0.3, 8000)
-
-class Layer:
-	def __init__(self, bottom, top, material):
-		self.bottom = bottom
-		self.top = top
-		self.material = material	
-
-	def height(self):
-		return self.top - self.bottom
-
-class MeshNode(object):
-	"""docstring for MeshNode"""
-	def __init__(self, x, y):
-		self.x = x
-		self.y = y
-		
-
-class MeshElement(object):
-	"""docstring for MeshElement"""
-	def __init__(self, left_x, right_x, top_y, bottom_y, top_left_index, top_right_index, bottom_right_index, bottom_left_index):
-		self.left_x = left_x
-		self.top_y = top_y
-		self.right_x = right_x
-		self.bottom_y = bottom_y
-
-		self.top_left_index = top_left_index
-		self.top_right_index = top_right_index
-		self.bottom_right_index = bottom_right_index
-		self.bottom_left_index = bottom_left_index
-		
-	def height(self):
-		return self.top_y - self.bottom_y
-
-	def width(self):
-		return self.right_x - self.left_x
-
-	def __repr__(self):
-		#return 'Element(x={}, y={})'.format(self.left_x, self.top_y)
-		return 'Element(0="{}", 1="{}", 2="{}", 3="{}")'.format(self.top_left_index, self.top_right_index, self.bottom_right_index, self.bottom_left_index)
-
-class Mesh(object):
-	"""docstring for Mesh"""
-	def __init__(self, elements):
-		self.elements = elements
-
-	@staticmethod
-	def generate(width, layers, elements_width, elements_height_per_layer):
-		d_x = width / elements_width
-		# d_y = {}
-		# for layer in layers:
-		# 	d_y[layer] = layer.height() / elements_height_per_layer
-		elements = []
-
-		for layer in layers:
-			d_y = layer.height() / elements_height_per_layer
-			y = layer.top
-			for i in range(elements_height_per_layer):
-				x = 0
-				for j in range(elements_width):
-					top_left_index = i*(N+1)+j
-					top_right_index =top_left_index + 1
-					bottom_left_index = top_left_index + N + 1
-					botton_right_index = bottom_left_index + 1
-					element = MeshElement(x, x+d_x, y, y-d_y, top_left_index, top_right_index, botton_right_index, bottom_left_index)
-					elements.append(element)
-					x += d_x
-				y -= d_y
-
-		return Mesh(elements)
+import fem.model 
+import fem.mesh
 
 # def solve(model, mesh):
 # 	pass
 
+# print(dir(fem.model))
+# print(fem.model.Model)
 
 l = 1
 K = 0.8
@@ -110,13 +17,13 @@ gV=20
 N = 10
 M = 2
 
-geometry = Geometry(l,K, gA, gV)
-layer = Layer(-h/2, h/2, Material.steel())
+geometry = fem.model.Geometry(l,K, gA, gV)
+layer = fem.model.Layer(-h/2, h/2, fem.model.Material.steel())
 layers = [layer]
 print(layers)
-model = Model(geometry, layers, Model.SHARNIR)
+model = fem.model.Model(geometry, layers, fem.model.Model.SHARNIR)
 
-mesh = Mesh.generate(model.geometry.width, layers, N, M)
+mesh = fem.mesh.Mesh.generate(model.geometry.width, layers, N, M)
 print(mesh.elements)
 print(len(mesh.elements))
 
