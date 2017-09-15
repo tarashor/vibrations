@@ -1,8 +1,7 @@
 import fem.model 
 import fem.mesh
+import fem.solver
 
-# def solve(model, mesh):
-# 	pass
 
 # print(dir(fem.model))
 # print(fem.model.Model)
