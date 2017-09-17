@@ -1,4 +1,4 @@
-import fem.model 
+import fem.model
 import fem.mesh
 import fem.solver
 
@@ -6,28 +6,41 @@ import fem.solver
 # print(dir(fem.model))
 # print(fem.model.Model)
 
-l = 1
-K = 0.8
-h = 0.1
+width = 1
+curvature = 0.8
+thickness = 0.1
 
-gA=0.03
-gV=20
+corrugation_amplitude = 0.03
+corrugation_frequency = 20
+
+layers_count = 1
 
 N = 10
 M = 2
 
-geometry = fem.model.Geometry(l,K, gA, gV)
-layer = fem.model.Layer(-h/2, h/2, fem.model.Material.steel())
-layers = [layer]
+geometry = fem.model.Geometry(width, curvature, corrugation_amplitude, corrugation_frequency)
+
+layer_top = thickness / 2
+layer_thickness = thickness / layers_count
+layers = set()
+for i in range(layers_count):
+    layer = fem.model.Layer(layer_top - layer_thickness, layer_top, fem.model.Material.steel())
+    layers.add(layer)
+    layer_top -= layer_thickness
+
+# layers = tuple([layer])
+
 print(layers)
-model = fem.model.Model(geometry, layers, fem.model.Model.SHARNIR)
+model = fem.model.Model(geometry, layers, fem.model.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS)
 
 mesh = fem.mesh.Mesh.generate(model.geometry.width, layers, N, M)
-print(mesh.elements)
-# print(len(mesh.elements))
+for element in mesh.nodes:
+    print(str(element))
+print(len(mesh.elements))
 
 
-# [vec lam] = solve(geom, layerModel, N, M, staticIndecies);
+lam = fem.solver.solve(model, mesh)
+print(lam)
 
 # ind = 1;
 
@@ -45,11 +58,11 @@ print(mesh.elements)
 
 # w=sqrt(lam(ind)/rho);
 # y = (cos(w*0)+sin(w*0)).*midPaneResult;
-# x=0:l/N:l;
-# h = plot(x, y);
-# axis([0 l -1 1]);
+# x=0:width/N:width;
+# height = plot(x, y);
+# axis([0 width -1 1]);
 # for t = 0.001:0.0001:5
 #   y = (cos(w*t)+sin(w*t)).*midPaneResult;
-#   set(h, 'YData', y);
+#   set(height, 'YData', y);
 #   pause(0.1);
 # end

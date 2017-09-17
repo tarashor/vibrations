@@ -1,4 +1,72 @@
+# d = {}
+# d["asd"] = 1
+# print(d)
+# print (range(1, 11))
+
+import sys
+
+print(sys.executable)
+print(sys.version)
+
+
+class MyClass:
+    """docstring for MyClass"""
+
+    def __init__(self, a):
+        self.a = a
+
+    def __eq__(self, other):
+        print("MyClass.eq")
+        return self.a == other.a
+
+    def __hash__(self):
+        print("MyClass.hash")
+        return hash(self.a)
+
+    def __repr__(self):
+        return "{}".format(self.a)
+
+
+o1 = MyClass(1)
+o2 = MyClass(1)
+
+print(isinstance(o1, MyClass))
+print(o1 == o2)
+
+s = {MyClass(1), MyClass(2), MyClass(1)}
+print(len(s))
+
 d = {}
-d["asd"] = 1
-print(d)
-print (range(1, 11))
+for i in range(10):
+    d[i] = MyClass(i)
+
+import numpy as np
+print(np.sin(np.pi))
+
+print(np.cos(np.pi))
+
+# from scipy.integrate import quad as q
+# # from scipy.integrate import fixed_quad as gq
+
+
+# # def myfunc2(x, y):
+# #     print("myfunc2: y={}".format(y))
+# #     return x + y
+
+
+# # def integr2(y):
+# #     print("integr2: y={}".format(y))
+# #     return q(myfunc2, 0, 1, y)
+# #     # return q(myfunc2, 0, 1, args=[y])[0]
+
+
+# # # q(myfunc2, 0, 1)
+# # print(q(integr2, 0, 1))
+
+# def f(x, y):
+#     return x + y
+
+
+# print(q2d(f, 0, 1, 0, 1))
+
+# # print(gq(lambda x: (f(x[0], x[1]), 2), 0, 1))
