@@ -40,10 +40,22 @@ d = {}
 for i in range(10):
     d[i] = MyClass(i)
 
-import numpy as np
-print(np.sin(np.pi))
+print("==============NUMPY=====================")
 
-print(np.cos(np.pi))
+import numpy as np
+# print(np.sin(np.pi))
+
+# print(np.cos(np.pi))
+
+A = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+
+print(A[np.ix_([0, 2], [0, 1])])
+# noprimes = [j for i in range(2, 8) for j in range(i * 2, 50, i)]
+# print(noprimes)
+# primes = [x for x in range(2, 50) if x not in noprimes]
+# print(primes)
+
+print(range(0, 10, 1))
 
 # from scipy.integrate import quad as q
 # # from scipy.integrate import fixed_quad as gq
