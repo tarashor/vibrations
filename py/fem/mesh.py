@@ -1,5 +1,4 @@
-# from . import model
-
+from . import model
 
 class MeshNode(object):
     """docstring for MeshNode"""
@@ -79,6 +78,10 @@ class Mesh(object):
 
     def material_for_element(self, element):
         return self.material_to_elements.get(element)
+    
+    def fix_nodes(self, boundary_conditions):
+        if (boundary_conditions == model.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS):
+            
 
     @staticmethod
     def generate(width, layers, elements_width, elements_height_per_layer):

@@ -39,8 +39,8 @@ for element in mesh.nodes:
 print(len(mesh.elements))
 
 
-lam = fem.solver.solve(model, mesh)
-print(lam)
+result = fem.solver.solve(model, mesh)
+print(result.get_result(0))
 
 # ind = 1;
 

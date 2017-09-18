@@ -1,22 +1,37 @@
 import numpy as np
 from scipy import linalg as la
-from scipy import integrate
 
-
-def q2d(q, func, a1, b1, a2, b2, element, material, geometry, N):
-    def ify(y):
-        return q(func, a1, b1, args=(y, element, material, geometry, N))[0]
-    return q(ify, a2, b2)[0]
-
+class Result:
+    def __init__(self, lam, vec, mesh, model):
+        self.lam = lam
+        self.vec = vec
+        self.mesh = mesh
+        self.model = model
+        
+    def get_results_count(self):
+        return self.lam
+        
+    def get_result(self, i):
+        return self.lam[i], self.vec[:,i]
 
 def solve(model, mesh):
     s = stiffness_matrix(model, mesh)
     m = mass_matrix(model, mesh)
 
-    # s = mesh.apply_boundary_conditions(s)
-    # m = mesh.apply_boundary_conditions(m)
+    fixed_nodes = mesh.get_fixed_nodes()
+    s = apply_boundary_conditions(s, fixed_nodes)
+    m = apply_boundary_conditions(m, fixed_nodes)
+
     lam, vec = la.eigh(s, m)
-    return lam
+
+    return Result(lam, vec, mesh)
+
+
+def apply_boundary_conditions(matrix, fixed_nodes):
+    if (matrix.shape[0] == matrix.shape[1]):
+        all_nodes_count = matrix.shape[0]
+        free_nodes = [i for i in range(all_nodes_count) if i not in fixed_nodes]
+        return matrix[np.ix_(free_nodes, free_nodes)]
 
 
 def stiffness_matrix(model, mesh):
