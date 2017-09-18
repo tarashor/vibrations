@@ -1,18 +1,20 @@
 import numpy as np
 from scipy import linalg as la
 
+
 class Result:
     def __init__(self, lam, vec, mesh, model):
         self.lam = lam
         self.vec = vec
         self.mesh = mesh
         self.model = model
-        
+
     def get_results_count(self):
         return self.lam
-        
+
     def get_result(self, i):
-        return self.lam[i], self.vec[:,i]
+        return self.lam[i], self.vec[:, i]
+
 
 def solve(model, mesh):
     s = stiffness_matrix(model, mesh)
