@@ -34,6 +34,7 @@ print(isinstance(o1, MyClass))
 print(o1 == o2)
 
 s = {MyClass(1), MyClass(2), MyClass(1)}
+print(len(s))
 
 objs = filter(lambda item: item.a == 1, s)
 

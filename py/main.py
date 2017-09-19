@@ -13,10 +13,10 @@ thickness = 0.1
 corrugation_amplitude = 0.03
 corrugation_frequency = 20
 
-layers_count = 1
+layers_count = 5
 
-N = 10
-M = 2
+N = 24
+M = 6
 
 geometry = fem.model.Geometry(width, curvature, corrugation_amplitude, corrugation_frequency)
 
@@ -24,7 +24,7 @@ layer_top = thickness / 2
 layer_thickness = thickness / layers_count
 layers = set()
 for i in range(layers_count):
-    layer = fem.model.Layer(layer_top - layer_thickness, layer_top, fem.model.Material.steel())
+    layer = fem.model.Layer(layer_top - layer_thickness, layer_top, fem.model.Material.steel(), i)
     layers.add(layer)
     layer_top -= layer_thickness
 
@@ -40,7 +40,10 @@ mesh = fem.mesh.Mesh.generate(model.geometry.width, layers, N, M, model.boundary
 
 
 result = fem.solver.solve(model, mesh)
-print(result.get_result(0)[0])
+l,v = result.get_result(0)
+
+print(l)
+print(v)
 
 # ind = 1;
 

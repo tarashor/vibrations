@@ -73,7 +73,7 @@ class Mesh(object):
         self.elements = elements
         self.nodes = nodes
         self.material_to_elements = material_to_element
-        self.fix_nodes = fixed_nodes
+        self.fixed_nodes = fixed_nodes
 
     def nodes_count(self):
         return len(self.nodes)
@@ -82,7 +82,7 @@ class Mesh(object):
         return self.material_to_elements.get(element)
 
     def get_fixed_nodes_indicies(self):
-        return [node.index for node in self.fix_nodes]
+        return [node.index for node in self.fixed_nodes]
 
     @staticmethod
     def generate(width, layers, elements_width, elements_height_per_layer, boundary_conditions):
@@ -119,4 +119,10 @@ class Mesh(object):
                     x += d_x
                 y -= d_y
 
-        return Mesh(elements, nodes, material_to_elements)
+
+        fixed_nodes_indicies = []
+        if (boundary_conditions == model.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS):
+            fixed_nodes_indicies = [len(nodes) - 1, len(nodes) - elements_width - 1]
+        
+        fixed_nodes = [node for node in nodes if node.index in fixed_nodes_indicies]
+        return Mesh(elements, nodes, material_to_elements, fixed_nodes)

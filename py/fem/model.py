@@ -29,10 +29,11 @@ class Material:
 
 
 class Layer:
-    def __init__(self, bottom, top, material):
+    def __init__(self, bottom, top, material, index_from_top):
         self.bottom = bottom
         self.top = top
         self.material = material
+        self.index_from_top = index_from_top
 
     def __repr__(self):
         return "Layer({};{})".format(self.bottom, self.top)
@@ -42,7 +43,7 @@ class Layer:
 
     def __eq__(self, other):
         if (isinstance(other, Layer)):
-            return self.top == other.top and self.height() == other.height()
+            return self.top == other.top and self.height() == other.height() and self.index_from_top == other.index_from_top
         else:
             return False
 

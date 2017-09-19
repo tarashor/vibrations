@@ -20,13 +20,13 @@ def solve(model, mesh):
     s = stiffness_matrix(model, mesh)
     m = mass_matrix(model, mesh)
 
-    fixed_nodes_indicies = mesh.get_fixed_nodes_indicies(model.boundary_conditions)
+    fixed_nodes_indicies = mesh.get_fixed_nodes_indicies()
     s = apply_boundary_conditions(s, fixed_nodes_indicies)
     m = apply_boundary_conditions(m, fixed_nodes_indicies)
 
     lam, vec = la.eigh(s, m)
-
-    return Result(lam, vec, mesh)
+    print(lam)
+    return Result(lam, vec, mesh, model)
 
 
 def apply_boundary_conditions(matrix, fixed_nodes_indicies):
