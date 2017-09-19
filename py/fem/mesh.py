@@ -1,5 +1,6 @@
 from . import model
 
+
 class MeshNode(object):
     """docstring for MeshNode"""
 
@@ -68,23 +69,23 @@ class MeshElement(object):
 class Mesh(object):
     """docstring for Mesh"""
 
-    def __init__(self, elements, nodes, material_to_element):
+    def __init__(self, elements, nodes, material_to_element, fixed_nodes):
         self.elements = elements
         self.nodes = nodes
         self.material_to_elements = material_to_element
+        self.fix_nodes = fixed_nodes
 
     def nodes_count(self):
         return len(self.nodes)
 
     def material_for_element(self, element):
         return self.material_to_elements.get(element)
-    
-    def fix_nodes(self, boundary_conditions):
-        if (boundary_conditions == model.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS):
-            
+
+    def get_fixed_nodes_indicies(self):
+        return [node.index for node in self.fix_nodes]
 
     @staticmethod
-    def generate(width, layers, elements_width, elements_height_per_layer):
+    def generate(width, layers, elements_width, elements_height_per_layer, boundary_conditions):
         d_x = width / elements_width
 
         elements = set()

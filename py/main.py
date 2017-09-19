@@ -33,14 +33,14 @@ for i in range(layers_count):
 print(layers)
 model = fem.model.Model(geometry, layers, fem.model.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS)
 
-mesh = fem.mesh.Mesh.generate(model.geometry.width, layers, N, M)
-for element in mesh.nodes:
-    print(str(element))
-print(len(mesh.elements))
+mesh = fem.mesh.Mesh.generate(model.geometry.width, layers, N, M, model.boundary_conditions)
+# for element in mesh.nodes:
+#     print(str(element))
+# print(len(mesh.elements))
 
 
 result = fem.solver.solve(model, mesh)
-print(result.get_result(0))
+print(result.get_result(0)[0])
 
 # ind = 1;
 

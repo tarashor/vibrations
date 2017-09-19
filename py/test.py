@@ -34,11 +34,19 @@ print(isinstance(o1, MyClass))
 print(o1 == o2)
 
 s = {MyClass(1), MyClass(2), MyClass(1)}
-print(len(s))
+
+objs = filter(lambda item: item.a == 1, s)
+
+print(list(objs))
 
 d = {}
 for i in range(10):
     d[i] = MyClass(i)
+
+print(range(0, 10, 1))
+
+q = [1, 2, 3]
+print (q)
 
 print("==============NUMPY=====================")
 
@@ -55,7 +63,6 @@ print(A[np.ix_([0, 2], [0, 1])])
 # primes = [x for x in range(2, 50) if x not in noprimes]
 # print(primes)
 
-print(range(0, 10, 1))
 
 # from scipy.integrate import quad as q
 # # from scipy.integrate import fixed_quad as gq

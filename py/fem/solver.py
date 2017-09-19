@@ -20,19 +20,19 @@ def solve(model, mesh):
     s = stiffness_matrix(model, mesh)
     m = mass_matrix(model, mesh)
 
-    fixed_nodes = mesh.get_fixed_nodes()
-    s = apply_boundary_conditions(s, fixed_nodes)
-    m = apply_boundary_conditions(m, fixed_nodes)
+    fixed_nodes_indicies = mesh.get_fixed_nodes_indicies(model.boundary_conditions)
+    s = apply_boundary_conditions(s, fixed_nodes_indicies)
+    m = apply_boundary_conditions(m, fixed_nodes_indicies)
 
     lam, vec = la.eigh(s, m)
 
     return Result(lam, vec, mesh)
 
 
-def apply_boundary_conditions(matrix, fixed_nodes):
+def apply_boundary_conditions(matrix, fixed_nodes_indicies):
     if (matrix.shape[0] == matrix.shape[1]):
         all_nodes_count = matrix.shape[0]
-        free_nodes = [i for i in range(all_nodes_count) if i not in fixed_nodes]
+        free_nodes = [i for i in range(all_nodes_count) if i not in fixed_nodes_indicies]
         return matrix[np.ix_(free_nodes, free_nodes)]
 
 
