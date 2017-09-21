@@ -15,8 +15,8 @@ corrugation_frequency = 20
 
 layers_count = 1
 
-N = 100
-M = 10
+N = 10
+M = 2
 
 geometry = fem.model.Geometry(width, curvature, corrugation_amplitude, corrugation_frequency)
 
@@ -48,6 +48,7 @@ mesh = fem.mesh.Mesh.generate(model.geometry.width, layers, N, M, model.boundary
 
 result = fem.solver.solve(model, mesh)
 l,v = result.get_result(0)
+print(result.get_results_count())
 
 print(l)
 print(v)

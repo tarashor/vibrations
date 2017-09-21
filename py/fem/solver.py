@@ -11,10 +11,10 @@ class Result:
         self.model = model
 
     def get_results_count(self):
-        return self.lam
+        return np.sqrt(self.lam)
 
     def get_result(self, i):
-        return self.lam[i], self.vec[:, i]
+        return np.sqrt(self.lam[i]), self.vec[:, i]
 
 
 def solve(model, mesh):
@@ -31,7 +31,6 @@ def solve(model, mesh):
     m = mass_matrix(model, mesh)
     print("===MASS matrix: STARTED===")
 
-    
     s = apply_boundary_conditions(s, fixed_nodes_indicies)
     m = apply_boundary_conditions(m, fixed_nodes_indicies)
 
