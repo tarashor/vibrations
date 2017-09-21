@@ -36,7 +36,7 @@ class Layer:
         self.index_from_top = index_from_top
 
     def __repr__(self):
-        return "Layer({};{})".format(self.bottom, self.top)
+        return "Layer({:f};{:f})".format(self.bottom, self.top)
 
     def __hash__(self):
         return hash(self.top)

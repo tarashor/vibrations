@@ -16,7 +16,7 @@ class MeshNode(object):
         return hash(repr(self))
 
     def __repr__(self):
-        return "Node('{} - ({};{})')".format(self.index, self.x, self.y)
+        return "Node('{} - ({:f};{:f})')".format(self.index, self.x, self.y)
 
 
 class MeshElement(object):
@@ -98,7 +98,7 @@ class Mesh(object):
             for i in range(elements_height_per_layer):
                 x = 0
                 for j in range(elements_width):
-                    top_left_index = i * (elements_width + 1) + j
+                    top_left_index = (layer.index_from_top * elements_height_per_layer * (elements_width + 1)) + i * (elements_width + 1) + j
                     top_right_index = top_left_index + 1
                     bottom_left_index = top_left_index + elements_width + 1
                     botton_right_index = bottom_left_index + 1

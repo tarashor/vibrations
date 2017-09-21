@@ -1,4 +1,5 @@
 import numpy as np
+# from . import mesh as m
 from scipy import linalg as la
 
 
@@ -17,15 +18,26 @@ class Result:
 
 
 def solve(model, mesh):
-    s = stiffness_matrix(model, mesh)
-    m = mass_matrix(model, mesh)
-
+    print("==================Solver==================")
+    print("STARTED:")
+    
     fixed_nodes_indicies = mesh.get_fixed_nodes_indicies()
+    print("Fixed nodes: {}".format(fixed_nodes_indicies))
+    
+    print("===Stiffness matrix: STARTED===")
+    s = stiffness_matrix(model, mesh)
+    print("===Stiffness matrix: FINISHED===")
+    print("===MASS matrix: STARTED===")
+    m = mass_matrix(model, mesh)
+    print("===MASS matrix: STARTED===")
+
+    
     s = apply_boundary_conditions(s, fixed_nodes_indicies)
     m = apply_boundary_conditions(m, fixed_nodes_indicies)
 
     lam, vec = la.eigh(s, m)
-    print(lam)
+    print("FINISHED")
+    print("==================Solver==================")
     return Result(lam, vec, mesh, model)
 
 
@@ -54,10 +66,16 @@ def k_element_func(ksi, teta, element, material, geometry, N):
     E = grad_to_strain_linear_matrix()
     B = deriv_to_grad(alpha1, alpha2, geometry)
     I_e = ksiteta_to_alpha_matrix(element)
+    
+    SMALL_I = I_e.T.dot(B.T.dot(E.T.dot(C.dot(E.dot(B.dot(I_e))))))
+    
+    print('(e,t) - ({:f};{:f}) ==> (a1,a2) - ({:f};{:f})'.format(ksi, teta, alpha1, alpha2))
+    print(SMALL_I)
+    
     H = lin_aprox_matrix(ksi, teta, element, N)
     J = jacobian(element)
 
-    return H.T.dot(I_e.T.dot(B.T.dot(E.T.dot(C.dot(E.dot(B.dot(I_e.dot(H)))))))) * J
+    return H.T.dot(SMALL_I.dot(H)) * J
 
 
 def const_matrix_isotropic(alpha1, alpha2, geometry, material):
