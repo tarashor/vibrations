@@ -1,6 +1,7 @@
 import fem.model
 import fem.mesh
 import fem.solver
+import matplotlib.pyplot as plt
 
 
 # print(dir(fem.model))
@@ -47,11 +48,19 @@ mesh = fem.mesh.Mesh.generate(model.geometry.width, layers, N, M, model.boundary
 
 
 result = fem.solver.solve(model, mesh)
-l,v = result.get_result(0)
-print(result.get_results_count())
+l,v1,v2 = result.get_result(0)
 
-print(l)
-print(v)
+x=[]
+y=[]
+
+list_nodes = sorted(mesh.nodes, key=lambda n: n.index)
+for n in list_nodes:    
+   x.append(n.x + v1[n.index])
+   y.append(n.y+v2[n.index])
+
+plt.plot(x, y, 'ro')
+#plt.axis([-2, 2, -2, 2])
+plt.show()
 
 # ind = 1;
 

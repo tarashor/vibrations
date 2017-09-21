@@ -14,7 +14,7 @@ class Result:
         return np.sqrt(self.lam)
 
     def get_result(self, i):
-        return np.sqrt(self.lam[i]), self.vec[:, i]
+        return np.sqrt(self.lam[i]), self.vec[:, i] [1:self.mesh.nodes_count()], self.vec[:, i] [self.mesh.nodes_count():2*self.mesh.nodes_count()]
 
 
 def solve(model, mesh):
