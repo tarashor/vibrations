@@ -53,13 +53,14 @@ def stiffness_matrix(model, mesh):
     K = np.zeros((N, N))
     for element in mesh.elements:
         material = mesh.material_for_element(element)
-        K_element = quadgch5nodes2dim(k_element_func, element, material, model.geometry, N)
-        K += K_element
+        K_element = quadgch5nodes2dim(k_element_func, element, material, model.geometry)
+        
+        K += convertToGlobalMatrix(K_element, element, N)
 
     return K
 
 
-def k_element_func(ksi, teta, element, material, geometry, N):
+def k_element_func(ksi, teta, element, material, geometry):
     alpha1 = element.width() * ksi / 2 + (element.top_left.x + element.top_right.x) / 2
     alpha2 = element.height() * teta / 2 + (element.top_left.y + element.bottom_left.y) / 2
     C = const_matrix_isotropic(alpha1, alpha2, geometry, material)
@@ -67,15 +68,12 @@ def k_element_func(ksi, teta, element, material, geometry, N):
     B = deriv_to_grad(alpha1, alpha2, geometry)
     I_e = ksiteta_to_alpha_matrix(element)
     
-    SMALL_I = I_e.T.dot(B.T.dot(E.T.dot(C.dot(E.dot(B.dot(I_e))))))
-    
-    print('(e,t) - ({:f};{:f}) ==> (a1,a2) - ({:f};{:f})'.format(ksi, teta, alpha1, alpha2))
-    print(SMALL_I)
-    
-    H = lin_aprox_matrix(ksi, teta, element, N)
+    SMALL_I = I_e.T.dot(B.T).dot(E.T).dot(C).dot(E).dot(B).dot(I_e)
+        
+    H = lin_aprox_matrix(ksi, teta)
     J = jacobian(element)
 
-    return H.T.dot(SMALL_I.dot(H)) * J
+    return H.T.dot(SMALL_I).dot(H) * J
 
 
 def const_matrix_isotropic(alpha1, alpha2, geometry, material):
@@ -156,7 +154,7 @@ def ksiteta_to_alpha_matrix(element):
     return I_e
 
 
-def lin_aprox_matrix(ksi, teta, element, N):
+def lin_aprox_matrix(ksi, teta):
     f0 = 0.25 * (1 - ksi) * (1 + teta)
     f1 = 0.25 * (1 + ksi) * (1 + teta)
     f2 = 0.25 * (1 + ksi) * (1 - teta)
@@ -172,23 +170,21 @@ def lin_aprox_matrix(ksi, teta, element, N):
     f2_teta = -0.25 * (1 + ksi)
     f3_teta = -0.25 * (1 - ksi)
 
-    H = np.zeros((6, N))
-    d = N // 2
-    H[0, element.top_left_index] = f0
-    H[3, d + element.top_left_index] = f0
-    H[0, element.top_right_index] = H[3, d + element.top_right_index] = f1
-    H[0, element.bottom_right_index] = H[3, d + element.bottom_right_index] = f2
-    H[0, element.bottom_left_index] = H[3, d + element.bottom_left_index] = f3
+    H = np.zeros((6, 8))
+    H[0, 0] = H[3, 4] = f0
+    H[0, 1] = H[3, 5] = f1
+    H[0, 2] = H[3, 6] = f2
+    H[0, 3] = H[3, 7] = f3
 
-    H[1, element.top_left_index] = H[4, d + element.top_left_index] = f0_ksi
-    H[1, element.top_right_index] = H[4, d + element.top_right_index] = f1_ksi
-    H[1, element.bottom_right_index] = H[4, d + element.bottom_right_index] = f2_ksi
-    H[1, element.bottom_left_index] = H[4, d + element.bottom_left_index] = f3_ksi
+    H[1, 0] = H[4, 4] = f0_ksi
+    H[1, 1] = H[4, 5] = f1_ksi
+    H[1, 2] = H[4, 6] = f2_ksi
+    H[1, 3] = H[4, 7] = f3_ksi
 
-    H[2, element.top_left_index] = H[5, d + element.top_left_index] = f0_teta
-    H[2, element.top_right_index] = H[5, d + element.top_right_index] = f1_teta
-    H[2, element.bottom_right_index] = H[5, d + element.bottom_right_index] = f2_teta
-    H[2, element.bottom_left_index] = H[5, d + element.bottom_left_index] = f3_teta
+    H[2, 0] = H[5, 4] = f0_teta
+    H[2, 1] = H[5, 5] = f1_teta
+    H[2, 2] = H[5, 6] = f2_teta
+    H[2, 3] = H[5, 7] = f3_teta
 
     return H
 
@@ -196,24 +192,23 @@ def lin_aprox_matrix(ksi, teta, element, N):
 def jacobian(element):
     return 0.25 * element.width() * element.height()
 
-
 def mass_matrix(model, mesh):
     N = 2 * (mesh.nodes_count())
     M = np.zeros((N, N))
     for element in mesh.elements:
-        M_element = quadgch5nodes2dim(m_element_func, element, mesh.material_for_element(element), model.geometry, N)
-        M += M_element
+        M_element = quadgch5nodes2dim(m_element_func, element, mesh.material_for_element(element), model.geometry)
+        M += convertToGlobalMatrix(M_element, element, N)
 
     return M
 
 
-def m_element_func(ksi, teta, element, material, geometry, N):
+def m_element_func(ksi, teta, element, material, geometry):
     alpha1 = element.width() * ksi / 2 + (element.top_left.x + element.top_right.x) / 2
     alpha2 = element.height() * teta / 2 + (element.top_left.y + element.bottom_left.y) / 2
     G = metric_matrix(alpha1, alpha2, geometry)
     B_s = deriv_to_vect(alpha1, alpha2, geometry)
     I_e = ksiteta_to_alpha_matrix(element)
-    H = lin_aprox_matrix(ksi, teta, element, N)
+    H = lin_aprox_matrix(ksi, teta)
     J = jacobian(element)
 
     return material.rho * H.T.dot(I_e.T.dot(B_s.T.dot(G.dot(B_s.dot(I_e.dot(H)))))) * J
@@ -250,18 +245,46 @@ def get_g_11(alpha1, alpha2, geometry):
     return 1 / (w * w + z * z)
 
 
-def quadgch5nodes2dim(f, element, material, geometry, N):
+def quadgch5nodes2dim(f, element, material, geometry):
     order = 5
     w = [0.23692689, 0.47862867, 0.56888889, 0.47862867, 0.23692689]
     x = [-0.90617985, -0.53846931, 0, 0.53846931, 0.90617985]
 
-    res = np.zeros((N, N))
+    res = w[0] * w[0] * f(x[0], x[0], element, material, geometry)
 
     for i in range(order):
         for j in range(order):
-            res += w[i] * w[j] * f(x[i], x[j], element, material, geometry, N)
+            if (i != 0 and j != 0):
+                res += w[i] * w[j] * f(x[i], x[j], element, material, geometry)
 
     return res
+
+def map_local_to_global_matrix_index(local_index, element, N):
+    global_index = None
+    if (local_index % 4 == 0):
+        global_index = element.top_left_index
+    elif (local_index % 4 == 1):
+        global_index = element.top_right_index
+    elif (local_index % 4 == 2):
+        global_index = element.bottom_right_index
+    elif (local_index % 4 == 3):
+        global_index = element.bottom_left_index
+        
+    if (local_index // 4 == 1):
+        global_index += N // 2
+        
+    return global_index
+
+def convertToGlobalMatrix(local_matrix, element, N):
+    global_matrix = np.zeros((N,N))
+    rows, columns = local_matrix.shape
+    for i in range(rows):
+        for j in range(columns):
+            i_global = map_local_to_global_matrix_index(i, element, N)
+            j_global = map_local_to_global_matrix_index(j, element, N)
+            global_matrix[i_global, j_global] = local_matrix[i,j]
+            
+    return global_matrix
 
 # b=np.array([[1,2], [3,4]])
 # print(a.dot(b)==b)
