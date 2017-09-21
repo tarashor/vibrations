@@ -13,10 +13,10 @@ thickness = 0.1
 corrugation_amplitude = 0.03
 corrugation_frequency = 20
 
-layers_count = 5
+layers_count = 1
 
-N = 20
-M = 3
+N = 100
+M = 10
 
 geometry = fem.model.Geometry(width, curvature, corrugation_amplitude, corrugation_frequency)
 
@@ -30,19 +30,19 @@ for i in range(layers_count):
 
 # layers = tuple([layer])
 
-print(layers)
+#print(layers)
 
 model = fem.model.Model(geometry, layers, fem.model.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS)
 
 mesh = fem.mesh.Mesh.generate(model.geometry.width, layers, N, M, model.boundary_conditions)
 
-list_nodes = sorted(mesh.nodes, key=lambda n: n.index)
-for n in list_nodes:    
-    print(n)
-    
-list__fixed_nodes = sorted(mesh.get_fixed_nodes_indicies())
-for i in list__fixed_nodes:    
-    print(i)
+#list_nodes = sorted(mesh.nodes, key=lambda n: n.index)
+#for n in list_nodes:    
+#    print(n)
+#    
+#list__fixed_nodes = sorted(mesh.get_fixed_nodes_indicies())
+#for i in list__fixed_nodes:    
+#    print(i)
 
 
 
