@@ -27,6 +27,8 @@ class MyClass:
         return "{}".format(self.a)
 
 
+print(list(range(10, 100+1, 10)))
+
 o1 = MyClass(1)
 o2 = MyClass(1)
 
@@ -66,6 +68,13 @@ print(A + 1)
 print(np.insert(A, [0, 1, 3, 2], 5, axis=0))
 
 print(list(range(10)))
+
+
+v={1,2,5,3,2}
+print(v)
+v=sorted(v)
+print(v)
+
 # noprimes = [j for i in range(2, 8) for j in range(i * 2, 50, i)]
 # print(noprimes)
 # primes = [x for x in range(2, 50) if x not in noprimes]

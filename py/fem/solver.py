@@ -18,15 +18,15 @@ class Result:
 
 
 def solve(model, mesh):
-    print("==================Solver==================")
-    print("STARTED:")
+#    print("==================Solver==================")
+#    print("STARTED:")
 
-    print("===Stiffness matrix: STARTED===")
+#    print("===Stiffness matrix: STARTED===")
     s = stiffness_matrix(model, mesh)
-    print("===Stiffness matrix: FINISHED===")
-    print("===MASS matrix: STARTED===")
+#    print("===Stiffness matrix: FINISHED===")
+#    print("===MASS matrix: STARTED===")
     m = mass_matrix(model, mesh)
-    print("===MASS matrix: STARTED===")
+#    print("===MASS matrix: STARTED===")
 
     fixed_nodes_indicies = mesh.get_fixed_nodes_indicies()
 
@@ -36,8 +36,8 @@ def solve(model, mesh):
     lam, vec = la.eigh(s, m)
 
     vec = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count())
-    print("FINISHED")
-    print("==================Solver==================")
+#    print("FINISHED")
+#    print("==================Solver==================")
     return Result(lam, vec, mesh, model)
 
 
@@ -51,9 +51,9 @@ def remove_fixed_nodes(matrix, fixed_nodes_indicies, all_nodes_count):
 
 def extend_with_fixed_nodes(eig_vectors, fixed_nodes_indicies, all_nodes_count):
     indicies_to_exclude = i_exclude(fixed_nodes_indicies, all_nodes_count)
-    print("Exclude = {}".format(indicies_to_exclude))
+#    print("Exclude = {}".format(indicies_to_exclude))
 
-    print("eig_vectors.shape = {}".format(eig_vectors.shape))
+#    print("eig_vectors.shape = {}".format(eig_vectors.shape))
     res = eig_vectors
     for i in indicies_to_exclude:
         res = np.insert(res, i, 0, axis=0)
