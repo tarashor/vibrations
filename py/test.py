@@ -56,9 +56,16 @@ import numpy as np
 
 # print(np.cos(np.pi))
 
-A = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+A = np.array([[1, 2, 3],
+              [4, 5, 6],
+              [7, 8, 9]])
 
-print(A[np.ix_([0, 2], [0, 1])])
+# print(A[np.ix_([0, 2], [0, 1])])
+print(A + 1)
+
+print(np.insert(A, [0, 1, 3, 2], 5, axis=0))
+
+print(list(range(10)))
 # noprimes = [j for i in range(2, 8) for j in range(i * 2, 50, i)]
 # print(noprimes)
 # primes = [x for x in range(2, 50) if x not in noprimes]

@@ -13,11 +13,13 @@ thickness = 0.1
 
 corrugation_amplitude = 0.03
 corrugation_frequency = 20
+# corrugation_amplitude = 0
+# corrugation_frequency = 0
 
 layers_count = 1
 
-N = 10
-M = 2
+N = 40
+M = 11
 
 geometry = fem.model.Geometry(width, curvature, corrugation_amplitude, corrugation_frequency)
 
@@ -31,35 +33,43 @@ for i in range(layers_count):
 
 # layers = tuple([layer])
 
-#print(layers)
+# print(layers)
 
 model = fem.model.Model(geometry, layers, fem.model.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS)
 
 mesh = fem.mesh.Mesh.generate(model.geometry.width, layers, N, M, model.boundary_conditions)
 
-#list_nodes = sorted(mesh.nodes, key=lambda n: n.index)
-#for n in list_nodes:    
+# list_nodes = sorted(mesh.nodes, key=lambda n: n.index)
+# for n in list_nodes:
 #    print(n)
-#    
-#list__fixed_nodes = sorted(mesh.get_fixed_nodes_indicies())
-#for i in list__fixed_nodes:    
+#
+# list__fixed_nodes = sorted(mesh.get_fixed_nodes_indicies())
+# for i in list__fixed_nodes:
 #    print(i)
 
 
-
 result = fem.solver.solve(model, mesh)
-l,v1,v2 = result.get_result(0)
+l, v1, v2 = result.get_result(0)
 
-x=[]
-y=[]
+print(l)
+
+x = []
+y = []
 
 list_nodes = sorted(mesh.nodes, key=lambda n: n.index)
-for n in list_nodes:    
-   x.append(n.x + v1[n.index])
-   y.append(n.y+v2[n.index])
+print("Nodes = {}".format(len(mesh.nodes)))
+
+fn = mesh.fixed_nodes
+for n in fn:
+    print(n.x + v1[n.index])
+    print(n.y + v2[n.index])
+
+for n in list_nodes:
+    x.append(n.x + v1[n.index])
+    y.append(n.y + v2[n.index])
 
 plt.plot(x, y, 'ro')
-#plt.axis([-2, 2, -2, 2])
+# plt.axis([-2, 2, -2, 2])
 plt.show()
 
 # ind = 1;

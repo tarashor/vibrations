@@ -14,16 +14,13 @@ class Result:
         return np.sqrt(self.lam)
 
     def get_result(self, i):
-        return np.sqrt(self.lam[i]), self.vec[:, i] [1:self.mesh.nodes_count()], self.vec[:, i] [self.mesh.nodes_count():2*self.mesh.nodes_count()]
+        return np.sqrt(self.lam[i]), self.vec[:, i][0:self.mesh.nodes_count()], self.vec[:, i][self.mesh.nodes_count():2 * self.mesh.nodes_count()]
 
 
 def solve(model, mesh):
     print("==================Solver==================")
     print("STARTED:")
-    
-    fixed_nodes_indicies = mesh.get_fixed_nodes_indicies()
-    print("Fixed nodes: {}".format(fixed_nodes_indicies))
-    
+
     print("===Stiffness matrix: STARTED===")
     s = stiffness_matrix(model, mesh)
     print("===Stiffness matrix: FINISHED===")
@@ -31,20 +28,43 @@ def solve(model, mesh):
     m = mass_matrix(model, mesh)
     print("===MASS matrix: STARTED===")
 
-    s = apply_boundary_conditions(s, fixed_nodes_indicies)
-    m = apply_boundary_conditions(m, fixed_nodes_indicies)
+    fixed_nodes_indicies = mesh.get_fixed_nodes_indicies()
+
+    s = remove_fixed_nodes(s, fixed_nodes_indicies, mesh.nodes_count())
+    m = remove_fixed_nodes(m, fixed_nodes_indicies, mesh.nodes_count())
 
     lam, vec = la.eigh(s, m)
+
+    vec = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count())
     print("FINISHED")
     print("==================Solver==================")
     return Result(lam, vec, mesh, model)
 
 
-def apply_boundary_conditions(matrix, fixed_nodes_indicies):
-    if (matrix.shape[0] == matrix.shape[1]):
-        all_nodes_count = matrix.shape[0]
-        free_nodes = [i for i in range(all_nodes_count) if i not in fixed_nodes_indicies]
-        return matrix[np.ix_(free_nodes, free_nodes)]
+def remove_fixed_nodes(matrix, fixed_nodes_indicies, all_nodes_count):
+    indicies_to_exclude = i_exclude(fixed_nodes_indicies, all_nodes_count)
+
+    free_nodes1 = [i for i in range(matrix.shape[0]) if i not in indicies_to_exclude]
+    free_nodes2 = [i for i in range(matrix.shape[1]) if i not in indicies_to_exclude]
+    return matrix[np.ix_(free_nodes1, free_nodes2)]
+
+
+def extend_with_fixed_nodes(eig_vectors, fixed_nodes_indicies, all_nodes_count):
+    indicies_to_exclude = i_exclude(fixed_nodes_indicies, all_nodes_count)
+    print("Exclude = {}".format(indicies_to_exclude))
+
+    print("eig_vectors.shape = {}".format(eig_vectors.shape))
+    res = eig_vectors
+    for i in indicies_to_exclude:
+        res = np.insert(res, i, 0, axis=0)
+
+    return res
+
+
+def i_exclude(fixed_nodes_indicies, nodes_count):
+    fixed_u1_indicies = fixed_nodes_indicies
+    fixed_u2_indicies = [nodes_count + x for x in fixed_nodes_indicies]
+    return sorted(fixed_u1_indicies + fixed_u2_indicies)
 
 
 def stiffness_matrix(model, mesh):
@@ -53,7 +73,7 @@ def stiffness_matrix(model, mesh):
     for element in mesh.elements:
         material = mesh.material_for_element(element)
         K_element = quadgch5nodes2dim(k_element_func, element, material, model.geometry)
-        
+
         K += convertToGlobalMatrix(K_element, element, N)
 
     return K
@@ -66,9 +86,9 @@ def k_element_func(ksi, teta, element, material, geometry):
     E = grad_to_strain_linear_matrix()
     B = deriv_to_grad(alpha1, alpha2, geometry)
     I_e = ksiteta_to_alpha_matrix(element)
-    
+
     SMALL_I = I_e.T.dot(B.T).dot(E.T).dot(C).dot(E).dot(B).dot(I_e)
-        
+
     H = lin_aprox_matrix(ksi, teta)
     J = jacobian(element)
 
@@ -191,6 +211,7 @@ def lin_aprox_matrix(ksi, teta):
 def jacobian(element):
     return 0.25 * element.width() * element.height()
 
+
 def mass_matrix(model, mesh):
     N = 2 * (mesh.nodes_count())
     M = np.zeros((N, N))
@@ -258,6 +279,7 @@ def quadgch5nodes2dim(f, element, material, geometry):
 
     return res
 
+
 def map_local_to_global_matrix_index(local_index, element, N):
     global_index = None
     if (local_index % 4 == 0):
@@ -268,21 +290,22 @@ def map_local_to_global_matrix_index(local_index, element, N):
         global_index = element.bottom_right_index
     elif (local_index % 4 == 3):
         global_index = element.bottom_left_index
-        
+
     if (local_index // 4 == 1):
         global_index += N // 2
-        
+
     return global_index
 
+
 def convertToGlobalMatrix(local_matrix, element, N):
-    global_matrix = np.zeros((N,N))
+    global_matrix = np.zeros((N, N))
     rows, columns = local_matrix.shape
     for i in range(rows):
         for j in range(columns):
             i_global = map_local_to_global_matrix_index(i, element, N)
             j_global = map_local_to_global_matrix_index(j, element, N)
-            global_matrix[i_global, j_global] = local_matrix[i,j]
-            
+            global_matrix[i_global, j_global] = local_matrix[i, j]
+
     return global_matrix
 
 # b=np.array([[1,2], [3,4]])
