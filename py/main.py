@@ -1,15 +1,24 @@
 import fem.model
 import fem.mesh
 import fem.solver
-import csv
+import utils
 import matplotlib.pyplot as plt
 from matplotlib import cm
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 
 
-def get_lowest_freq(width, thickness, curvature, corrugation_amplitude, corrugation_frequency, layers_count, N, M):
+def solve(width, curvature, corrugation_amplitude, corrugation_frequency, layers, N, M):
     geometry = fem.model.Geometry(width, curvature, corrugation_amplitude, corrugation_frequency)
+
+    model = fem.model.Model(geometry, layers, fem.model.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS)
+
+    mesh = fem.mesh.Mesh.generate(model.geometry.width, layers, N, M, model.boundary_conditions)
+
+    return fem.solver.solve(model, mesh)
+
+
+def get_lowest_freq(width, thickness, curvature, corrugation_amplitude, corrugation_frequency, layers_count, N, M):
 
     layer_top = thickness / 2
     layer_thickness = thickness / layers_count
@@ -19,34 +28,48 @@ def get_lowest_freq(width, thickness, curvature, corrugation_amplitude, corrugat
         layers.add(layer)
         layer_top -= layer_thickness
 
-    model = fem.model.Model(geometry, layers, fem.model.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS)
+    result = solve(width, curvature, corrugation_amplitude, corrugation_frequency, layers, N, M)
 
-    mesh = fem.mesh.Mesh.generate(model.geometry.width, layers, N, M, model.boundary_conditions)
+    return result.get_result(0)
 
-    result = fem.solver.solve(model, mesh)
+def plot_sample(width, thickness, curvature, corrugation_amplitude, corrugation_frequency, layers_count, N, M):
+    l, v1, v2, nodes = get_lowest_freq(width, thickness, curvature, corrugation_amplitude, corrugation_frequency, layers_count, N, M)
+    print(l)
 
-    l, v1, v2 = result.get_result(0)
-    return l
+    x = []
+    y = []
 
+    list_nodes = sorted(nodes, key=lambda n: n.index)
 
-def save_in_file(file_name, data):
-    with open(file_name, 'w', newline='') as csvfile:
-        writer = csv.writer(csvfile)
-        for line in data:
-            writer.writerow(line)
+    for n in list_nodes:
+        x.append(n.x + v1[n.index])
+        y.append(n.y + v2[n.index])
 
+    plt.plot(x, y, 'ro')
+    plt.show()
 
-def read_from_file(file_name):
+def calculate_data_freq_from_NxM(width, thickness, curvature, corrugation_amplitude, corrugation_frequency, layers_count, N_max, M_max):
     data = []
-    with open(file_name, 'r') as csvfile:
-        reader = csv.reader(csvfile)
-        for line in reader:
-            data.append(line)
 
+    for n in range(10, N_max+1, 10):
+        for m in range(2, M_max+1, 2):
+            l, v1, v2, nodes = get_lowest_freq(width, thickness, curvature, corrugation_amplitude, corrugation_frequency, layers_count, n, m)
+            data.append([n,m,l])
+            
     return data
 
+def calculate_data_freq_from_layers_count(width, thickness, curvature, corrugation_amplitude, corrugation_frequency, N, M, layers_count_max):
+    data = []
 
-def plot_converg(data):
+    for lc in range(layers_count_max+1):
+        l, v1, v2, nodes = get_lowest_freq(width, thickness, curvature, corrugation_amplitude, corrugation_frequency, lc, N, M)
+        data.append([lc, l])
+            
+    return data
+    
+
+
+def plot_freq_from_NxM(data):
     # Make data.
     n = set()
     m = set()
@@ -76,6 +99,10 @@ def plot_converg(data):
     fig.colorbar(surf, shrink=0.5, aspect=5)
 
     plt.show()
+    
+    
+def plot_freq_from_layers_count(data):
+    pass
 
 
 width = 1
@@ -85,56 +112,32 @@ thickness = 0.08
 corrugation_amplitude = 0.03
 corrugation_frequency = 20
 
-layers_count = 1
 
-N = 70
-M = 10
+freq_from_NM_file = "freq_from_NxM"
+freq_from_layers_file = "freq_from_layers_count"
 
-freq_from_NM_file = "data.csv"
+freq_from_NM_file_done = "freq_from_NxM_done"
+freq_from_layers_file_done = "freq_from_layers_count_done"
 
-# data = []
-#
-# for n in range(10, N+1, 10):
-#    for m in range(2, M+1, 2):
-#        l = get_lowest_freq(width, thickness, curvature, corrugation_amplitude, corrugation_frequency, layers_count, n, m)
-#        data.append([n,m,l])
-#
-# save_in_file(freq_from_NM_file, data)
+layers_count_default = 1
+N_default = 70
+M_default = 10
 
-# data = read_from_file(freq_from_NM_file)
+# 1
+#data = calculate_data_freq_from_NxM(width, thickness, curvature, corrugation_amplitude, corrugation_frequency, layers_count_default, 100, 20)
+#utils.save_in_file(freq_from_NM_file, data)
 
-# plot_converg(data)
+# 2
+data = utils.read_from_file(freq_from_NM_file_done)
+plot_freq_from_NxM(data)
 
-freq_from_layers_file = "freq_from_layers_file2.csv"
+# 3
+#data = calculate_data_freq_from_layers_count(width, thickness, curvature, corrugation_amplitude, corrugation_frequency, N_default, M_default, 5)
+#utils.save_in_file(freq_from_layers_file, data)
 
-data = []
+# 4
+#data = utils.read_from_file(freq_from_layers_file_done)
+#plot_freq_from_layers_count(data)
 
-for lc in range(5, 11):
-    l = get_lowest_freq(width, thickness, curvature, corrugation_amplitude, corrugation_frequency, lc, N, M)
-    print("{} - {}".format(lc, l))
-
-    data.append([lc, l])
-
-save_in_file(freq_from_layers_file, data)
-
-
-# print(l)
-#
-#x = []
-#y = []
-#
-#list_nodes = sorted(mesh.nodes, key=lambda n: n.index)
-#print("Nodes = {}".format(len(mesh.nodes)))
-#
-#fn = mesh.fixed_nodes
-# for n in fn:
-#    print(n.x + v1[n.index])
-#    print(n.y + v2[n.index])
-#
-# for n in list_nodes:
-#    x.append(n.x + v1[n.index])
-#    y.append(n.y + v2[n.index])
-#
-#plt.plot(x, y, 'ro')
-## plt.axis([-2, 2, -2, 2])
-# plt.show()
+# 5
+#plot_sample(width, thickness, curvature, corrugation_amplitude, corrugation_frequency, layers_count_default, N_default, M_default)

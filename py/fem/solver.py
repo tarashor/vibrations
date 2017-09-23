@@ -11,10 +11,13 @@ class Result:
         self.model = model
 
     def get_results_count(self):
-        return np.sqrt(self.lam)
+        return len(self.lam)
+    
+    def get_nodes(self):
+        return self.mesh.nodes
 
     def get_result(self, i):
-        return np.sqrt(self.lam[i]), self.vec[:, i][0:self.mesh.nodes_count()], self.vec[:, i][self.mesh.nodes_count():2 * self.mesh.nodes_count()]
+        return np.sqrt(self.lam[i]), self.vec[:, i][0:self.mesh.nodes_count()], self.vec[:, i][self.mesh.nodes_count():2 * self.mesh.nodes_count()], self.mesh.nodes
 
 
 def solve(model, mesh):
@@ -42,9 +45,6 @@ def remove_fixed_nodes(matrix, fixed_nodes_indicies, all_nodes_count):
 
 def extend_with_fixed_nodes(eig_vectors, fixed_nodes_indicies, all_nodes_count):
     indicies_to_exclude = i_exclude(fixed_nodes_indicies, all_nodes_count)
-#    print("Exclude = {}".format(indicies_to_exclude))
-
-#    print("eig_vectors.shape = {}".format(eig_vectors.shape))
     res = eig_vectors
     for i in indicies_to_exclude:
         res = np.insert(res, i, 0, axis=0)
@@ -88,7 +88,7 @@ def k_element_func(ksi, teta, element, material, geometry):
 
 def const_matrix_isotropic(alpha1, alpha2, geometry, material):
     C = np.zeros((6, 6))
-    g11 = get_g_11(alpha1, alpha2, geometry)
+    g11 = geometry.get_g_11(alpha1, alpha2)
     v = material.v
 
     C[0, 0] = g11 * g11 * (1 - v)
@@ -123,12 +123,7 @@ def grad_to_strain_linear_matrix():
 def deriv_to_grad(alpha1, alpha2, geometry):
     B = np.zeros((9, 12))
 
-    q, a, w, z = get_metric_tensor_components(alpha1, alpha2, geometry)
-
-    G111 = 2 * z * geometry.curvature / w
-    G211 = -geometry.corrugation_amplitude * geometry.corrugation_frequency * geometry.corrugation_frequency * geometry.curvature * geometry.curvature * np.cos(geometry.corrugation_frequency * a) - w * geometry.curvature - 2 * z * z * geometry.curvature / w
-    G112 = geometry.curvature / q
-    G121 = G112
+    G111, G211, G112, G121 = geometry.get_G(alpha1, alpha2)
 
     B[0, 0] = -G111
     B[0, 1] = 1
@@ -226,9 +221,8 @@ def m_element_func(ksi, teta, element, material, geometry):
 
 
 def metric_matrix(alpha1, alpha2, geometry):
-
     G = np.zeros((3, 3))
-    G[0, 0] = get_g_11(alpha1, alpha2, geometry)
+    G[0, 0] = geometry.get_g_11(alpha1, alpha2)
     G[1, 1] = 1
     G[2, 2] = 1
 
@@ -241,19 +235,6 @@ def deriv_to_vect(alpha1, alpha2, geometry):
     B[0, 0] = B[1, 4] = B[2, 8] = 1
 
     return B[np.ix_([0, 1], [0, 1, 2, 4, 5, 6])]
-
-
-def get_metric_tensor_components(alpha1, alpha2, geometry):
-    q = 1 + geometry.curvature * alpha2
-    a = (np.pi + geometry.curvature * geometry.width) / 2 - geometry.curvature * alpha1
-    w = q + geometry.corrugation_amplitude * geometry.curvature * np.cos(geometry.corrugation_frequency * a)
-    z = geometry.corrugation_amplitude * geometry.corrugation_frequency * geometry.curvature * np.sin(geometry.corrugation_frequency * a)
-    return q, a, w, z
-
-
-def get_g_11(alpha1, alpha2, geometry):
-    q, a, w, z = get_metric_tensor_components(alpha1, alpha2, geometry)
-    return 1 / (w * w + z * z)
 
 
 def quadgch5nodes2dim(f, element, material, geometry):
@@ -299,5 +280,3 @@ def convertToGlobalMatrix(local_matrix, element, N):
 
     return global_matrix
 
-# b=np.array([[1,2], [3,4]])
-# print(a.dot(b)==b)
