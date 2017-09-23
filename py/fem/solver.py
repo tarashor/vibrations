@@ -18,15 +18,8 @@ class Result:
 
 
 def solve(model, mesh):
-#    print("==================Solver==================")
-#    print("STARTED:")
-
-#    print("===Stiffness matrix: STARTED===")
     s = stiffness_matrix(model, mesh)
-#    print("===Stiffness matrix: FINISHED===")
-#    print("===MASS matrix: STARTED===")
     m = mass_matrix(model, mesh)
-#    print("===MASS matrix: STARTED===")
 
     fixed_nodes_indicies = mesh.get_fixed_nodes_indicies()
 
@@ -36,8 +29,6 @@ def solve(model, mesh):
     lam, vec = la.eigh(s, m)
 
     vec = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count())
-#    print("FINISHED")
-#    print("==================Solver==================")
     return Result(lam, vec, mesh, model)
 
 
