@@ -223,7 +223,7 @@ def plot_freq_from_NxM(data):
 
     surf = ax.plot_surface(n, m, z, cmap=cm.rainbow)
 
-    ax.set_yticks(np.arange(2, 21, 2))
+    ax.set_yticks(np.arange(4, 17, 2))
     ax.set_xlabel(r'$N$', fontsize=14)
     ax.set_ylabel(r'$M$', fontsize=14)
     ax.set_zlabel(r'$\omega_{min}  $', fontsize=14)
@@ -269,16 +269,16 @@ freq_from_NM_file_done = "freq_from_NxM_done"
 freq_from_layers_file_done = "freq_from_layers_count_done"
 
 layers_count_default = 1
-N_default = 40
-M_default = 6
+N_default = 240
+M_default = 16
 
 # 1
 #data = calculate_data_freq_from_NxM(width, thickness, curvature, corrugation_amplitude, corrugation_frequency, layers_count_default, 240, 16)
 #utils.save_in_file(freq_from_NM_file, data)
 
 # 2
-# data = utils.read_from_file(freq_from_NM_file_done)
-# plot_freq_from_NxM(data)
+data = utils.read_from_file(freq_from_NM_file_done)
+plot_freq_from_NxM(data)
 
 # 3
 # data = calculate_data_freq_from_layers_count(width, thickness, curvature, corrugation_amplitude, corrugation_frequency, N_default, M_default, 5)
@@ -289,10 +289,10 @@ M_default = 6
 #plot_freq_from_layers_count(data)
 
 # 5
-# plot_sample(width, thickness, curvature, corrugation_amplitude, corrugation_frequency, layers_count_default, N_default, M_default)
+#plot_sample(width, thickness, curvature, corrugation_amplitude, corrugation_frequency, layers_count_default, N_default, M_default)
 
 # 6
 #plot_init_geometry(width, thickness, curvature, corrugation_amplitude, corrugation_frequency, layers_count_default, N_default, M_default)
 
 # 7
-plot_freq_from_corrugation_frequency(width, thickness, curvature, corrugation_amplitude, [2,4,6,8,10,12,16,20,26,50,80,100], layers_count_default, N_default, M_default)
+#plot_freq_from_corrugation_frequency(width, thickness, curvature, corrugation_amplitude, [2,4,6,8,10,12,16,20,26,50,80,100], layers_count_default, N_default, M_default)
