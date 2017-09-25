@@ -74,10 +74,10 @@ def plot_init_geometry(width, thickness, curvature, corrugation_amplitude, corru
     # # plt.axis([-2, 2, -2, 2])
     # plt.show()
 
-    X_bottom = []
-    Y_bottom = []
-    X_top = []
-    Y_top = []
+    X_init = []
+    Y_init = []
+    X_deformed = []
+    Y_deformed = []
 
     for i in range(N + 1):
         ind = (layers_count * M) * (N + 1) + i
@@ -91,8 +91,8 @@ def plot_init_geometry(width, thickness, curvature, corrugation_amplitude, corru
             x = (1 / curvature + y + corrugation_amplitude * np.cos(corrugation_frequency * ar)) * np.cos(ar)
             y = (1 / curvature + y + corrugation_amplitude * np.cos(corrugation_frequency * ar)) * np.sin(ar)
 
-        X_bottom.append(x)
-        Y_bottom.append(y)
+        X_init.append(x)
+        Y_init.append(y)
 
         x = lnodes[ind].x + v1[lnodes[ind].index]
         y = lnodes[ind].y + v2[lnodes[ind].index]
@@ -101,13 +101,45 @@ def plot_init_geometry(width, thickness, curvature, corrugation_amplitude, corru
             x = (1 / curvature + y + corrugation_amplitude * np.cos(corrugation_frequency * ar)) * np.cos(ar)
             y = (1 / curvature + y + corrugation_amplitude * np.cos(corrugation_frequency * ar)) * np.sin(ar)
 
-        X_top.append(x)
-        Y_top.append(y)
+        X_deformed.append(x)
+        Y_deformed.append(y)
+        
+    for i in range(N + 1):
+        ind = N - i
 
-    plt.plot(X_bottom, Y_bottom, label="початкова конфігурація")
-    plt.plot(X_top, Y_top, label="поточна конфігурація")
+        x = lnodes[ind].x
+        y = lnodes[ind].y
+
+        if (curvature > 0):
+            ar = (np.pi + curvature * width) / 2 - x * curvature
+            x = (1 / curvature + y + corrugation_amplitude * np.cos(corrugation_frequency * ar)) * np.cos(ar)
+            y = (1 / curvature + y + corrugation_amplitude * np.cos(corrugation_frequency * ar)) * np.sin(ar)
+
+        X_init.append(x)
+        Y_init.append(y)
+
+        x = lnodes[ind].x + v1[lnodes[ind].index]
+        y = lnodes[ind].y + v2[lnodes[ind].index]
+        if (curvature > 0):
+            ar = (np.pi + curvature * width) / 2 - x * curvature
+            x = (1 / curvature + y + corrugation_amplitude * np.cos(corrugation_frequency * ar)) * np.cos(ar)
+            y = (1 / curvature + y + corrugation_amplitude * np.cos(corrugation_frequency * ar)) * np.sin(ar)
+
+        X_deformed.append(x)
+        Y_deformed.append(y)
+        
+    X_init.append(X_init[0])
+    Y_init.append(Y_init[0])
+    X_deformed.append(X_deformed[0])
+    Y_deformed.append(Y_deformed[0])
+
+    plt.plot(X_init, Y_init, label="початкова конфігурація")
+#    plt.plot(X_deformed, Y_deformed, label="поточна конфігурація")
+#    plt.title("Деформації при {}-ій власній частоті".format(3))
+    plt.title(r"Форма панелі з такими параметрами $l={}, h={}, K={}, g_A={}, g_v={}$".format(width, thickness, curvature, corrugation_amplitude, corrugation_frequency))
+    plt.axis([-1, 1, 3, 5])
     plt.legend(loc='best')
-    # plt.axis([, 160, 0, 0.03])
+    plt.grid()
     plt.show()
 
 
@@ -115,6 +147,26 @@ def plot_sample(width, thickness, curvature, corrugation_amplitude, corrugation_
     l, v1, v2, nodes = get_lowest_freq(width, thickness, curvature, corrugation_amplitude, corrugation_frequency, layers_count, N, M)
     print(l)
     plot_displacement_norm(v1, v2, nodes, layers_count, N, M)
+    
+def plot_freq_from_corrugation_frequency(width, thickness, curvature, corrugation_amplitude, corrugation_frequencies, layers_count, N, M):
+    cfs=[]
+    ls=[]
+
+    for cf in corrugation_frequencies:    
+        l, v1, v2, nodes = get_lowest_freq(width, thickness, curvature, corrugation_amplitude, cf, layers_count, N, M)
+#        print("{},{}".format(cf, l))
+#        data.append([cf, l])
+        
+        cfs.append(cf)
+        ls.append(l)
+        
+    plt.plot(cfs, ls, 'o-')
+    plt.xlabel(r"$g_v$")
+    plt.ylabel(r"$\omega_{min}$")
+    plt.title(r"Залежність $\omega_{min}$ від $g_v$" + r"($N={}, M={}$)".format(N,M))
+    plt.grid()
+    plt.show()
+
 
 
 def calculate_data_freq_from_NxM(width, thickness, curvature, corrugation_amplitude, corrugation_frequency, layers_count, N_max, M_max):
@@ -186,7 +238,20 @@ def plot_freq_from_NxM(data):
 
 
 def plot_freq_from_layers_count(data):
-    pass
+    x = []
+    y = []
+    for line in data:
+        x.append(int(line[0]))
+        y.append(float(line[1]))
+
+
+            
+    plt.plot(x, y)
+    plt.xlabel("Кількість шарів")
+    plt.ylabel(r"$\omega_{min}$")
+    plt.title(r"Залежність $\omega_{min}$ від к-сті шарів сталі ($M=70, N=10, h=0.05$)")
+    plt.grid()
+    plt.show()
 
 
 width = 2
@@ -204,12 +269,12 @@ freq_from_NM_file_done = "freq_from_NxM_done"
 freq_from_layers_file_done = "freq_from_layers_count_done"
 
 layers_count_default = 1
-N_default = 100
-M_default = 4
+N_default = 40
+M_default = 6
 
 # 1
-data = calculate_data_freq_from_NxM(width, thickness, curvature, corrugation_amplitude, corrugation_frequency, layers_count_default, 240, 16)
-utils.save_in_file(freq_from_NM_file, data)
+#data = calculate_data_freq_from_NxM(width, thickness, curvature, corrugation_amplitude, corrugation_frequency, layers_count_default, 240, 16)
+#utils.save_in_file(freq_from_NM_file, data)
 
 # 2
 # data = utils.read_from_file(freq_from_NM_file_done)
@@ -220,11 +285,14 @@ utils.save_in_file(freq_from_NM_file, data)
 # utils.save_in_file(freq_from_layers_file, data)
 
 # 4
-# data = utils.read_from_file(freq_from_layers_file_done)
-# plot_freq_from_layers_count(data)
+#data = utils.read_from_file(freq_from_layers_file_done)
+#plot_freq_from_layers_count(data)
 
 # 5
 # plot_sample(width, thickness, curvature, corrugation_amplitude, corrugation_frequency, layers_count_default, N_default, M_default)
 
 # 6
-# plot_init_geometry(width, thickness, curvature, corrugation_amplitude, corrugation_frequency, layers_count_default, N_default, M_default)
+#plot_init_geometry(width, thickness, curvature, corrugation_amplitude, corrugation_frequency, layers_count_default, N_default, M_default)
+
+# 7
+plot_freq_from_corrugation_frequency(width, thickness, curvature, corrugation_amplitude, [2,4,6,8,10,12,16,20,26,50,80,100], layers_count_default, N_default, M_default)
