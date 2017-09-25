@@ -30,7 +30,7 @@ def get_lowest_freq(width, thickness, curvature, corrugation_amplitude, corrugat
 
     result = solve(width, curvature, corrugation_amplitude, corrugation_frequency, layers, N, M)
 
-    return result.get_result(1)
+    return result.get_result(0)
 
 
 def plot_displacement_norm(v1, v2, nodes, layers_count, N, M):
@@ -120,10 +120,10 @@ def plot_sample(width, thickness, curvature, corrugation_amplitude, corrugation_
 def calculate_data_freq_from_NxM(width, thickness, curvature, corrugation_amplitude, corrugation_frequency, layers_count, N_max, M_max):
     data = []
 
-    for n in range(180, N_max + 1, 20):
-        for m in range(4, M_max + 1, 2):
+    for n in range(40, N_max + 1, 40):
+        for m in range(4, M_max + 1, 4):
             l, v1, v2, nodes = get_lowest_freq(width, thickness, curvature, corrugation_amplitude, corrugation_frequency, layers_count, n, m)
-            print("{}, {} = {}".format(n, m, l))
+            print("{},{},{}".format(n, m, l))
             data.append([n, m, l])
 
     return data
@@ -208,7 +208,7 @@ N_default = 100
 M_default = 4
 
 # 1
-data = calculate_data_freq_from_NxM(width, thickness, curvature, corrugation_amplitude, corrugation_frequency, layers_count_default, 240, 14)
+data = calculate_data_freq_from_NxM(width, thickness, curvature, corrugation_amplitude, corrugation_frequency, layers_count_default, 240, 16)
 utils.save_in_file(freq_from_NM_file, data)
 
 # 2
