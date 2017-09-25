@@ -12,7 +12,7 @@ class Result:
 
     def get_results_count(self):
         return len(self.lam)
-    
+
     def get_nodes(self):
         return self.mesh.nodes
 
@@ -279,4 +279,3 @@ def convertToGlobalMatrix(local_matrix, element, N):
             global_matrix[i_global, j_global] = local_matrix[i, j]
 
     return global_matrix
-
