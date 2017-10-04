@@ -19,12 +19,12 @@ function [ oArgs ] = MassMatrix(model, geom, N, M)
   MassMatrix = zeros(2*(N+1)*(M+1), 2*(N+1)*(M+1));
 
 	for i=1:feCount
-    alpha1start = (rem(i,N)-1)*lDelta;
+    alpha1start = (rem(i,N))*lDelta;
     alpha1end = alpha1start + lDelta;
-    alpha2start = hTop-(fix(i/N) + 1)*hDelta;
-    alpha2end = alpha2start + hDelta;
+    alpha2end = hTop-(fix((i-1)/N))*hDelta;
+    alpha2start = alpha2end - hDelta;
     
-		localMatrix = GetLocalMassMatrix(l, curvature, gA, gV, E, v, alpha1start, alpha1end, alpha2start, alpha2end);
+		localMatrix = rho*GetLocalMassMatrix(l, curvature, gA, gV, E, v, alpha1start, alpha1end, alpha2start, alpha2end);
 		MassMatrix = SumMatrix(MassMatrix, localMatrix, i, N, M);
 	end
 	oArgs = MassMatrix;

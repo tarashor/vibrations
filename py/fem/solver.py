@@ -246,7 +246,7 @@ def quadgch5nodes2dim(f, element, material, geometry):
 
     for i in range(order):
         for j in range(order):
-            if (i != 0 and j != 0):
+            if (i != 0 or j != 0):
                 res += w[i] * w[j] * f(x[i], x[j], element, material, geometry)
 
     return res
