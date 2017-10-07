@@ -30,7 +30,7 @@ def get_lowest_freq(width, thickness, curvature, corrugation_amplitude, corrugat
 
     result = solve(width, curvature, corrugation_amplitude, corrugation_frequency, layers, N, M)
 
-    return result.get_result(0)
+    return result.get_result()
 
 
 def plot_displacement_norm(v1, v2, nodes, layers_count, N, M):
@@ -64,8 +64,8 @@ def plot_init_geometry(width, thickness, curvature, corrugation_amplitude, corru
     l, v1, v2, nodes = get_lowest_freq(width, thickness, curvature, corrugation_amplitude, corrugation_frequency, layers_count, N, M)
 
     print("Min freq = {}".format(l))
-    print("v1 = {}".format(v1))
-    print("v2 = {}".format(v2))
+    # print("v1 = {}".format(v1))
+    # print("v2 = {}".format(v2))
 
     lnodes = sorted(nodes, key=lambda n: n.index)
     # d1 = []
@@ -257,7 +257,7 @@ def plot_freq_from_layers_count(data):
 
 
 width = 2
-curvature = 0
+curvature = 0.8
 thickness = 0.05
 
 corrugation_amplitude = 0.03
@@ -271,7 +271,7 @@ freq_from_NM_file_done = "freq_from_NxM_done"
 freq_from_layers_file_done = "freq_from_layers_count_done"
 
 layers_count_default = 1
-N_default = 20
+N_default = 40
 M_default = 4
 
 # 1

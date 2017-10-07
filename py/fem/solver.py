@@ -20,7 +20,22 @@ class Result:
         return np.sqrt(self.lam[i]), self.vec[:, i][0:self.mesh.nodes_count()], self.vec[:, i][self.mesh.nodes_count():2 * self.mesh.nodes_count()], self.mesh.nodes
 
 
+class NonlinearResult:
+    def __init__(self, lam, vec, mesh, model):
+        self.lam = lam
+        self.vec = vec
+        self.mesh = mesh
+        self.model = model
+
+    def get_nodes(self):
+        return self.mesh.nodes
+
+    def get_result(self):
+        return np.sqrt(self.lam), self.vec[0:self.mesh.nodes_count()], self.vec[self.mesh.nodes_count():2 * self.mesh.nodes_count()], self.mesh.nodes
+
+
 def solve(model, mesh):
+
     s = stiffness_matrix(model, mesh)
     m = mass_matrix(model, mesh)
 
@@ -31,8 +46,22 @@ def solve(model, mesh):
 
     lam, vec = la.eigh(s, m)
 
-    vec = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count())
-    return Result(lam, vec, mesh, model)
+    res = extend_with_fixed_nodes(vec[:, 0], fixed_nodes_indicies, mesh.nodes_count())
+    res_prev = np.zeros(res.shape)
+
+    eps = 0.1
+    i = 0
+    while (np.linalg.norm(res - res_prev) > eps and i < 20):
+        res_prev = res
+        # print(res_prev.T.shape)
+        s_nl = stiffness_nl_matrix(res_prev, model, mesh)
+        s_nl = remove_fixed_nodes(s_nl, fixed_nodes_indicies, mesh.nodes_count())
+        l_nl, vec_nl = la.eigh(s + s_nl, m)
+        print("Freq nl = {}".format(l_nl[0]))
+        res = extend_with_fixed_nodes(vec_nl[:, 0], fixed_nodes_indicies, mesh.nodes_count())
+        i += 1
+
+    return NonlinearResult(lam[0], res, mesh, model)
 
 
 def remove_fixed_nodes(matrix, fixed_nodes_indicies, all_nodes_count):
@@ -58,6 +87,20 @@ def i_exclude(fixed_nodes_indicies, nodes_count):
     return sorted(fixed_u1_indicies + fixed_u2_indicies)
 
 
+def stiffness_nl_matrix(res_prev, model, mesh):
+    N = 2 * (mesh.nodes_count())
+    K = np.zeros((N, N))
+    for element in mesh.elements:
+        material = mesh.material_for_element(element)
+        # print(element)
+        # print(res_prev.shape)
+        K_element = quadgch5nodes2dim_prev_res(k_nl_element_func, element, material, model.geometry, res_prev)
+
+        K += convertToGlobalMatrix(K_element, element, N)
+
+    return K
+
+
 def stiffness_matrix(model, mesh):
     N = 2 * (mesh.nodes_count())
     K = np.zeros((N, N))
@@ -70,6 +113,53 @@ def stiffness_matrix(model, mesh):
     return K
 
 
+def k_nl_element_func(ksi, teta, element, material, geometry, res):
+    alpha1 = element.width() * ksi / 2 + (element.top_left.x + element.top_right.x) / 2
+    alpha2 = element.height() * teta / 2 + (element.top_left.y + element.bottom_left.y) / 2
+    C = const_matrix_isotropic(alpha1, alpha2, geometry, material)
+    E = grad_to_strain_linear_matrix()
+    B = deriv_to_grad(alpha1, alpha2, geometry)
+    I_e = ksiteta_to_alpha_matrix(element)
+
+    H = lin_aprox_matrix(ksi, teta)
+    J = jacobian(element)
+
+    u_e = np.zeros(8)
+
+    for i in range(8):
+        i_g = map_local_to_global_matrix_index(i, element, res.shape[0])
+        u_e[i] = res[i_g]
+
+    grad_u = B.dot(I_e).dot(H).dot(u_e)
+    # print(grad_u)
+    E_NL = strain_nonlinear_part(alpha1, alpha2, geometry, grad_u)
+
+    return H.T.dot(I_e.T).dot(B.T).dot(E_NL.T).dot(C).dot(E).dot(B).dot(I_e).dot(H) * J + 0.5 * H.T.dot(I_e.T).dot(B.T).dot(E.T).dot(C).dot(E_NL).dot(B).dot(I_e).dot(H) * J
+
+
+def strain_nonlinear_part(alpha1, alpha2, geometry, grad_u):
+    E = np.zeros((6, 9))
+    g11 = geometry.get_g_11(alpha1, alpha2)
+
+    E[0, 0] = g11 * grad_u[0]
+    E[0, 3] = grad_u[2]
+    E[1, 1] = g11 * grad_u[1]
+    E[1, 4] = grad_u[3]
+
+    E[3, 0] = g11 * grad_u[0]
+    E[3, 1] = g11 * grad_u[1]
+    E[3, 3] = grad_u[3]
+    E[3, 4] = grad_u[2]
+
+    E[4, 2] = g11 * grad_u[0]
+    E[4, 5] = grad_u[2]
+
+    E[5, 2] = g11 * grad_u[1]
+    E[5, 5] = grad_u[3]
+
+    return E[np.ix_([0, 1, 3], [0, 1, 3, 4])]
+
+
 def k_element_func(ksi, teta, element, material, geometry):
     alpha1 = element.width() * ksi / 2 + (element.top_left.x + element.top_right.x) / 2
     alpha2 = element.height() * teta / 2 + (element.top_left.y + element.bottom_left.y) / 2
@@ -78,12 +168,10 @@ def k_element_func(ksi, teta, element, material, geometry):
     B = deriv_to_grad(alpha1, alpha2, geometry)
     I_e = ksiteta_to_alpha_matrix(element)
 
-    SMALL_I = I_e.T.dot(B.T).dot(E.T).dot(C).dot(E).dot(B).dot(I_e)
-
     H = lin_aprox_matrix(ksi, teta)
     J = jacobian(element)
 
-    return H.T.dot(SMALL_I).dot(H) * J
+    return H.T.dot(I_e.T).dot(B.T).dot(E.T).dot(C).dot(E).dot(B).dot(I_e).dot(H) * J
 
 
 def const_matrix_isotropic(alpha1, alpha2, geometry, material):
@@ -248,6 +336,21 @@ def quadgch5nodes2dim(f, element, material, geometry):
         for j in range(order):
             if (i != 0 or j != 0):
                 res += w[i] * w[j] * f(x[i], x[j], element, material, geometry)
+
+    return res
+
+
+def quadgch5nodes2dim_prev_res(f, element, material, geometry, res_prev):
+    order = 5
+    w = [0.23692689, 0.47862867, 0.56888889, 0.47862867, 0.23692689]
+    x = [-0.90617985, -0.53846931, 0, 0.53846931, 0.90617985]
+
+    res = w[0] * w[0] * f(x[0], x[0], element, material, geometry, res_prev)
+
+    for i in range(order):
+        for j in range(order):
+            if (i != 0 or j != 0):
+                res += w[i] * w[j] * f(x[i], x[j], element, material, geometry, res_prev)
 
     return res
 
