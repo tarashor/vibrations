@@ -134,25 +134,26 @@ def k_nl_element_func(ksi, teta, element, material, geometry, res):
     # print(grad_u)
     E_NL = strain_nonlinear_part(alpha1, alpha2, geometry, grad_u)
 
-    return H.T.dot(I_e.T).dot(B.T).dot(E_NL.T).dot(C).dot(E).dot(B).dot(I_e).dot(H) * J + 0.5 * H.T.dot(I_e.T).dot(B.T).dot(E.T).dot(C).dot(E_NL).dot(B).dot(I_e).dot(H) * J
+    return H.T.dot(I_e.T).dot(B.T).dot(E_NL.T).dot(C).dot(E_NL).dot(B).dot(I_e).dot(H) * J
+    # + H.T.dot(I_e.T).dot(B.T).dot(E_NL.T).dot(C).dot(E).dot(B).dot(I_e).dot(H) * J + H.T.dot(I_e.T).dot(B.T).dot(E.T).dot(C).dot(E_NL).dot(B).dot(I_e).dot(H) * J
 
 
 def strain_nonlinear_part(alpha1, alpha2, geometry, grad_u):
     E = np.zeros((6, 9))
     g11 = geometry.get_g_11(alpha1, alpha2)
 
-    E[0, 0] = g11 * grad_u[0]
-    E[0, 3] = grad_u[2]
-    E[1, 1] = g11 * grad_u[1]
-    E[1, 4] = grad_u[3]
+    E[0, 0] = 0.5 * g11 * grad_u[0]
+    E[0, 3] = 0.5 * grad_u[2]
+    E[1, 1] = 0.5 * g11 * grad_u[1]
+    E[1, 4] = 0.5 * grad_u[3]
 
-    E[3, 0] = g11 * grad_u[0]
+    # E[3, 0] = g11 * grad_u[0]
     E[3, 1] = g11 * grad_u[1]
-    E[3, 3] = grad_u[3]
+    # E[3, 3] = grad_u[3]
     E[3, 4] = grad_u[2]
 
-    E[4, 2] = g11 * grad_u[0]
-    E[4, 5] = grad_u[2]
+    # E[4, 2] = g11 * grad_u[0]
+    # E[4, 5] = grad_u[2]
 
     E[5, 2] = g11 * grad_u[1]
     E[5, 5] = grad_u[3]
