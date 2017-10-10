@@ -18,6 +18,9 @@ class Result:
 
     def get_result(self, i):
         return np.sqrt(self.lam[i]), self.vec[:, i][0:self.mesh.nodes_count()], self.vec[:, i][self.mesh.nodes_count():2 * self.mesh.nodes_count()], self.mesh.nodes
+    
+    def get_result_min(self):
+        return self.get_result(0)
 
 
 class NonlinearResult:
@@ -31,6 +34,9 @@ class NonlinearResult:
         return self.mesh.nodes
 
     def get_result(self):
+        return np.sqrt(self.lam), self.vec[0:self.mesh.nodes_count()], self.vec[self.mesh.nodes_count():2 * self.mesh.nodes_count()], self.mesh.nodes
+    
+    def get_result_min(self):
         return np.sqrt(self.lam), self.vec[0:self.mesh.nodes_count()], self.vec[self.mesh.nodes_count():2 * self.mesh.nodes_count()], self.mesh.nodes
 
 
@@ -46,8 +52,26 @@ def solve(model, mesh):
 
     lam, vec = la.eigh(s, m)
 
+    vec = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count())
+
+    return Result(lam, vec, mesh, model)
+
+def solve_nonlinearity(model, mesh):
+
+    s = stiffness_matrix(model, mesh)
+    m = mass_matrix(model, mesh)
+
+    fixed_nodes_indicies = mesh.get_fixed_nodes_indicies()
+
+    s = remove_fixed_nodes(s, fixed_nodes_indicies, mesh.nodes_count())
+    m = remove_fixed_nodes(m, fixed_nodes_indicies, mesh.nodes_count())
+
+    lam, vec = la.eigh(s, m)
+
     res = extend_with_fixed_nodes(vec[:, 0], fixed_nodes_indicies, mesh.nodes_count())
     res_prev = np.zeros(res.shape)
+
+    res = normalize(res)
 
     eps = 0.1
     i = 0
@@ -59,6 +83,7 @@ def solve(model, mesh):
         l_nl, vec_nl = la.eigh(s + s_nl, m)
         print("Freq nl = {}".format(l_nl[0]))
         res = extend_with_fixed_nodes(vec_nl[:, 0], fixed_nodes_indicies, mesh.nodes_count())
+        res = normalize(res)
         print("Norm = {}".format(np.linalg.norm(res)))
         i += 1
 
@@ -93,10 +118,7 @@ def stiffness_nl_matrix(res_prev, model, mesh):
     K = np.zeros((N, N))
     for element in mesh.elements:
         material = mesh.material_for_element(element)
-        # print(element)
-        # print(res_prev.shape)
         K_element = quadgch5nodes2dim_prev_res(k_nl_element_func, element, material, model.geometry, res_prev)
-
         K += convertToGlobalMatrix(K_element, element, N)
 
     return K
@@ -133,60 +155,9 @@ def k_nl_element_func(ksi, teta, element, material, geometry, res):
 
     grad_u = B.dot(I_e).dot(H).dot(u_e)
     # print(grad_u)
-    E_NL = strain_nonlinear_part(alpha1, alpha2, geometry, grad_u)
+    E_NL = grad_to_strain_nonlinear_matrix(alpha1, alpha2, geometry, grad_u)
 
     return  H.T.dot(I_e.T).dot(B.T).dot(E_NL.T.dot(C).dot(E) + (E+E_NL).T.dot(C).dot(0.5*E_NL)).dot(B).dot(I_e).dot(H) * J
-
-
-def strain_nonlinear_part1(alpha1, alpha2, geometry, grad_u):
-    E = np.zeros((6, 9))
-    g11 = geometry.get_g_11(alpha1, alpha2)
-
-    E[0, 0] = 0.5 * g11 * grad_u[0]
-    E[0, 3] = 0.5 * grad_u[2]
-    E[1, 1] = 0.5 * g11 * grad_u[1]
-    E[1, 4] = 0.5 * grad_u[3]
-
-    # E[3, 0] = g11 * grad_u[0]
-    E[3, 1] = g11 * grad_u[1]
-    # E[3, 3] = grad_u[3]
-    E[3, 4] = grad_u[2]
-
-    # E[4, 2] = g11 * grad_u[0]
-    # E[4, 5] = grad_u[2]
-
-    E[5, 2] = g11 * grad_u[1]
-    E[5, 5] = grad_u[3]
-
-    return E[np.ix_([0, 1, 3], [0, 1, 3, 4])]
-
-def strain_nonlinear_part(alpha1, alpha2, geometry, grad_u):
-    E = np.zeros((6, 9))
-    g11 = geometry.get_g_11(alpha1, alpha2)
-    
-    d1u1=grad_u[0]
-    d2u1=grad_u[1]
-    d1u2=grad_u[2]
-    d2u2=grad_u[3]
-    
-
-    E[0, 0] = g11 * d1u1
-    E[0, 3] = d1u2
-    E[1, 1] = g11 * d2u1
-    E[1, 4] = d2u2
-
-    E[3, 0] = g11 * d2u1
-    E[3, 1] = g11 * d1u1
-    E[3, 3] = d2u2
-    E[3, 4] = d1u2
-
-    E[4, 2] = g11 * d1u1
-    E[4, 5] = d1u2
-
-    E[5, 2] = g11 * d2u1
-    E[5, 5] = d2u2
-
-    return E[np.ix_([0, 1, 3], [0, 1, 3, 4])]
 
 
 def k_element_func(ksi, teta, element, material, geometry):
@@ -222,7 +193,7 @@ def const_matrix_isotropic(alpha1, alpha2, geometry, material):
 
     koef = material.E / ((1 + v) * (1 - 2 * v))
 
-    return koef * C[np.ix_([0, 1, 3], [0, 1, 3])]
+    return koef * C
 
 
 def grad_to_strain_linear_matrix():
@@ -234,7 +205,35 @@ def grad_to_strain_linear_matrix():
     E[4, 2] = E[4, 6] = 1
     E[5, 5] = E[5, 7] = 1
 
-    return E[np.ix_([0, 1, 3], [0, 1, 3, 4])]
+    return E
+
+def grad_to_strain_nonlinear_matrix(alpha1, alpha2, geometry, grad_u):
+    E = np.zeros((6, 9))
+    g11 = geometry.get_g_11(alpha1, alpha2)
+    
+    d1u1=grad_u[0]
+    d2u1=grad_u[1]
+    d1u2=grad_u[2]
+    d2u2=grad_u[3]
+    
+
+    E[0, 0] = g11 * d1u1
+    E[0, 3] = d1u2
+    E[1, 1] = g11 * d2u1
+    E[1, 4] = d2u2
+
+    E[3, 0] = g11 * d2u1
+    E[3, 1] = g11 * d1u1
+    E[3, 3] = d2u2
+    E[3, 4] = d1u2
+
+    E[4, 2] = g11 * d1u1
+    E[4, 5] = d1u2
+
+    E[5, 2] = g11 * d2u1
+    E[5, 5] = d2u2
+
+    return E
 
 
 def deriv_to_grad(alpha1, alpha2, geometry):
@@ -264,14 +263,15 @@ def deriv_to_grad(alpha1, alpha2, geometry):
 
     B[8, 11] = 1
 
-    return B[np.ix_([0, 1, 3, 4], [0, 1, 2, 4, 5, 6])]
+    return B
 
 
 def ksiteta_to_alpha_matrix(element):
-    I_e = np.identity(6)
+    I_e = np.zeros((12,6))
 
-    I_e[1, 1] = I_e[4, 4] = 2 / element.width()
-    I_e[2, 2] = I_e[5, 5] = 2 / element.height()
+    I_e[0, 0] = I_e[4, 3] = 1
+    I_e[1, 1] = I_e[5, 4] = 2 / element.width()
+    I_e[2, 2] = I_e[6, 5] = 2 / element.height()
 
     return I_e
 
@@ -343,7 +343,7 @@ def metric_matrix(alpha1, alpha2, geometry):
     G[1, 1] = 1
     G[2, 2] = 1
 
-    return G[np.ix_([0, 1], [0, 1])]
+    return G
 
 
 def deriv_to_vect(alpha1, alpha2, geometry):
@@ -351,7 +351,7 @@ def deriv_to_vect(alpha1, alpha2, geometry):
 
     B[0, 0] = B[1, 4] = B[2, 8] = 1
 
-    return B[np.ix_([0, 1], [0, 1, 2, 4, 5, 6])]
+    return B
 
 
 def quadgch5nodes2dim(f, element, material, geometry):
@@ -411,3 +411,9 @@ def convertToGlobalMatrix(local_matrix, element, N):
             global_matrix[i_global, j_global] = local_matrix[i, j]
 
     return global_matrix
+
+def normalize(v):
+    norm=np.linalg.norm(v)
+    if norm==0: 
+       return v
+    return v/norm
