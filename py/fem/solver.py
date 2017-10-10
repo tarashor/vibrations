@@ -11,41 +11,51 @@ class Result:
         self.model = model
 
     def get_results_count(self):
-        return self.lam
+        return len(self.lam)
+
+    def get_nodes(self):
+        return self.mesh.nodes
 
     def get_result(self, i):
-        return self.lam[i], self.vec[:, i]
+        return np.sqrt(self.lam[i]), self.vec[:, i][0:self.mesh.nodes_count()], self.vec[:, i][self.mesh.nodes_count():2 * self.mesh.nodes_count()], self.mesh.nodes
 
 
 def solve(model, mesh):
-    print("==================Solver==================")
-    print("STARTED:")
-    
-    fixed_nodes_indicies = mesh.get_fixed_nodes_indicies()
-    print("Fixed nodes: {}".format(fixed_nodes_indicies))
-    
-    print("===Stiffness matrix: STARTED===")
     s = stiffness_matrix(model, mesh)
-    print("===Stiffness matrix: FINISHED===")
-    print("===MASS matrix: STARTED===")
     m = mass_matrix(model, mesh)
-    print("===MASS matrix: STARTED===")
 
-    
-    s = apply_boundary_conditions(s, fixed_nodes_indicies)
-    m = apply_boundary_conditions(m, fixed_nodes_indicies)
+    fixed_nodes_indicies = mesh.get_fixed_nodes_indicies()
+
+    s = remove_fixed_nodes(s, fixed_nodes_indicies, mesh.nodes_count())
+    m = remove_fixed_nodes(m, fixed_nodes_indicies, mesh.nodes_count())
 
     lam, vec = la.eigh(s, m)
-    print("FINISHED")
-    print("==================Solver==================")
+
+    vec = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count())
     return Result(lam, vec, mesh, model)
 
 
-def apply_boundary_conditions(matrix, fixed_nodes_indicies):
-    if (matrix.shape[0] == matrix.shape[1]):
-        all_nodes_count = matrix.shape[0]
-        free_nodes = [i for i in range(all_nodes_count) if i not in fixed_nodes_indicies]
-        return matrix[np.ix_(free_nodes, free_nodes)]
+def remove_fixed_nodes(matrix, fixed_nodes_indicies, all_nodes_count):
+    indicies_to_exclude = i_exclude(fixed_nodes_indicies, all_nodes_count)
+
+    free_nodes1 = [i for i in range(matrix.shape[0]) if i not in indicies_to_exclude]
+    free_nodes2 = [i for i in range(matrix.shape[1]) if i not in indicies_to_exclude]
+    return matrix[np.ix_(free_nodes1, free_nodes2)]
+
+
+def extend_with_fixed_nodes(eig_vectors, fixed_nodes_indicies, all_nodes_count):
+    indicies_to_exclude = i_exclude(fixed_nodes_indicies, all_nodes_count)
+    res = eig_vectors
+    for i in indicies_to_exclude:
+        res = np.insert(res, i, 0, axis=0)
+
+    return res
+
+
+def i_exclude(fixed_nodes_indicies, nodes_count):
+    fixed_u1_indicies = fixed_nodes_indicies
+    fixed_u2_indicies = [nodes_count + x for x in fixed_nodes_indicies]
+    return sorted(fixed_u1_indicies + fixed_u2_indicies)
 
 
 def stiffness_matrix(model, mesh):
@@ -53,34 +63,32 @@ def stiffness_matrix(model, mesh):
     K = np.zeros((N, N))
     for element in mesh.elements:
         material = mesh.material_for_element(element)
-        K_element = quadgch5nodes2dim(k_element_func, element, material, model.geometry, N)
-        K += K_element
+        K_element = quadgch5nodes2dim(k_element_func, element, material, model.geometry)
+
+        K += convertToGlobalMatrix(K_element, element, N)
 
     return K
 
 
-def k_element_func(ksi, teta, element, material, geometry, N):
+def k_element_func(ksi, teta, element, material, geometry):
     alpha1 = element.width() * ksi / 2 + (element.top_left.x + element.top_right.x) / 2
     alpha2 = element.height() * teta / 2 + (element.top_left.y + element.bottom_left.y) / 2
     C = const_matrix_isotropic(alpha1, alpha2, geometry, material)
     E = grad_to_strain_linear_matrix()
     B = deriv_to_grad(alpha1, alpha2, geometry)
     I_e = ksiteta_to_alpha_matrix(element)
-    
-    SMALL_I = I_e.T.dot(B.T.dot(E.T.dot(C.dot(E.dot(B.dot(I_e))))))
-    
-    print('(e,t) - ({:f};{:f}) ==> (a1,a2) - ({:f};{:f})'.format(ksi, teta, alpha1, alpha2))
-    print(SMALL_I)
-    
-    H = lin_aprox_matrix(ksi, teta, element, N)
+
+    SMALL_I = I_e.T.dot(B.T).dot(E.T).dot(C).dot(E).dot(B).dot(I_e)
+
+    H = lin_aprox_matrix(ksi, teta)
     J = jacobian(element)
 
-    return H.T.dot(SMALL_I.dot(H)) * J
+    return H.T.dot(SMALL_I).dot(H) * J
 
 
 def const_matrix_isotropic(alpha1, alpha2, geometry, material):
     C = np.zeros((6, 6))
-    g11 = get_g_11(alpha1, alpha2, geometry)
+    g11 = geometry.get_g_11(alpha1, alpha2)
     v = material.v
 
     C[0, 0] = g11 * g11 * (1 - v)
@@ -115,12 +123,7 @@ def grad_to_strain_linear_matrix():
 def deriv_to_grad(alpha1, alpha2, geometry):
     B = np.zeros((9, 12))
 
-    q, a, w, z = get_metric_tensor_components(alpha1, alpha2, geometry)
-
-    G111 = 2 * z * geometry.curvature / w
-    G211 = -geometry.corrugation_amplitude * geometry.corrugation_frequency * geometry.corrugation_frequency * geometry.curvature * geometry.curvature * np.cos(geometry.corrugation_frequency * a) - w * geometry.curvature - 2 * z * z * geometry.curvature / w
-    G112 = geometry.curvature / q
-    G121 = G112
+    G111, G211, G112, G121 = geometry.get_G(alpha1, alpha2)
 
     B[0, 0] = -G111
     B[0, 1] = 1
@@ -156,7 +159,7 @@ def ksiteta_to_alpha_matrix(element):
     return I_e
 
 
-def lin_aprox_matrix(ksi, teta, element, N):
+def lin_aprox_matrix(ksi, teta):
     f0 = 0.25 * (1 - ksi) * (1 + teta)
     f1 = 0.25 * (1 + ksi) * (1 + teta)
     f2 = 0.25 * (1 + ksi) * (1 - teta)
@@ -172,23 +175,21 @@ def lin_aprox_matrix(ksi, teta, element, N):
     f2_teta = -0.25 * (1 + ksi)
     f3_teta = -0.25 * (1 - ksi)
 
-    H = np.zeros((6, N))
-    d = N // 2
-    H[0, element.top_left_index] = f0
-    H[3, d + element.top_left_index] = f0
-    H[0, element.top_right_index] = H[3, d + element.top_right_index] = f1
-    H[0, element.bottom_right_index] = H[3, d + element.bottom_right_index] = f2
-    H[0, element.bottom_left_index] = H[3, d + element.bottom_left_index] = f3
+    H = np.zeros((6, 8))
+    H[0, 0] = H[3, 4] = f0
+    H[0, 1] = H[3, 5] = f1
+    H[0, 2] = H[3, 6] = f2
+    H[0, 3] = H[3, 7] = f3
 
-    H[1, element.top_left_index] = H[4, d + element.top_left_index] = f0_ksi
-    H[1, element.top_right_index] = H[4, d + element.top_right_index] = f1_ksi
-    H[1, element.bottom_right_index] = H[4, d + element.bottom_right_index] = f2_ksi
-    H[1, element.bottom_left_index] = H[4, d + element.bottom_left_index] = f3_ksi
+    H[1, 0] = H[4, 4] = f0_ksi
+    H[1, 1] = H[4, 5] = f1_ksi
+    H[1, 2] = H[4, 6] = f2_ksi
+    H[1, 3] = H[4, 7] = f3_ksi
 
-    H[2, element.top_left_index] = H[5, d + element.top_left_index] = f0_teta
-    H[2, element.top_right_index] = H[5, d + element.top_right_index] = f1_teta
-    H[2, element.bottom_right_index] = H[5, d + element.bottom_right_index] = f2_teta
-    H[2, element.bottom_left_index] = H[5, d + element.bottom_left_index] = f3_teta
+    H[2, 0] = H[5, 4] = f0_teta
+    H[2, 1] = H[5, 5] = f1_teta
+    H[2, 2] = H[5, 6] = f2_teta
+    H[2, 3] = H[5, 7] = f3_teta
 
     return H
 
@@ -201,28 +202,27 @@ def mass_matrix(model, mesh):
     N = 2 * (mesh.nodes_count())
     M = np.zeros((N, N))
     for element in mesh.elements:
-        M_element = quadgch5nodes2dim(m_element_func, element, mesh.material_for_element(element), model.geometry, N)
-        M += M_element
+        M_element = quadgch5nodes2dim(m_element_func, element, mesh.material_for_element(element), model.geometry)
+        M += convertToGlobalMatrix(M_element, element, N)
 
     return M
 
 
-def m_element_func(ksi, teta, element, material, geometry, N):
+def m_element_func(ksi, teta, element, material, geometry):
     alpha1 = element.width() * ksi / 2 + (element.top_left.x + element.top_right.x) / 2
     alpha2 = element.height() * teta / 2 + (element.top_left.y + element.bottom_left.y) / 2
     G = metric_matrix(alpha1, alpha2, geometry)
     B_s = deriv_to_vect(alpha1, alpha2, geometry)
     I_e = ksiteta_to_alpha_matrix(element)
-    H = lin_aprox_matrix(ksi, teta, element, N)
+    H = lin_aprox_matrix(ksi, teta)
     J = jacobian(element)
 
     return material.rho * H.T.dot(I_e.T.dot(B_s.T.dot(G.dot(B_s.dot(I_e.dot(H)))))) * J
 
 
 def metric_matrix(alpha1, alpha2, geometry):
-
     G = np.zeros((3, 3))
-    G[0, 0] = get_g_11(alpha1, alpha2, geometry)
+    G[0, 0] = geometry.get_g_11(alpha1, alpha2)
     G[1, 1] = 1
     G[2, 2] = 1
 
@@ -237,31 +237,45 @@ def deriv_to_vect(alpha1, alpha2, geometry):
     return B[np.ix_([0, 1], [0, 1, 2, 4, 5, 6])]
 
 
-def get_metric_tensor_components(alpha1, alpha2, geometry):
-    q = 1 + geometry.curvature * alpha2
-    a = (np.pi + geometry.curvature * geometry.width) / 2 - geometry.curvature * alpha1
-    w = q + geometry.corrugation_amplitude * geometry.curvature * np.cos(geometry.corrugation_frequency * a)
-    z = geometry.corrugation_amplitude * geometry.corrugation_frequency * geometry.curvature * np.sin(geometry.corrugation_frequency * a)
-    return q, a, w, z
-
-
-def get_g_11(alpha1, alpha2, geometry):
-    q, a, w, z = get_metric_tensor_components(alpha1, alpha2, geometry)
-    return 1 / (w * w + z * z)
-
-
-def quadgch5nodes2dim(f, element, material, geometry, N):
+def quadgch5nodes2dim(f, element, material, geometry):
     order = 5
     w = [0.23692689, 0.47862867, 0.56888889, 0.47862867, 0.23692689]
     x = [-0.90617985, -0.53846931, 0, 0.53846931, 0.90617985]
 
-    res = np.zeros((N, N))
+    res = w[0] * w[0] * f(x[0], x[0], element, material, geometry)
 
     for i in range(order):
         for j in range(order):
-            res += w[i] * w[j] * f(x[i], x[j], element, material, geometry, N)
+            if (i != 0 or j != 0):
+                res += w[i] * w[j] * f(x[i], x[j], element, material, geometry)
 
     return res
 
-# b=np.array([[1,2], [3,4]])
-# print(a.dot(b)==b)
+
+def map_local_to_global_matrix_index(local_index, element, N):
+    global_index = None
+    if (local_index % 4 == 0):
+        global_index = element.top_left_index
+    elif (local_index % 4 == 1):
+        global_index = element.top_right_index
+    elif (local_index % 4 == 2):
+        global_index = element.bottom_right_index
+    elif (local_index % 4 == 3):
+        global_index = element.bottom_left_index
+
+    if (local_index // 4 == 1):
+        global_index += N // 2
+
+    return global_index
+
+
+def convertToGlobalMatrix(local_matrix, element, N):
+    global_matrix = np.zeros((N, N))
+    rows, columns = local_matrix.shape
+    for i in range(rows):
+        for j in range(columns):
+            i_global = map_local_to_global_matrix_index(i, element, N)
+            j_global = map_local_to_global_matrix_index(j, element, N)
+            global_matrix[i_global, j_global] = local_matrix[i, j]
+
+    return global_matrix
