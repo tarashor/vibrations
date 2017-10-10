@@ -257,7 +257,7 @@ def plot_freq_from_layers_count(data):
 
 
 width = 2
-curvature = 0.8
+curvature = 0
 thickness = 0.05
 
 corrugation_amplitude = 0.03

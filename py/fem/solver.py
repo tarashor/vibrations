@@ -59,6 +59,7 @@ def solve(model, mesh):
         l_nl, vec_nl = la.eigh(s + s_nl, m)
         print("Freq nl = {}".format(l_nl[0]))
         res = extend_with_fixed_nodes(vec_nl[:, 0], fixed_nodes_indicies, mesh.nodes_count())
+        print("Norm = {}".format(np.linalg.norm(res)))
         i += 1
 
     return NonlinearResult(lam[0], res, mesh, model)
@@ -134,11 +135,10 @@ def k_nl_element_func(ksi, teta, element, material, geometry, res):
     # print(grad_u)
     E_NL = strain_nonlinear_part(alpha1, alpha2, geometry, grad_u)
 
-    return H.T.dot(I_e.T).dot(B.T).dot(E_NL.T).dot(C).dot(E_NL).dot(B).dot(I_e).dot(H) * J
-    # + H.T.dot(I_e.T).dot(B.T).dot(E_NL.T).dot(C).dot(E).dot(B).dot(I_e).dot(H) * J + H.T.dot(I_e.T).dot(B.T).dot(E.T).dot(C).dot(E_NL).dot(B).dot(I_e).dot(H) * J
+    return  H.T.dot(I_e.T).dot(B.T).dot(E_NL.T.dot(C).dot(E) + (E+E_NL).T.dot(C).dot(0.5*E_NL)).dot(B).dot(I_e).dot(H) * J
 
 
-def strain_nonlinear_part(alpha1, alpha2, geometry, grad_u):
+def strain_nonlinear_part1(alpha1, alpha2, geometry, grad_u):
     E = np.zeros((6, 9))
     g11 = geometry.get_g_11(alpha1, alpha2)
 
@@ -157,6 +157,34 @@ def strain_nonlinear_part(alpha1, alpha2, geometry, grad_u):
 
     E[5, 2] = g11 * grad_u[1]
     E[5, 5] = grad_u[3]
+
+    return E[np.ix_([0, 1, 3], [0, 1, 3, 4])]
+
+def strain_nonlinear_part(alpha1, alpha2, geometry, grad_u):
+    E = np.zeros((6, 9))
+    g11 = geometry.get_g_11(alpha1, alpha2)
+    
+    d1u1=grad_u[0]
+    d2u1=grad_u[1]
+    d1u2=grad_u[2]
+    d2u2=grad_u[3]
+    
+
+    E[0, 0] = g11 * d1u1
+    E[0, 3] = d1u2
+    E[1, 1] = g11 * d2u1
+    E[1, 4] = d2u2
+
+    E[3, 0] = g11 * d2u1
+    E[3, 1] = g11 * d1u1
+    E[3, 3] = d2u2
+    E[3, 4] = d1u2
+
+    E[4, 2] = g11 * d1u1
+    E[4, 5] = d1u2
+
+    E[5, 2] = g11 * d2u1
+    E[5, 5] = d2u2
 
     return E[np.ix_([0, 1, 3], [0, 1, 3, 4])]
 
