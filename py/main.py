@@ -15,8 +15,8 @@ def solve(width, curvature, corrugation_amplitude, corrugation_frequency, layers
 
     mesh = fem.mesh.Mesh.generate(model.geometry.width, layers, N, M, model.boundary_conditions)
 
-    return fem.solver.solve(model, mesh)
-#    return fem.solver.solve_nonlinearity(model, mesh)
+#    return fem.solver.solve(model, mesh)
+    return fem.solver.solve_nonlinearity(model, mesh)
 
 
 def get_lowest_freq(width, thickness, curvature, corrugation_amplitude, corrugation_frequency, layers_count, N, M):

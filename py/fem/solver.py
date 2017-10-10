@@ -72,6 +72,7 @@ def solve_nonlinearity(model, mesh):
     res_prev = np.zeros(res.shape)
 
     res = normalize(res)
+    lam_nl = lam[0]
 
     eps = 0.1
     i = 0
@@ -85,9 +86,10 @@ def solve_nonlinearity(model, mesh):
         res = extend_with_fixed_nodes(vec_nl[:, 0], fixed_nodes_indicies, mesh.nodes_count())
         res = normalize(res)
         print("Norm = {}".format(np.linalg.norm(res)))
+        lam_nl=l_nl[0]
         i += 1
 
-    return NonlinearResult(lam[0], res, mesh, model)
+    return NonlinearResult(lam_nl, res, mesh, model)
 
 
 def remove_fixed_nodes(matrix, fixed_nodes_indicies, all_nodes_count):
@@ -157,7 +159,7 @@ def k_nl_element_func(ksi, teta, element, material, geometry, res):
     # print(grad_u)
     E_NL = grad_to_strain_nonlinear_matrix(alpha1, alpha2, geometry, grad_u)
 
-    return  H.T.dot(I_e.T).dot(B.T).dot(E_NL.T.dot(C).dot(E) + (E+E_NL).T.dot(C).dot(0.5*E_NL)).dot(B).dot(I_e).dot(H) * J
+    return  H.T.dot(I_e.T).dot(B.T).dot(E_NL.T.dot(C).dot(0.5*E_NL)).dot(B).dot(I_e).dot(H) * J
 
 
 def k_element_func(ksi, teta, element, material, geometry):
