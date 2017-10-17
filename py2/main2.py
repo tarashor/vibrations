@@ -32,7 +32,6 @@ def get_result_for_same_layers(width, thickness, curvature, corrugation_amplitud
     return solve(width, curvature, corrugation_amplitude, corrugation_frequency, layers, N, M)
 
 
-    
 def plot_grad_norm(width, thickness, curvature, corrugation_amplitude, corrugation_frequency, layers_count, N, M):
     result = get_result_for_same_layers(width, thickness, curvature, corrugation_amplitude, corrugation_frequency, layers_count, N, M)
 
@@ -49,7 +48,7 @@ def plot_grad_norm(width, thickness, curvature, corrugation_amplitude, corrugati
         y.add(n.y)
         i = n.index // (N + 1)
         j = n.index % (N + 1)
-        v[i, j] = result.get_gradu(freq_index, n.x, n.y)[0]
+        v[i, j] = result.get_gradu(freq_index, n.x, n.y)[4]
 
         # v[i, j] = v2[n.index]
 
@@ -62,10 +61,6 @@ def plot_grad_norm(width, thickness, curvature, corrugation_amplitude, corrugati
     plt.show()
 
 
-
-    
- # -*- coding: utf-8 -*-
-
 width = 2
 curvature = 0
 thickness = 0.05
@@ -74,7 +69,7 @@ corrugation_amplitude = 0.03
 corrugation_frequency = 20
 
 layers_count_default = 1
-N_default = 40
+N_default = 100
 M_default = 4
 
-plot_init_geometry(width, thickness, curvature, corrugation_amplitude, corrugation_frequency, layers_count_default, N_default, M_default)
+plot_grad_norm(width, thickness, curvature, corrugation_amplitude, corrugation_frequency, layers_count_default, N_default, M_default)

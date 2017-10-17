@@ -34,6 +34,9 @@ class MeshElement(object):
     def width(self):
         return self.top_right.x - self.bottom_left.x
 
+    def contains(self, x, y):
+        return self.bottom_left.x <= x and x <= self.top_right.x and self.bottom_left.y <= y and y <= self.top_right.y
+
     @property
     def top_left_index(self):
         return self.top_left.index
@@ -80,11 +83,14 @@ class Mesh(object):
 
     def material_for_element(self, element):
         return self.material_to_elements.get(element)
-    
+
     def get_element(self, alpha1, alpha2):
         element = None
         for el in self.elements:
-            
+            if (el.contains(alpha1, alpha2)):
+                element = el
+                break
+
         return element
 
     def get_fixed_nodes_indicies(self):

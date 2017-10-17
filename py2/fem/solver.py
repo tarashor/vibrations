@@ -12,19 +12,19 @@ class Result:
 
     def get_results_count(self):
         return len(self.lam)
-    
+
     def get_gradu(self, freq_index, alpha1, alpha2):
         res = self.vec[:, freq_index]
         element = self.mesh.get_element(alpha1, alpha2)
         geometry = self.model.geometry
-        
+
         E = grad_to_strain_linear_matrix()
         B = deriv_to_grad(alpha1, alpha2, geometry)
         I_e = ksiteta_to_alpha_matrix(element)
 
         ksi = 2 * alpha1 / element.width() - (element.top_left.x + element.top_right.x) / element.width()
         teta = 2 * alpha2 / element.height() - (element.top_left.y + element.bottom_left.y) / element.height()
-    
+
         H = lin_aprox_matrix(ksi, teta)
 
         u_e = np.zeros(8)
@@ -32,19 +32,20 @@ class Result:
         for i in range(8):
             i_g = map_local_to_global_matrix_index(i, element, res.shape[0])
             u_e[i] = res[i_g]
-    
+
         grad_u = B.dot(I_e).dot(H).dot(u_e)
-        
-        return grad_u
+
+        E_NL = grad_to_strain_nonlinear_matrix(alpha1, alpha2, geometry, grad_u)
+        return (E+E_NL).dot(grad_u)
 #        print(grad_u)
-#        E_NL = grad_to_strain_nonlinear_matrix(alpha1, alpha2, geometry, grad_u)
+        # E_NL = grad_to_strain_nonlinear_matrix(alpha1, alpha2, geometry, grad_u)
 
     def get_nodes(self):
         return self.mesh.nodes
 
     def get_result(self, i):
         return np.sqrt(self.lam[i]), self.vec[:, i][0:self.mesh.nodes_count()], self.vec[:, i][self.mesh.nodes_count():2 * self.mesh.nodes_count()], self.mesh.nodes
-    
+
     def get_result_min(self):
         return self.get_result(0)
 
@@ -61,7 +62,7 @@ class NonlinearResult:
 
     def get_result(self):
         return np.sqrt(self.lam), self.vec[0:self.mesh.nodes_count()], self.vec[self.mesh.nodes_count():2 * self.mesh.nodes_count()], self.mesh.nodes
-    
+
     def get_result_min(self):
         return np.sqrt(self.lam), self.vec[0:self.mesh.nodes_count()], self.vec[self.mesh.nodes_count():2 * self.mesh.nodes_count()], self.mesh.nodes
 
@@ -238,12 +239,11 @@ def grad_to_strain_linear_matrix():
 def grad_to_strain_nonlinear_matrix(alpha1, alpha2, geometry, grad_u):
     E = np.zeros((6, 9))
     g11 = geometry.get_g_11(alpha1, alpha2)
-    
-    d1u1=grad_u[0]
-    d2u1=grad_u[1]
-    d1u2=grad_u[2]
-    d2u2=grad_u[3]
-    
+
+    d1u1 = grad_u[0]
+    d2u1 = grad_u[1]
+    d1u2 = grad_u[2]
+    d2u2 = grad_u[3]
 
     E[0, 0] = g11 * d1u1
     E[0, 3] = d1u2
@@ -442,6 +442,6 @@ def convertToGlobalMatrix(local_matrix, element, N):
 
 def normalize(v):
     norm=np.linalg.norm(v)
-    if norm==0: 
+    if norm==0:
        return v
     return v/norm
