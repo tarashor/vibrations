@@ -15,7 +15,7 @@ class Result:
     
     def get_gradu(self, freq_index, alpha1, alpha2):
         res = self.vec[:, freq_index]
-        element = self.mesh.getElement(alpha1, alpha2)
+        element = self.mesh.get_element(alpha1, alpha2)
         geometry = self.model.geometry
         
         E = grad_to_strain_linear_matrix()
