@@ -80,6 +80,12 @@ class Mesh(object):
 
     def material_for_element(self, element):
         return self.material_to_elements.get(element)
+    
+    def get_element(self, alpha1, alpha2):
+        element = None
+        for el in self.elements:
+            
+        return element
 
     def get_fixed_nodes_indicies(self):
         return [node.index for node in self.fixed_nodes]

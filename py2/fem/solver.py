@@ -12,6 +12,32 @@ class Result:
 
     def get_results_count(self):
         return len(self.lam)
+    
+    def get_gradu(self, freq_index, alpha1, alpha2):
+        res = self.vec[:, freq_index]
+        element = self.mesh.getElement(alpha1, alpha2)
+        geometry = self.model.geometry
+        
+        E = grad_to_strain_linear_matrix()
+        B = deriv_to_grad(alpha1, alpha2, geometry)
+        I_e = ksiteta_to_alpha_matrix(element)
+
+        ksi = 2 * alpha1 / element.width() - (element.top_left.x + element.top_right.x) / element.width()
+        teta = 2 * alpha2 / element.height() - (element.top_left.y + element.bottom_left.y) / element.height()
+    
+        H = lin_aprox_matrix(ksi, teta)
+
+        u_e = np.zeros(8)
+
+        for i in range(8):
+            i_g = map_local_to_global_matrix_index(i, element, res.shape[0])
+            u_e[i] = res[i_g]
+    
+        grad_u = B.dot(I_e).dot(H).dot(u_e)
+        
+        return grad_u
+#        print(grad_u)
+#        E_NL = grad_to_strain_nonlinear_matrix(alpha1, alpha2, geometry, grad_u)
 
     def get_nodes(self):
         return self.mesh.nodes
