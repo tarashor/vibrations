@@ -14,12 +14,12 @@ p = 50;
 delta = L/p;
 
 a1 = 0:delta:L;
-a2 = 0.025;
+a2 = 0;%[0.025, 0, -0.025]
 
-ar = (pi*R+L)/(2*R) - a1/R;
+ar = pi/2+(L-2.*a1)/(2*R);
 
-x=(R + a2 + g_a.*cos(g_f.*ar)).*cos(ar);
-y=(R + a2 + g_a.*cos(g_f.*ar)).*sin(ar);
+x=(R + a2).*cos(ar) + g_a.*cos(g_f.*ar).*cos(ar);
+y=(R + a2).*sin(ar) + g_a.*cos(g_f.*ar).*sin(ar);
 
 %ar_grad = ar*180/pi
 figure
@@ -30,7 +30,7 @@ alpha2=a2(1:4:end);
 
 q=1+alpha2./R;
 ar = (pi*R+L)/(2*R) - alpha1./R;
-w = q+g_a*cos(g_f*ar)./R;
+w = 1+alpha2./R+g_a*cos(g_f*ar)./R;
 z = g_a*g_f*sin(g_f*ar)./R;
 
 
@@ -40,11 +40,13 @@ y=(R + a2 + g_a.*cos(g_f.*ar)).*sin(ar)
 r11=(w.*sin(ar)+z.*cos(ar))
 r12=(-w.*cos(ar)+z.*sin(ar))
 
-r21=cos(ar)
-r22=sin(ar)
+quiver (x,y, r11, r12, 'r')
+
+r21=-r12;
+r22=r11;
 
 quiver (x,y, r11, r12, 'r')
 hold on;
-quiver (x,y, r21,r22,'b')
+quiver (x,y, r21, r22, 'b')
 
 daspect([1 1 1])
