@@ -3,21 +3,18 @@ clc;
 g_a = 0.03;
 g_f = 20;
 K=0.8;
+L = 2;
+h=0.05;
+
+num_points = 200;
 
 R = 1/K;
-
-L = 2;
-
-p = 200;
-
-
-delta = L/p;
-
+delta = L/num_points;
 a1 = 0:delta:L;
-a2 = [-0.025, 0, 0.025];
+
+a2 = [-h/2, 0, h/2];
 
 ar = pi/2+(L-2*a1)/(2*R);
-
 
 r(1,:)=(R + g_a.*cos(g_f.*ar)).*cos(ar);
 r(2,:)=(R + g_a.*cos(g_f.*ar)).*sin(ar);
@@ -35,26 +32,12 @@ n=n./length_n;
 l = sqrt(n(1,:).*n(1,:)+n(2,:).*n(2,:));
 
 figure;
+hold on;  
 for i=1:length(a2)
-  z=a2(i)*n;
-  %l = sqrt(z(1,:).*z(1,:)+z(2,:).*z(2,:))
-  R=r+z;
+  R=r+a2(i)*n;
   plot(R(1,:),R(2,:), 'g');
-  hold on;  
 end
 
-
-%alpha1=a1(1:4:end);
-%alpha2=a2(1:4:end);
-%
-%ar = (pi*R+L)/(2*R) - alpha1./R;
-%
-%x=(R + g_a.*cos(g_f.*ar)).*cos(ar)
-%y=(R + g_a.*cos(g_f.*ar)).*sin(ar)
-%
-%r11=(2*g_a*g_f*K*K).*sin(g_f.*ar).*sin(ar)-(g_a*K*K.*cos(g_f.*ar).*(g_f*g_f+1)+1).*cos(ar);
-%r12=(-2*g_a*g_f*K*K).*sin(g_f.*ar).*cos(ar)-(g_a*K*K.*cos(g_f.*ar).*(g_f*g_f+1)+1).*sin(ar);
-%
 alpha2 = a2(3);
 
 x=r(1,:)+alpha2*n(1,:);
