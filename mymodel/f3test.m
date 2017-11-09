@@ -46,10 +46,16 @@ y=r(2,:)+alpha2*n(2,:);
 l2 = a.*a+b.*b;
 dl = sqrt(l2.*l2.*l2);
 
-dn(1,:)=l2.*(2*g_a*g_f*K*K.*sin(g_f*ar).*cos(ar)+(g_a*K*K*(1+g_f*g_f).*cos(g_f*ar)+K).*sin(ar));
+%dn(1,:)=l2.*(2*g_a*g_f*K*K.*sin(g_f*ar).*cos(ar)+(g_a*K*K*(1+g_f*g_f).*cos(g_f*ar)+K).*sin(ar));
 dn(2,:)=l2.*(2*g_a*g_f*K*K.*sin(g_f*ar).*sin(ar)-(g_a*K*K*(1+g_f*g_f).*cos(g_f*ar)+K).*cos(ar));
-dn(1,:)=dn(1,:)-(1+g_a*(1-g_f*g_f)*K.*cos(g_f*ar)).*(g_a*g_f*K*K.*sin(g_f*ar)).*((1+g_a*K.*cos(g_f.*ar)).*cos(ar)-g_a*g_f*K*sin(g_f.*ar).*sin(ar));
+%dn(1,:)=dn(1,:)-(1+g_a*(1-g_f*g_f)*K.*cos(g_f*ar)).*(g_a*g_f*K*K.*sin(g_f*ar)).*((1+g_a*K.*cos(g_f.*ar)).*cos(ar)-g_a*g_f*K*sin(g_f.*ar).*sin(ar));
 dn(2,:)=dn(2,:)-(1+g_a*(1-g_f*g_f)*K.*cos(g_f*ar)).*(g_a*g_f*K*K.*sin(g_f*ar)).*((1+g_a*K.*cos(g_f.*ar)).*sin(ar)+g_a*g_f*K*sin(g_f.*ar).*cos(ar));
+
+
+dn(1,:)=g_a*g_f*K*K.*sin(g_f*ar).*cos(ar).*(1+2*g_f*g_f*g_a*g_a*K*K+(2+g_f*g_f)*g_a*K.*cos(g_f*ar)+g_a*g_a*K*K.*cos(g_f*ar).*cos(g_f*ar).*(1-g_f*g_f));
+dn(1,:)=dn(1,:)+sin(ar).*(K+g_a*K*K.*cos(g_f*ar).*(3+g_f*g_f+2*g_f*g_f*g_f*g_f*g_a*g_a*K*K)+g_a*g_a*K*K*K.*cos(g_f*ar).*cos(g_f*ar)*(3+2*g_f*g_f)+g_a*g_a*g_a*K*K*K*K.*cos(g_f*ar).*cos(g_f*ar).*cos(g_f*ar)*(1+g_f*g_f-2*g_f*g_f*g_f*g_f));
+
+
 dn=dn./dl;
 
 dr(1,:)=a.*cos(ar)+b.*sin(ar);
