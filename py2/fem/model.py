@@ -1,6 +1,5 @@
 import numpy as np
 
-
 class Model:
     FIXED_BOTTOM_LEFT_RIGHT_POINTS = 1
     FIXED_LEFT_EDGE = 2
@@ -10,36 +9,6 @@ class Model:
         self.geometry = geometry
         self.layers = layers
         self.boundary_conditions = boundary_conditions
-
-
-class Geometry:
-    def __init__(self, width, curvature):
-        self.width = width
-        self.curvature = curvature
-
-    def __get_metric_tensor_components(self, alpha1, alpha2):
-        q = 1 + self.curvature * alpha2
-        return q
-
-    def get_metric_tensor(self, alpha1, alpha2):
-        q = self.__get_metric_tensor_components(alpha1, alpha2)
-        G = np.zeros((3, 3))
-        G[0, 0] = 1/(q*q)
-        G[1, 1] = 1
-        G[2, 2] = 1
-
-        return G
-
-    def get_G(self, alpha1, alpha2):
-        q = self.__get_metric_tensor_components(alpha1, alpha2)
-
-        G111 = 0
-        G211 = -self.curvature * q
-        G112 = self.curvature / q
-        G121 = G112
-
-        return G111, G211, G112, G121
-
 
 class Material:
     def __init__(self, E, v, rho):

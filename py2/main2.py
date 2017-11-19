@@ -8,14 +8,24 @@ from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 
 
+<<<<<<< HEAD
 def solve(width, curvature, layers, N, M):
     geometry = fem.model.Geometry(width, curvature)
+=======
+def solve(width, curvature, corrugation_amplitude, corrugation_frequency, layers, N, M):
+    geometry = fem.geometry.Geometry(width, curvature, corrugation_amplitude, corrugation_frequency)
+>>>>>>> origin/refactoring
 
     model = fem.model.Model(geometry, layers, fem.model.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS)
 
     mesh = fem.mesh.Mesh.generate(model.geometry.width, layers, N, M, model.boundary_conditions)
 
+<<<<<<< HEAD
     return fem.solver.solve(model, mesh)
+=======
+    # return fem.solver.solve(model, mesh)
+    return fem.solver.solve_nonlinearity(model, mesh)
+>>>>>>> origin/refactoring
 
 
 def get_result_for_same_layers(width, thickness, curvature, layers_count, N, M):
@@ -48,7 +58,11 @@ def plot_grad_norm(width, thickness, curvature, layers_count, N, M):
         y.add(n.y)
         i = n.index // (N + 1)
         j = n.index % (N + 1)
+<<<<<<< HEAD
         v[i, j] = result.get_strain(freq_index, n.x, n.y)[0]
+=======
+        v[i, j] = result.get_strain(freq_index, n.x, n.y)[1]
+>>>>>>> origin/refactoring
 
         # v[i, j] = v2[n.index]
 
@@ -67,6 +81,6 @@ thickness = 0.05
 
 layers_count_default = 1
 N_default = 100
-M_default = 4
+M_default = 10
 
 plot_grad_norm(width, thickness, curvature, layers_count_default, N_default, M_default)
