@@ -16,44 +16,44 @@ class Material:
         self.v = v
         self.rho = rho
         
-#    def tensor_C1(self, alpha1, alpha2, geometry):
-#        C = np.zeros((6, 6))
-#        
-#        v = self.v
-#    
-#        C[0, 0] = (1 - v)
-#        C[1, 1] = 1 - v
-#        C[2, 2] = 1 - v
-#        C[0, 1] = C[1, 0] = v
-#        C[0, 2] = C[2, 0] = v
-#        C[1, 2] = v
-#        C[2, 1] = v
-#    
-#        C[3, 3] = (1 - 2 * v) * 0.5
-#        C[4, 4] = (1 - 2 * v) * 0.5
-#        C[5, 5] = (1 - 2 * v) * 0.5
-#    
-#        koef = self.E / ((1 + v) * (1 - 2 * v))
-#    
-#        return koef * C
-    
     def tensor_C(self, geometry, x1, x2, x3):
-        N = 6
+        C = np.zeros((6, 6))
         
-        C = np.zeros((N, N))
-        
-        lam = self.v * self.E/((1+self.v)*(1-2*self.v))
-        mu = self.E/((1+self.v)*2)
-        
-        g = geometry.metric_tensor(x1, x2, x3)
-        
-        for i in range(N):
-            for j in range(N):
-                n,m = self.__get_index_conv(i)
-                k,l = self.__get_index_conv(j)
-                C[i,j] = mu *(g[n,k]*g[m,l]+g[n,l]*g[m,k])+lam*g[n,m]*g[k,l]
-       
-        return C
+        v = self.v
+    
+        C[0, 0] = (1 - v)
+        C[1, 1] = 1 - v
+        C[2, 2] = 1 - v
+        C[0, 1] = C[1, 0] = v
+        C[0, 2] = C[2, 0] = v
+        C[1, 2] = v
+        C[2, 1] = v
+    
+        C[3, 3] = (1 - 2 * v) * 0.5
+        C[4, 4] = (1 - 2 * v) * 0.5
+        C[5, 5] = (1 - 2 * v) * 0.5
+    
+        koef = self.E / ((1 + v) * (1 - 2 * v))
+    
+        return koef * C
+    
+#    def tensor_C(self, geometry, x1, x2, x3):
+#        N = 6
+#        
+#        C = np.zeros((N, N))
+#        
+#        lam = self.v * self.E/((1+self.v)*(1-2*self.v))
+#        mu = self.E/((1+self.v)*2)
+#        
+#        g = geometry.metric_tensor(x1, x2, x3)
+#        
+#        for i in range(N):
+#            for j in range(N):
+#                n,m = self.__get_index_conv(i)
+#                k,l = self.__get_index_conv(j)
+#                C[i,j] = mu *(g[n,k]*g[m,l]+g[n,l]*g[m,k])+lam*g[n,m]*g[k,l]
+#       
+#        return C
     
     def __get_index_conv(self, index):
         i = 0

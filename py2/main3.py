@@ -10,7 +10,6 @@ def generate_layers(thickness, layers_count, material):
 	layers = set()
 	for i in range(layers_count):
 		layer = m.Layer(layer_top - layer_thickness, layer_top, material, i)
-		print(layer)
 		layers.add(layer)
 		layer_top -= layer_thickness
 	return layers
@@ -18,18 +17,19 @@ def generate_layers(thickness, layers_count, material):
 
 
 width = 2
-curvature = 0
+curvature = 0.8
 thickness = 0.05
 
 corrugation_amplitude = 0.03
 corrugation_frequency = 20
 
-N = 100
-M = 4
+N = 1
+M = 1
 
 layers_count = 1
 
 geometry = g.CylindricalPlate(width, curvature)
+#geometry = g.Geometry()
 
 layers = generate_layers(thickness, layers_count, m.Material.steel())
 
@@ -40,6 +40,7 @@ mesh = mesh.Mesh.generate(width, layers, N, M, model.boundary_conditions)
 result = s.solve(model, mesh)
 #result = s.solve_nonlinearity(model, mesh)
 
-plot.plot_strain(result, 0, width, -thickness/2, thickness/2, 0)
+#plot.plot_strain(result, 0, width, -thickness/2, thickness/2, 0)
+plot.plot_init_geometry(geometry, result, 0, width, -thickness/2, thickness/2, 0)
 
 

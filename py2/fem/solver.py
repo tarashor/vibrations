@@ -47,6 +47,8 @@ def solve(model, mesh):
     u1 = vec[:, i][0:mesh.nodes_count()]
     u2 = vec[:, i][mesh.nodes_count():2 * mesh.nodes_count()]
     u3 = np.zeros((mesh.nodes_count()))
+    
+    print(u2)
 
     return result.Result(freq, u1, u2, u3, mesh, model.geometry)
 
