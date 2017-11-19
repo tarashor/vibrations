@@ -1,7 +1,7 @@
 import numpy as np
 from . import finiteelements as fe
 from . import matrices
-from math import sin
+from math import cos
 
 class Result:
     def __init__(self, freq, u1, u2, u3, mesh, geometry):
@@ -47,5 +47,5 @@ class Result:
         return E.dot(grad_u)
 
     def fi(self, time):
-        return sin(self.freq * time)
+        return cos(self.freq * time)
 

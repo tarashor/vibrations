@@ -24,8 +24,8 @@ thickness = 0.05
 corrugation_amplitude = 0.03
 corrugation_frequency = 20
 
-N = 2
-M = 1
+N = 100
+M = 4
 
 layers_count = 1
 
@@ -36,8 +36,6 @@ layers = generate_layers(thickness, layers_count, m.Material.steel())
 model = m.Model(geometry, layers, m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS)
 
 mesh = mesh.Mesh.generate(width, layers, N, M, model.boundary_conditions)
-
-print(mesh.elements)
 
 result = s.solve(model, mesh)
 #result = s.solve_nonlinearity(model, mesh)

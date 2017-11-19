@@ -21,7 +21,7 @@ def plot_strain(result, x1_start, x1_end, x2_start, x2_end, time):
         for j in range(plot_x2_elements + 1):
             x1c = x1_start + i * dx1
             x2c = x2_start + j * dx2
-            v[i, j] = result.get_strain(x1c, x2c, 0, time)[0]
+            v[i, j] = result.get_strain(x1c, x2c, 0, time)[3]
             x1.add(x1c)
             x2.add(x2c)
 
