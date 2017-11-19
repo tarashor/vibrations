@@ -14,6 +14,7 @@ def lin_aprox_matrix(element, x1, x2, x3):
 
     ksi, teta = element.to_element_coordinates(x1, x2)
 
+
     f0 = 0.25 * (1 - ksi) * (1 + teta)
     f1 = 0.25 * (1 + ksi) * (1 + teta)
     f2 = 0.25 * (1 + ksi) * (1 - teta)
