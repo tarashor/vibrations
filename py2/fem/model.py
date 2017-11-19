@@ -12,30 +12,6 @@ class Model:
         self.boundary_conditions = boundary_conditions
 
 
-class Geometry:
-    def __init__(self, width, curvature, corrugation_amplitude, corrugation_frequency):
-        self.width = width
-        self.curvature = curvature
-
-    def __get_metric_tensor_components(self, alpha1, alpha2):
-        q = 1 + self.curvature * alpha2
-        a = self.curvature * (alpha1 - self.width/2)
-        return q, a
-
-    def get_g_11(self, alpha1, alpha2):
-        q, a = self.__get_metric_tensor_components(alpha1, alpha2)
-        return 1 / (q * q)
-
-    def get_G(self, alpha1, alpha2):
-        q, a = self.__get_metric_tensor_components(alpha1, alpha2)
-
-        G111 = 0
-        G211 = -self.curvature * q
-        G112 = self.curvature / q
-        G121 = G112
-
-        return G111, G211, G112, G121
-
 
 class Material:
     def __init__(self, E, v, rho):

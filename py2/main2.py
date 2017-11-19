@@ -9,14 +9,14 @@ import numpy as np
 
 
 def solve(width, curvature, corrugation_amplitude, corrugation_frequency, layers, N, M):
-    geometry = fem.model.Geometry(width, curvature, corrugation_amplitude, corrugation_frequency)
+    geometry = fem.geometry.Geometry(width, curvature, corrugation_amplitude, corrugation_frequency)
 
     model = fem.model.Model(geometry, layers, fem.model.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS)
 
     mesh = fem.mesh.Mesh.generate(model.geometry.width, layers, N, M, model.boundary_conditions)
 
-    return fem.solver.solve(model, mesh)
-#    return fem.solver.solve_nonlinearity(model, mesh)
+    # return fem.solver.solve(model, mesh)
+    return fem.solver.solve_nonlinearity(model, mesh)
 
 
 def get_result_for_same_layers(width, thickness, curvature, corrugation_amplitude, corrugation_frequency, layers_count, N, M):
@@ -48,7 +48,7 @@ def plot_grad_norm(width, thickness, curvature, corrugation_amplitude, corrugati
         y.add(n.y)
         i = n.index // (N + 1)
         j = n.index % (N + 1)
-        v[i, j] = result.get_gradu(freq_index, n.x, n.y)[4]
+        v[i, j] = result.get_strain(freq_index, n.x, n.y)[1]
 
         # v[i, j] = v2[n.index]
 
@@ -70,6 +70,6 @@ corrugation_frequency = 20
 
 layers_count_default = 1
 N_default = 100
-M_default = 4
+M_default = 10
 
 plot_grad_norm(width, thickness, curvature, corrugation_amplitude, corrugation_frequency, layers_count_default, N_default, M_default)
