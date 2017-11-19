@@ -14,8 +14,11 @@ class Result:
 
     def get_displacement_and_deriv(self, x1, x2, x3, time):
         element = self.mesh.get_element(x1, x2)
+        
+        if (element is None):
+            print ("x1 = {}, x2 = {}".format(x1, x2))
 
-        u_nodes = np.zeros((12))
+        u_nodes = np.zeros((8))
         
         u_nodes[0] = self.u1[element.top_left_index]
         u_nodes[1] = self.u1[element.top_right_index]
@@ -26,13 +29,8 @@ class Result:
         u_nodes[5] = self.u2[element.top_right_index]
         u_nodes[6] = self.u2[element.bottom_right_index]
         u_nodes[7] = self.u2[element.bottom_left_index]
-        
-        u_nodes[8] = self.u3[element.top_left_index]
-        u_nodes[9] = self.u3[element.top_right_index]
-        u_nodes[10] = self.u3[element.bottom_right_index]
-        u_nodes[11] = self.u3[element.bottom_left_index]
 
-        h_e = matrices.lin_aprox_matrix(element, x1, x2, x3)
+        h_e = matrices.element_aprox_functions(element, x1, x2, x3)
 
         return h_e.dot(u_nodes) * self.fi(time)
     

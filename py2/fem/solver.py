@@ -41,8 +41,14 @@ def solve(model, mesh):
     lam, vec = la.eigh(s, m)
 
     vec = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count())
+    
+    i = 0
+    freq = np.sqrt(lam[i])
+    u1 = vec[:, i][0:mesh.nodes_count()]
+    u2 = vec[:, i][mesh.nodes_count():2 * mesh.nodes_count()]
+    u3 = np.zeros((mesh.nodes_count()))
 
-    return Result(lam, vec, mesh, model)
+    return result.Result(freq, u1, u2, u3, mesh, model.geometry)
 
 
 def stiffness_matrix(model, mesh):
@@ -60,7 +66,7 @@ def stiffness_matrix(model, mesh):
 def k_element_func(ksi, teta, element, geometry):
     x1, x2 = element.to_model_coordinates(ksi, teta)
     x3 = 0
-    C = element.material.tensor_C(x1, x2, geometry)
+    C = element.material.tensor_C(geometry, x1, x2, x3)
     E = matrices.grad_to_strain()
     B = matrices.deriv_to_grad(geometry, x1, x2, x3)
     N = matrices.element_aprox_functions(element, x1, x2, x3)
@@ -85,7 +91,7 @@ def m_element_func(ksi, teta, element, geometry):
     B_s = matrices.deriv_to_vect()
     N = matrices.element_aprox_functions(element, x1, x2, x3)
     J = element.jacobian_element_coordinates()
-    return element.material.rho * N.T.dot(B_s.T.dot(G.dot(B_s.dot(N))) * J
+    return element.material.rho * N.T.dot(B_s.T.dot(G.dot(B_s.dot(N)))) * J
 
 
 def quadgch5nodes2dim(f, element, geometry):

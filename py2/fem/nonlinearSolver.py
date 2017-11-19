@@ -19,6 +19,7 @@ def solve(model, mesh):
 
     vec = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count())
 
+
     return Result(lam, vec, mesh, model)
 
 
