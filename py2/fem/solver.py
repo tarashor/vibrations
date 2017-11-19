@@ -69,13 +69,20 @@ def stiffness_matrix(model, mesh):
 def k_element_func(ksi, teta, element, geometry):
     x1, x2 = element.to_model_coordinates(ksi, teta)
     x3 = 0
+    print("ksi = {}, teta = {}".format(ksi, teta))
+    print("alpha1 = {}, alpha2 = {}".format(x1, x2))
     C = element.material.tensor_C(geometry, x1, x2, x3)
     E = matrices.grad_to_strain()
     B = matrices.deriv_to_grad(geometry, x1, x2, x3)
+    print("B={}".format(B))
     N = matrices.element_aprox_functions(element, x1, x2, x3)
+    print("N={}".format(N))
     J = element.jacobian_element_coordinates()
+    
+    k=N.T.dot(B.T).dot(E.T).dot(C).dot(E).dot(B).dot(N) * J
+    print("k={}".format(k))
 
-    return N.T.dot(B.T).dot(E.T).dot(C).dot(E).dot(B).dot(N) * J
+    return k
 
 
 def mass_matrix(model, mesh):
