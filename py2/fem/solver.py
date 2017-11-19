@@ -13,7 +13,7 @@ class Result:
     def get_results_count(self):
         return len(self.lam)
 
-    def get_gradu(self, freq_index, alpha1, alpha2):
+    def get_strain(self, freq_index, alpha1, alpha2):
         res = self.vec[:, freq_index]
         element = self.mesh.get_element(alpha1, alpha2)
         geometry = self.model.geometry
@@ -168,7 +168,7 @@ def stiffness_matrix(model, mesh):
 def k_nl_element_func(ksi, teta, element, material, geometry, res):
     alpha1 = element.width() * ksi / 2 + (element.top_left.x + element.top_right.x) / 2
     alpha2 = element.height() * teta / 2 + (element.top_left.y + element.bottom_left.y) / 2
-    C = const_matrix_isotropic(alpha1, alpha2, geometry, material)
+    C = material.tensor_C(alpha1, alpha2, geometry)
     E = grad_to_strain_linear_matrix()
     B = deriv_to_grad(alpha1, alpha2, geometry)
     I_e = ksiteta_to_alpha_matrix(element)
@@ -186,13 +186,13 @@ def k_nl_element_func(ksi, teta, element, material, geometry, res):
     # print(grad_u)
     E_NL = grad_to_strain_nonlinear_matrix(alpha1, alpha2, geometry, grad_u)
 
-    return  H.T.dot(I_e.T).dot(B.T).dot(E_NL.T.dot(C).dot(E+0.5*E_NL)+E.T.dot(C).dot(0.5*E_NL)).dot(B).dot(I_e).dot(H) * J
+    return  H.T.dot(I_e.T).dot(B.T).dot(E_NL.T.dot(C).dot(E+E_NL)+E.T.dot(C).dot(E_NL)).dot(B).dot(I_e).dot(H) * J
 
 
 def k_element_func(ksi, teta, element, material, geometry):
     alpha1 = element.width() * ksi / 2 + (element.top_left.x + element.top_right.x) / 2
     alpha2 = element.height() * teta / 2 + (element.top_left.y + element.bottom_left.y) / 2
-    C = const_matrix_isotropic(alpha1, alpha2, geometry, material)
+    C = material.tensor_C(alpha1, alpha2, geometry)
     E = grad_to_strain_linear_matrix()
     B = deriv_to_grad(alpha1, alpha2, geometry)
     I_e = ksiteta_to_alpha_matrix(element)
@@ -201,28 +201,6 @@ def k_element_func(ksi, teta, element, material, geometry):
     J = jacobian(element)
 
     return H.T.dot(I_e.T).dot(B.T).dot(E.T).dot(C).dot(E).dot(B).dot(I_e).dot(H) * J
-
-
-def const_matrix_isotropic(alpha1, alpha2, geometry, material):
-    C = np.zeros((6, 6))
-    g11 = geometry.get_g_11(alpha1, alpha2)
-    v = material.v
-
-    C[0, 0] = (1 - v)
-    C[1, 1] = 1 - v
-    C[2, 2] = 1 - v
-    C[0, 1] = C[1, 0] = v
-    C[0, 2] = C[2, 0] = v
-    C[1, 2] = v
-    C[2, 1] = v
-
-    C[3, 3] = (1 - 2 * v) * 0.5
-    C[4, 4] = (1 - 2 * v) * 0.5
-    C[5, 5] = (1 - 2 * v) * 0.5
-
-    koef = material.E / ((1 + v) * (1 - 2 * v))
-
-    return koef * C
 
 
 def grad_to_strain_linear_matrix():
@@ -238,29 +216,40 @@ def grad_to_strain_linear_matrix():
 
 def grad_to_strain_nonlinear_matrix(alpha1, alpha2, geometry, grad_u):
     E = np.zeros((6, 9))
-    g11 = geometry.get_g_11(alpha1, alpha2)
+    g = geometry.get_metric_tensor(alpha1, alpha2)
+    
+    f = np.zeros((3, 3))
+    
+    for i in range(3):
+        for j in range(3):
+            f[i,j] = grad_u[3*i+j]
+            
+    gu = g.dot(f.T)
 
-    d1u1 = grad_u[0]
-    d2u1 = grad_u[1]
-    d1u2 = grad_u[2]
-    d2u2 = grad_u[3]
-
-    E[0, 0] = g11 * d1u1
-    E[0, 3] = d1u2
-    E[1, 1] = g11 * d2u1
-    E[1, 4] = d2u2
-
-    E[3, 0] = g11 * d2u1
-    E[3, 1] = g11 * d1u1
-    E[3, 3] = d2u2
-    E[3, 4] = d1u2
-
-    E[4, 2] = g11 * d1u1
-    E[4, 5] = d1u2
-
-    E[5, 2] = g11 * d2u1
-    E[5, 5] = d2u2
-
+    E[0, 0] = 0.5*gu[0,0]
+    E[0, 3] = 0.5*gu[1,0]
+    E[0, 6] = 0.5*gu[2,0]
+    
+    E[1, 1] = 0.5*gu[0,1]
+    E[1, 4] = 0.5*gu[1,1]
+    E[1, 7] = 0.5*gu[2,1]
+    
+    E[2, 2] = 0.5*gu[0,2]
+    E[2, 5] = 0.5*gu[1,2]
+    E[2, 8] = 0.5*gu[2,2]
+    
+    E[3, 1] = gu[0,0]
+    E[3, 4] = gu[1,0]
+    E[3, 7] = gu[2,0]
+    
+    E[4, 2] = gu[0,0]
+    E[4, 5] = gu[1,0]
+    E[4, 8] = gu[2,0]
+    
+    E[5, 2] = gu[0,1]
+    E[5, 5] = gu[1,1]
+    E[5, 8] = gu[2,1]
+    
     return E
 
 
@@ -356,22 +345,13 @@ def mass_matrix(model, mesh):
 def m_element_func(ksi, teta, element, material, geometry):
     alpha1 = element.width() * ksi / 2 + (element.top_left.x + element.top_right.x) / 2
     alpha2 = element.height() * teta / 2 + (element.top_left.y + element.bottom_left.y) / 2
-    G = metric_matrix(alpha1, alpha2, geometry)
+    G = geometry.get_metric_tensor(alpha1, alpha2)
     B_s = deriv_to_vect(alpha1, alpha2, geometry)
     I_e = ksiteta_to_alpha_matrix(element)
     H = lin_aprox_matrix(ksi, teta)
     J = jacobian(element)
 
     return material.rho * H.T.dot(I_e.T.dot(B_s.T.dot(G.dot(B_s.dot(I_e.dot(H)))))) * J
-
-
-def metric_matrix(alpha1, alpha2, geometry):
-    G = np.zeros((3, 3))
-    G[0, 0] = geometry.get_g_11(alpha1, alpha2)
-    G[1, 1] = 1
-    G[2, 2] = 1
-
-    return G
 
 
 def deriv_to_vect(alpha1, alpha2, geometry):

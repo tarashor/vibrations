@@ -8,18 +8,18 @@ from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 
 
-def solve(width, curvature, corrugation_amplitude, corrugation_frequency, layers, N, M):
-    geometry = fem.model.Geometry(width, curvature, corrugation_amplitude, corrugation_frequency)
+def solve(width, curvature, layers, N, M):
+    geometry = fem.model.Geometry(width, curvature)
 
     model = fem.model.Model(geometry, layers, fem.model.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS)
 
     mesh = fem.mesh.Mesh.generate(model.geometry.width, layers, N, M, model.boundary_conditions)
 
-    return fem.solver.solve(model, mesh)
-#    return fem.solver.solve_nonlinearity(model, mesh)
+#    return fem.solver.solve(model, mesh)
+    return fem.solver.solve_nonlinearity(model, mesh)
 
 
-def get_lowest_freq(width, thickness, curvature, corrugation_amplitude, corrugation_frequency, layers_count, N, M):
+def get_lowest_freq(width, thickness, curvature, layers_count, N, M):
 
     layer_top = thickness / 2
     layer_thickness = thickness / layers_count
@@ -29,7 +29,7 @@ def get_lowest_freq(width, thickness, curvature, corrugation_amplitude, corrugat
         layers.add(layer)
         layer_top -= layer_thickness
 
-    result = solve(width, curvature, corrugation_amplitude, corrugation_frequency, layers, N, M)
+    result = solve(width, curvature, layers, N, M)
 
     return result.get_result_min()
 
@@ -61,8 +61,8 @@ def plot_displacement_norm(v1, v2, nodes, layers_count, N, M):
     plt.show()
 
 
-def plot_init_geometry(width, thickness, curvature, corrugation_amplitude, corrugation_frequency, layers_count, N, M):
-    l, v1, v2, nodes = get_lowest_freq(width, thickness, curvature, corrugation_amplitude, corrugation_frequency, layers_count, N, M)
+def plot_init_geometry(width, thickness, curvature, layers_count, N, M):
+    l, v1, v2, nodes = get_lowest_freq(width, thickness, curvature, layers_count, N, M)
 
     print("Min freq = {}".format(l))
     # print("v1 = {}".format(v1))
@@ -93,8 +93,8 @@ def plot_init_geometry(width, thickness, curvature, corrugation_amplitude, corru
 
         if (curvature > 0):
             ar = (np.pi + curvature * width) / 2 - x * curvature
-            x = (1 / curvature + y + corrugation_amplitude * np.cos(corrugation_frequency * ar)) * np.cos(ar)
-            y = (1 / curvature + y + corrugation_amplitude * np.cos(corrugation_frequency * ar)) * np.sin(ar)
+            x = (1 / curvature + y) * np.cos(ar)
+            y = (1 / curvature + y) * np.sin(ar)
 
         X_init.append(x)
         Y_init.append(y)
@@ -103,8 +103,8 @@ def plot_init_geometry(width, thickness, curvature, corrugation_amplitude, corru
         y = lnodes[ind].y + v2[lnodes[ind].index]
         if (curvature > 0):
             ar = (np.pi + curvature * width) / 2 - x * curvature
-            x = (1 / curvature + y + corrugation_amplitude * np.cos(corrugation_frequency * ar)) * np.cos(ar)
-            y = (1 / curvature + y + corrugation_amplitude * np.cos(corrugation_frequency * ar)) * np.sin(ar)
+            x = (1 / curvature + y) * np.cos(ar)
+            y = (1 / curvature + y) * np.sin(ar)
 
         X_deformed.append(x)
         Y_deformed.append(y)
@@ -117,8 +117,8 @@ def plot_init_geometry(width, thickness, curvature, corrugation_amplitude, corru
 
         if (curvature > 0):
             ar = (np.pi + curvature * width) / 2 - x * curvature
-            x = (1 / curvature + y + corrugation_amplitude * np.cos(corrugation_frequency * ar)) * np.cos(ar)
-            y = (1 / curvature + y + corrugation_amplitude * np.cos(corrugation_frequency * ar)) * np.sin(ar)
+            x = (1 / curvature + y) * np.cos(ar)
+            y = (1 / curvature + y) * np.sin(ar)
 
         X_init.append(x)
         Y_init.append(y)
@@ -127,8 +127,8 @@ def plot_init_geometry(width, thickness, curvature, corrugation_amplitude, corru
         y = lnodes[ind].y + v2[lnodes[ind].index]
         if (curvature > 0):
             ar = (np.pi + curvature * width) / 2 - x * curvature
-            x = (1 / curvature + y + corrugation_amplitude * np.cos(corrugation_frequency * ar)) * np.cos(ar)
-            y = (1 / curvature + y + corrugation_amplitude * np.cos(corrugation_frequency * ar)) * np.sin(ar)
+            x = (1 / curvature + y) * np.cos(ar)
+            y = (1 / curvature + y) * np.sin(ar)
 
         X_deformed.append(x)
         Y_deformed.append(y)
@@ -295,7 +295,7 @@ M_default = 4
 # plot_sample(width, thickness, curvature, corrugation_amplitude, corrugation_frequency, layers_count_default, N_default, M_default)
 
 # 6
-plot_init_geometry(width, thickness, curvature, corrugation_amplitude, corrugation_frequency, layers_count_default, N_default, M_default)
+plot_init_geometry(width, thickness, curvature, layers_count_default, N_default, M_default)
 
 # 7
 # plot_freq_from_corrugation_frequency(width, thickness, curvature, corrugation_amplitude, [2,4,6,8,10,12,16,20,26,50,80,100], layers_count_default, N_default, M_default)
