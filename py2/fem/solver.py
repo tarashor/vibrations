@@ -45,14 +45,16 @@ def solve(model, mesh):
 
     vec = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count())
     
+    
     results = []
-    for i in range(4):
+    for i in range(lam.size):
         freq = np.sqrt(lam[i])
         u1 = vec[:, i][0:mesh.nodes_count()]
         u2 = vec[:, i][mesh.nodes_count():2 * mesh.nodes_count()]
         u3 = np.zeros((mesh.nodes_count()))
-        r = result.Result(freq, u1, u2, u3, mesh, model.geometry)
+        r = result.Result(np.sqrt(freq), u1, u2, u3, mesh, model.geometry)
         results.append(r)
+#        print (np.sqrt(freq))
     
 
     return results

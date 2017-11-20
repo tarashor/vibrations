@@ -15,19 +15,26 @@ def generate_layers(thickness, layers_count, material):
 	return layers
 
 
+#r=2
+#width = r*2*3.14
+#curvature = 1/r
 
+r = 10
 width = 2
-curvature = 0.8
+curvature = 1/r
 thickness = 0.05
 
-corrugation_amplitude = 0.03
-corrugation_frequency = 20
+corrugation_amplitude = 0
+corrugation_frequency = 0
+#corrugation_amplitude = 0.5*thickness
+#corrugation_frequency = 10
 
-N = 101
-M = 5
+N = 50
+M = 4
 
 layers_count = 1
 
+#geometry = g.CorrugatedCylindricalPlate(width, curvature, corrugation_amplitude, corrugation_frequency)
 geometry = g.CylindricalPlate(width, curvature)
 #geometry = g.Geometry()
 
@@ -40,8 +47,16 @@ mesh = mesh.Mesh.generate(width, layers, N, M, model.boundary_conditions)
 results = s.solve(model, mesh)
 #result = s.solve_nonlinearity(model, mesh)
 
+
 #plot.plot_strain(result, 0, width, -thickness/2, thickness/2, 0)
 results_index = 0
 plot.plot_init_geometry(geometry, results[results_index], 0, width, -thickness/2, thickness/2, 0)
+
+to_print = 20
+if (len(results) < to_print):
+    to_print = len(results)
+
+for i in range(to_print):
+    print(results[i].freq)
 
 

@@ -4,8 +4,8 @@ from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 from fem import geometry as g
 
-plot_x1_elements = 400
-plot_x2_elements = 20
+plot_x1_elements = 10
+plot_x2_elements = 2
 
 
 def plot_strain(result, x1_start, x1_end, x2_start, x2_end, time):
@@ -52,6 +52,9 @@ def plot_init_geometry(geometry, result, x1_start, x1_end, x2_start, x2_end, tim
         u2 = u[4]
         
         x, y, z = geometry.to_cartesian_coordinates(x1, x2, x3)
+        
+#        print("==x1 = {}, x2 = {}".format(x1,x2))
+#        print("x = {}, y = {}".format(x,y))
 
         X_init.append(x)
         Y_init.append(y)

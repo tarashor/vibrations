@@ -28,6 +28,7 @@ class CylindricalPlate(Geometry):
     def metric_tensor(self, x1, x2, x3):
         q = self.__get_metric_tensor_components(x1, x2)
         g = super().metric_tensor(x1, x2, x3)
+        
         g[0,0] = 1 / (q * q)
         return g
 
@@ -59,3 +60,45 @@ class CorrugatedCylindricalPlate(CylindricalPlate):
         super().__init__(width, curvature)
         self.corrugation_amplitude = corrugation_amplitude
         self.corrugation_frequency = corrugation_frequency
+        
+        
+    def __get_metric_tensor_components(self, x1, x2):
+        q = 1 + self.curvature * x2
+        a = (np.pi + self.curvature * self.width) / 2 - x1 * self.curvature
+        w = q + self.corrugation_amplitude*self.curvature*np.cos(self.corrugation_frequency*a)
+        z = self.corrugation_amplitude*self.corrugation_frequency*self.curvature*np.sin(self.corrugation_frequency*a)
+        return q, a, w, z
+
+    def metric_tensor(self, x1, x2, x3):
+        q, a, w, z = self.__get_metric_tensor_components(x1, x2)
+        g = super().metric_tensor(x1, x2, x3)
+        
+        w1_2 = 1 / (w * w)
+        
+        g[0,0] = w1_2
+        g[0,1] = -z * w1_2
+        g[1,0] = -z * w1_2
+        g[1,1] = (w*w+z*z) * w1_2
+        return g
+
+    def kristophel_symbols(self, x1, x2, x3):
+        G = super().kristophel_symbols(x1, x2, x3)
+        q, a, w, z = self.__get_metric_tensor_components(x1, x2)
+
+        G[0,0,0] = 2*z*self.curvature/w
+        G[1,0,0] = -self.curvature *self.curvature *self.corrugation_amplitude*self.corrugation_frequency*self.corrugation_frequency*np.cos(self.corrugation_frequency*a) - w*self.curvature - 2*z*z*self.curvature/w
+        G[0,0,1] = self.curvature / q
+        G[0,1,0] = self.curvature / q
+
+        return G
+    
+    def to_cartesian_coordinates(self, x1, x2, x3):
+        x = x1
+        y = x2
+        z = x3
+        if (self.curvature > 0):
+            ar = (np.pi + self.curvature * self.width) / 2 - x1 * self.curvature
+            x = (1 / self.curvature + x2 + self.corrugation_amplitude*np.cos(self.corrugation_frequency*ar)) * np.cos(ar)
+            y = (1 / self.curvature + x2 + self.corrugation_amplitude*np.cos(self.corrugation_frequency*ar)) * np.sin(ar)
+            
+        return x, y, z
