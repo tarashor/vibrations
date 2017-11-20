@@ -37,21 +37,25 @@ def solve(model, mesh):
 
     s = remove_fixed_nodes(s, fixed_nodes_indicies, mesh.nodes_count())
     m = remove_fixed_nodes(m, fixed_nodes_indicies, mesh.nodes_count())
+    
+#    print(s)
+#    print(m)
 
     lam, vec = la.eigh(s, m)
 
     vec = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count())
     
-    i = 0
-    freq = np.sqrt(lam[i])
-    u1 = vec[:, i][0:mesh.nodes_count()]
-    u2 = vec[:, i][mesh.nodes_count():2 * mesh.nodes_count()]
-    u3 = np.zeros((mesh.nodes_count()))
+    results = []
+    for i in range(4):
+        freq = np.sqrt(lam[i])
+        u1 = vec[:, i][0:mesh.nodes_count()]
+        u2 = vec[:, i][mesh.nodes_count():2 * mesh.nodes_count()]
+        u3 = np.zeros((mesh.nodes_count()))
+        r = result.Result(freq, u1, u2, u3, mesh, model.geometry)
+        results.append(r)
     
-    print(u1)
-    print(u2)
 
-    return result.Result(freq, u1, u2, u3, mesh, model.geometry)
+    return results
 
 
 def stiffness_matrix(model, mesh):
@@ -69,18 +73,20 @@ def stiffness_matrix(model, mesh):
 def k_element_func(ksi, teta, element, geometry):
     x1, x2 = element.to_model_coordinates(ksi, teta)
     x3 = 0
-    print("ksi = {}, teta = {}".format(ksi, teta))
-    print("alpha1 = {}, alpha2 = {}".format(x1, x2))
+#    print("ksi = {}, teta = {}".format(ksi, teta))
+#    print("alpha1 = {}, alpha2 = {}".format(x1, x2))
     C = element.material.tensor_C(geometry, x1, x2, x3)
     E = matrices.grad_to_strain()
     B = matrices.deriv_to_grad(geometry, x1, x2, x3)
-    print("B={}".format(B))
+#    print("B={}".format(B))
     N = matrices.element_aprox_functions(element, x1, x2, x3)
-    print("N={}".format(N))
+#    print("N={}".format(N))
     J = element.jacobian_element_coordinates()
     
-    k=N.T.dot(B.T).dot(E.T).dot(C).dot(E).dot(B).dot(N) * J
-    print("k={}".format(k))
+    g = geometry.metric_tensor(x1, x2, x3)
+    
+    k=N.T.dot(B.T).dot(E.T).dot(C).dot(E).dot(B).dot(N) * J * np.linalg.det(g)
+#    print("k={}".format(k))
 
     return k
 
@@ -97,11 +103,11 @@ def mass_matrix(model, mesh):
 def m_element_func(ksi, teta, element, geometry):
     x1, x2 = element.to_model_coordinates(ksi, teta)
     x3 = 0
-    G = geometry.metric_tensor(x1, x2, x3)
+    g = geometry.metric_tensor(x1, x2, x3)
     B_s = matrices.deriv_to_vect()
     N = matrices.element_aprox_functions(element, x1, x2, x3)
     J = element.jacobian_element_coordinates()
-    return element.material.rho * N.T.dot(B_s.T.dot(G.dot(B_s.dot(N)))) * J
+    return element.material.rho * N.T.dot(B_s.T.dot(g.dot(B_s.dot(N)))) * J * np.linalg.det(g)
 
 
 def quadgch5nodes2dim(f, element, geometry):
