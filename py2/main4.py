@@ -1,27 +1,22 @@
-# -*- coding: utf-8 -*-
-"""
-=======================================
-A simple plot with a custom dashed line
-=======================================
+from sympy import symbols, trigsimp, sin, cos, pi, diff, sqrt
+a1, K, L, gv, ga = symbols("a1 K L g_a g_v")
 
-A Line object's ``set_dashes`` method allows you to specify dashes with
-a series of on/off lengths (in points).
-"""
-import numpy as np
-import matplotlib.pyplot as plt
+a=pi/2+K*(L/2-a1)
+
+r1=(1/K+ga*cos(gv*a))*cos(a)
+r2=(1/K+ga*cos(gv*a))*sin(a)
+
+dr1=diff(r1, a1)
+dr2=diff(r2, a1)
+
+n1=-dr2/sqrt(dr1**2+dr2**2)
+n2=dr1/sqrt(dr1**2+dr2**2)
+
+dn1=diff(n1, a1)
+dn2=diff(n2, a1)
+
+print(trigsimp(dn2))
 
 
-x = np.linspace(0, 10, 500)
-dashes = [10, 5, 100, 5]  # 10 points on, 5 off, 100 on, 5 off
 
-fig, ax = plt.subplots()
-line1, = ax.plot(x, np.sin(x), '--', linewidth=2,
-                 label='Dashes set retroactively')
-line1.set_dashes(dashes)
-
-line2, = ax.plot(x, -1 * np.sin(x), dashes=[30, 5, 10, 5],
-                 label='Dashes set proactively')
-
-ax.legend(loc='lower right')
-plt.show()
 
