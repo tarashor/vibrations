@@ -32,6 +32,8 @@ print(list(range(10, 100 + 1, 10)))
 o1 = MyClass(1)
 o2 = MyClass(1)
 
+print(repr(o1))
+
 print(isinstance(o1, MyClass))
 print(o1 == o2)
 

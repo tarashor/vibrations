@@ -3,6 +3,7 @@ from . import finiteelements as fe
 from . import matrices
 from math import cos
 
+
 class Result:
     def __init__(self, freq, u1, u2, u3, mesh, geometry):
         self.freq = freq
@@ -14,17 +15,17 @@ class Result:
 
     def get_displacement_and_deriv(self, x1, x2, x3, time):
         element = self.mesh.get_element(x1, x2)
-        
+
         if (element is None):
             print ("x1 = {}, x2 = {}".format(x1, x2))
 
         u_nodes = np.zeros((8))
-        
+
         u_nodes[0] = self.u1[element.top_left_index]
         u_nodes[1] = self.u1[element.top_right_index]
         u_nodes[2] = self.u1[element.bottom_right_index]
         u_nodes[3] = self.u1[element.bottom_left_index]
-        
+
         u_nodes[4] = self.u2[element.top_left_index]
         u_nodes[5] = self.u2[element.top_right_index]
         u_nodes[6] = self.u2[element.bottom_right_index]
@@ -33,13 +34,13 @@ class Result:
         h_e = matrices.element_aprox_functions(element, x1, x2, x3)
 
         return h_e.dot(u_nodes) * self.fi(time)
-    
+
     def get_strain(self, x1, x2, x3, time):
 
         B = matrices.deriv_to_grad(self.geometry, x1, x2, x3)
-        
+
         u = self.get_displacement_and_deriv(x1, x2, x3, time)
-        
+
         grad_u = B.dot(u)
 
         E = matrices.grad_to_strain()
@@ -48,4 +49,3 @@ class Result:
 
     def fi(self, time):
         return cos(self.freq * time)
-

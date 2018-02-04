@@ -1,7 +1,9 @@
 import numpy as np
 
+
 def deriv_ksiteta_to_alpha(element):
-    D = np.zeros((12,6))
+
+    D = np.zeros((12, 6))
 
     D[0, 0] = D[4, 3] = 1
     D[1, 1] = D[5, 4] = 2 / element.width()
@@ -13,7 +15,6 @@ def deriv_ksiteta_to_alpha(element):
 def lin_aprox_matrix(element, x1, x2, x3):
 
     ksi, teta = element.to_element_coordinates(x1, x2)
-
 
     f0 = 0.25 * (1 - ksi) * (1 + teta)
     f1 = 0.25 * (1 + ksi) * (1 + teta)
@@ -52,7 +53,7 @@ def lin_aprox_matrix(element, x1, x2, x3):
 def element_aprox_functions(element, x1, x2, x3):
     H = deriv_ksiteta_to_alpha(element).dot(lin_aprox_matrix(element, x1, x2, x3))
     return H
-    
+
 
 def grad_to_strain():
     E = np.zeros((6, 9))
@@ -92,10 +93,10 @@ def deriv_to_grad(geometry, x1, x2, x3):
     B[7, 10] = 1
 
     B[8, 11] = 1
-    
+
 #    K = geometry.curvature
 #    q=1+K*x2
-#    
+#
 #    B[0, 0] = 0
 #    B[0, 1] = 1/q
 #    B[0, 4] = K/q

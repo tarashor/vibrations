@@ -3,8 +3,6 @@ import numpy as np
 from scipy import linalg as la
 
 
-
-
 def solve(model, mesh):
 
     s = stiffness_matrix(model, mesh)
@@ -18,7 +16,6 @@ def solve(model, mesh):
     lam, vec = la.eigh(s, m)
 
     vec = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count())
-
 
     return Result(lam, vec, mesh, model)
 
@@ -53,7 +50,7 @@ def solve_nonlinearity(model, mesh):
         res = extend_with_fixed_nodes(vec_nl[:, 0], fixed_nodes_indicies, mesh.nodes_count())
         res = normalize(res)
         print("Norm = {}".format(np.linalg.norm(res)))
-        lam_nl=l_nl[0]
+        lam_nl = l_nl[0]
         i += 1
 
     return NonlinearResult(lam_nl, res, mesh, model)
@@ -125,7 +122,7 @@ def k_nl_element_func(ksi, teta, element, material, geometry, res):
     # print(grad_u)
     E_NL = grad_to_strain_nonlinear_matrix(alpha1, alpha2, geometry, grad_u)
 
-    return H.T.dot(I_e.T).dot(B.T).dot(E_NL.T.dot(C).dot(E+E_NL)+E.T.dot(C).dot(E_NL)).dot(B).dot(I_e).dot(H) * J
+    return H.T.dot(I_e.T).dot(B.T).dot(E_NL.T.dot(C).dot(E + E_NL) + E.T.dot(C).dot(E_NL)).dot(B).dot(I_e).dot(H) * J
 
 
 def k_element_func(ksi, teta, element, material, geometry):
@@ -150,6 +147,7 @@ def grad_to_strain_linear_matrix():
     E[5, 5] = E[5, 7] = 1
 
     return E
+
 
 def grad_to_strain_nonlinear_matrix(alpha1, alpha2, geometry, grad_u):
     E = np.zeros((6, 9))
@@ -207,7 +205,6 @@ def deriv_to_grad(alpha1, alpha2, geometry):
     B[8, 11] = 1
 
     return B
-
 
 
 def mass_matrix(model, mesh):
@@ -297,8 +294,9 @@ def convertToGlobalMatrix(local_matrix, element, N):
 
     return global_matrix
 
+
 def normalize(v):
-    norm=np.linalg.norm(v)
-    if norm==0:
-       return v
-    return v/norm
+    norm = np.linalg.norm(v)
+    if norm == 0:
+        return v
+    return v / norm
