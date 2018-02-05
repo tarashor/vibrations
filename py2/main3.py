@@ -20,9 +20,9 @@ def solve(width, curvature, thickness, corrugation_amplitude, corrugation_freque
     layers_count = 1
     layers = generate_layers(thickness, layers_count, m.Material.steel())
     mesh = me.Mesh.generate(width, layers, N, M, m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS)
-    geometry = g.CorrugatedCylindricalPlate(width, curvature, corrugation_amplitude, corrugation_frequency)
+    # geometry = g.CorrugatedCylindricalPlate(width, curvature, corrugation_amplitude, corrugation_frequency)
     # geometry = g.CylindricalPlate(width, curvature)
-    # geometry = g.Geometry()
+    geometry = g.Geometry()
     model = m.Model(geometry, layers, m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS)
     return s.solve(model, mesh)
 
@@ -40,10 +40,8 @@ corrugation_frequency = 20
 # corrugation_amplitude = 0.5*thickness
 # corrugation_frequency = 10
 
-N = 100
-M = 8
-
-layers_count = 1
+N = 200
+M = 20
 
 
 results = solve(width, curvature, thickness, corrugation_amplitude, corrugation_frequency)
