@@ -56,7 +56,7 @@ class CylindricalPlate(Geometry):
         return x, y, z
 
     def __str__(self):
-        return "K={}".format(self.curvature)
+        return "K={}m".format(self.curvature)
 
 
 class CorrugatedCylindricalPlate(CylindricalPlate):
@@ -108,4 +108,4 @@ class CorrugatedCylindricalPlate(CylindricalPlate):
         return x, y, z
 
     def __str__(self):
-        return "K={}, g_A={}, g_v={}".format(self.curvature, self.corrugation_amplitude, self.corrugation_frequency)
+        return r"$K={}$m, $g_A={}$m, $g_v={}$".format(self.curvature, self.corrugation_amplitude, self.corrugation_frequency)
