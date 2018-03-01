@@ -311,7 +311,7 @@ def plot_normals(geometry, x1_start, x1_end, x2_start, x2_end):
         Y_middle_normal.append(n_y)
         
         
-    plt.quiver(X_middle, Y_middle, X_middle_normal, Y_middle_normal, headwidth=1, linewidth=0.1)
+    plt.quiver(X_middle, Y_middle, X_middle_normal, Y_middle_normal, color='r', width=0.002)
 
 
 #    geometry_title = str(geometry)
