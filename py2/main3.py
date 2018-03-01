@@ -36,7 +36,7 @@ curvature = 0.8
 thickness = 0.05
 
 corrugation_amplitude = 0.03
-corrugation_frequencies = [10, 20, 40, 100]
+corrugation_frequencies = [10]#, 20, 40, 100]
 # corrugation_amplitude = 0.5*thickness
 # corrugation_frequency = 10
 
@@ -48,14 +48,18 @@ for cf in corrugation_frequencies:
     results_index = 0
     filename = "g_v {}".format(cf)
     filename_def = "deform g_v {}".format(cf)
-    plot.plot_init_and_deformed_geometry(results[results_index], 0, width, -thickness / 2, thickness / 2, 0, filename_def)
-    plot.plot_init_geometry(results[results_index].geometry, 0, width, -thickness / 2, thickness / 2, filename)
+#    plot.plot_init_and_deformed_geometry(results[results_index], 0, width, -thickness / 2, thickness / 2, 0, filename_def)
+#    plot.plot_init_geometry(results[results_index].geometry, 0, width, -thickness / 2, thickness / 2, filename)
+    plot.plot_normals(results[results_index].geometry, 0, width, -thickness / 2, thickness / 2)
 # plot.plot_strain(results[results_index], 0, width, -thickness / 2, thickness / 2, 0)
+    
+    
+#g = [2,4,6,8,10, 20, 50, 80, 100, 200, 300, 500]
+#w = [799,775,692,1025,1056, 3658, 6383, 6936, 7709, 5559, 4914, 3195]
+    
+#g = [2,4,6,8,10, 20, 50, 80, 100]
+#w = [799,775,692,1025,1056, 3658, 6383, 6936, 7709]
+#
+#plot.plot_freq_from_corrugated_freq(g, w, N, M)
 
 
-to_print = 20
-if (len(results) < to_print):
-    to_print = len(results)
-
-for i in range(to_print):
-    print(results[i].freq)

@@ -4,7 +4,7 @@ g_a = 0.03;
 g_f = 20;
 K=0.8;
 L = 2;
-h=1;
+h=0.05;
 
 num_points = 200;
 
@@ -38,7 +38,7 @@ for i=1:length(a2)
   plot(R(1,:),R(2,:), 'g');
 end
 
-alpha2 = a2(3);
+alpha2 = a2(2);
 
 x=r(1,:)+alpha2*n(1,:);
 y=r(2,:)+alpha2*n(2,:);
@@ -67,7 +67,7 @@ dr(2,:)=a.*sin(ar)-b.*cos(ar);
 R1=dr+alpha2*dn;
 R2=n;
 
-ip=5;
+ip=3;
 
 %quiver (x(1:ip:end),y(1:ip:end), v(1, 1:ip:end), v(2, 1:ip:end), 'k')
 
@@ -76,9 +76,9 @@ ip=5;
 
 %R1'*R2
 
-l = R1(1,:).*R2(1,:)+R1(2,:).*R2(2,:)
+l = R1(1,:).*R2(1,:)+R1(2,:).*R2(2,:);
 
-quiver (x(1:ip:end),y(1:ip:end), R1(1, 1:ip:end), R1(2, 1:ip:end), 'r')
+%quiver (x(1:ip:end),y(1:ip:end), R1(1, 1:ip:end), R1(2, 1:ip:end), 'r')
 quiver (x(1:ip:end),y(1:ip:end), R2(1, 1:ip:end), R2(2, 1:ip:end), 'b')
 
 daspect([1 1 1])

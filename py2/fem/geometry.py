@@ -13,6 +13,9 @@ class Geometry:
 
     def to_cartesian_coordinates(self, x1, x2, x3):
         return x1, x2, x3
+    
+    def normal_to_middle_surface(self, x1, x2, x3):
+        return 0, 1, 0
 
     def __str__(self):
         return ""
@@ -54,6 +57,22 @@ class CylindricalPlate(Geometry):
             y = (1 / self.curvature + x2) * np.sin(ar)
 
         return x, y, z
+    
+    def normal_to_middle_surface(self, x1, x2, x3):
+        n1 = 0
+        n2 = 1
+        n3 = 0
+        if (self.curvature > 0):
+            ar = self.curvature * (self.width / 2 - x1)
+            
+            dr1 = np.cos(ar)
+            dr2 = np.sin(ar)
+            
+            n1 = -dr2/np.sqrt(dr1*dr1+dr2*dr2)
+            n2 = dr1/np.sqrt(dr1*dr1+dr2*dr2)
+
+        return n1, n2, n3
+
 
     def __str__(self):
         return "K={}m".format(self.curvature)
@@ -106,6 +125,48 @@ class CorrugatedCylindricalPlate(CylindricalPlate):
             y = (1 / self.curvature + x2 + self.corrugation_amplitude * np.cos(self.corrugation_frequency * ar)) * np.sin(ar)
 
         return x, y, z
+    
+    def normal_to_middle_surface(self, x1, x2, x3):
+        n1 = 0
+        n2 = 1
+        n3 = 0
+        if (self.curvature > 0):
+            ar = (np.pi + self.curvature * self.width) / 2 - x1 * self.curvature
+            
+#            a=self.curvature*self.corrugation_frequency*self.corrugation_amplitude*np.sin(self.corrugation_frequency*ar)
+#            b=(1+self.curvature*self.corrugation_amplitude*np.cos(self.corrugation_frequency*ar))
+#
+#            n1=-a*np.sin(ar)+b*np.cos(ar)
+#            n2=a*np.cos(ar)+b*np.sin(ar)
+#            
+#            length_n=np.sqrt(a*a+b*b)
+#
+#
+#            n1=n1/length_n
+#            n2=n2/length_n
+            
+            dr1 = self.curvature*self.corrugation_frequency*self.corrugation_amplitude*np.cos(ar)*np.sin(self.corrugation_frequency*ar) + self.curvature*(self.corrugation_amplitude*np.cos(self.corrugation_frequency*ar)+1/self.curvature)*np.sin(ar)
+            
+            dr2 = self.curvature*self.corrugation_frequency*self.corrugation_amplitude*np.sin(ar)*np.sin(self.corrugation_frequency*ar) - self.curvature*(self.corrugation_amplitude*np.cos(self.corrugation_frequency*ar)+1/self.curvature)*np.cos(ar)
+            
+            n1 = -dr2/np.sqrt(dr1*dr1+dr2*dr2)
+            n2 = dr1/np.sqrt(dr1*dr1+dr2*dr2)                   
+
+        return n1, n2, n3
+        
+#        ar = pi/2+(L-2*x1)/(2*R);
+#        r(1,:)=(R + g_a.*cos(g_f.*ar)).*cos(ar);
+#r(2,:)=(R + g_a.*cos(g_f.*ar)).*sin(ar);
+#
+#a=g_a*g_f*K.*sin(g_f.*ar);
+#b=(1+g_a*K.*cos(g_f.*ar));
+#
+#n(1,:)=-a.*sin(ar)+b.*cos(ar);
+#n(2,:)=a.*cos(ar)+b.*sin(ar);
+#
+#length_n=sqrt(a.*a+b.*b); 
+#
+#n=n./length_n;
 
     def __str__(self):
         return r"$K={}$m, $g_A={}$m, $g_v={}$".format(self.curvature, self.corrugation_amplitude, self.corrugation_frequency)
