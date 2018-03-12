@@ -376,5 +376,40 @@ def plot_freq_from_corrugated_freq(g_v, w_min, N, M):
     plt.grid()
     plt.show()
     
+def plot_2D_depen(x, y, xtitle, ytitle):
+    plt.rc('text', usetex=True)
+    
+    plt.rc('font', family='serif')
+    SMALL_SIZE = 42
+    MEDIUM_SIZE = 42
+    BIGGER_SIZE = 42
+    
+    plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
+    plt.rc('axes', titlesize=SMALL_SIZE)     # fontsize of the axes title
+    plt.rc('axes', labelsize=MEDIUM_SIZE)    # fontsize of the x and y labels
+    plt.rc('xtick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
+    plt.rc('ytick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
+    plt.rc('legend', fontsize=SMALL_SIZE)    # legend fontsize
+    plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
+    
+    plt.plot(x, y, 'o-', linewidth=3.0, markersize=7, markeredgewidth=1, markerfacecolor='None')
+    plt.xlabel(xtitle)
+    plt.ylabel(ytitle)
+    
+    plt.gca().xaxis.set_label_coords(1, -0.02) 
+    plt.gca().yaxis.set_label_coords(-0.005, 1) 
+
+#    plt.title(r"Залежність $\omega_{min}$ від $g_v$")
+    # + r"($N={}, M={}$)".format(N, M))
+#    plt.tick_params(axis='both', which='major', labelsize=20)
+#    plt.tick_params(axis='both', which='minor', labelsize=16)
+
+    plt.xlim(xmin=0)
+    plt.ylim(ymin=0)
+    
+    
+    plt.grid()
+    plt.show()
+    
     
 mpl.rc('font',family='Times')
