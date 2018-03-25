@@ -48,6 +48,8 @@ class Material:
         mu = self.E / ((1 + self.v) * 2)
 
         g = geometry.metric_tensor(x1, x2, x3)
+        
+        g = np.linalg.inv(g)
 
         for i in range(N):
             for j in range(N):

@@ -85,7 +85,7 @@ def k_element_func(ksi, teta, element, geometry):
 
     g = geometry.metric_tensor(x1, x2, x3)
 
-    k = N.T.dot(B.T).dot(E.T).dot(C).dot(E).dot(B).dot(N) * J * np.linalg.det(g)
+    k = N.T.dot(B.T).dot(E.T).dot(C).dot(E).dot(B).dot(N) * J * np.sqrt(np.linalg.det(g))
 #    print("k={}".format(k))
 
     return k
@@ -108,7 +108,7 @@ def m_element_func(ksi, teta, element, geometry):
     B_s = matrices.deriv_to_vect()
     N = matrices.element_aprox_functions(element, x1, x2, x3)
     J = element.jacobian_element_coordinates()
-    return element.material.rho * N.T.dot(B_s.T.dot(g.dot(B_s.dot(N)))) * J * np.linalg.det(g)
+    return element.material.rho * N.T.dot(B_s.T.dot(g.dot(B_s.dot(N)))) * J * np.sqrt(np.linalg.det(g))
 
 
 def quadgch5nodes2dim(f, element, geometry):

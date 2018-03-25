@@ -13,6 +13,16 @@ class Geometry:
 
     def to_cartesian_coordinates(self, x1, x2, x3):
         return x1, x2, x3
+    
+    def R1(self, x1, x2, x3):
+        return 1, 0, 0
+    
+    def R2(self, x1, x2, x3):
+        return 0, 1, 0
+    
+    def R3(self, x1, x2, x3):
+        return 0, 0, 1
+    
 
     def __str__(self):
         return ""
@@ -31,7 +41,7 @@ class CylindricalPlate(Geometry):
         q = self.__get_metric_tensor_components(x1, x2)
         g = super().metric_tensor(x1, x2, x3)
 
-        g[0, 0] = 1 / (q * q)
+        g[0, 0] = (q * q)
         return g
 
     def kristophel_symbols(self, x1, x2, x3):
@@ -54,6 +64,25 @@ class CylindricalPlate(Geometry):
             y = (1 / self.curvature + x2) * np.sin(ar)
 
         return x, y, z
+    
+    def R1(self, x1, x2, x3):
+        x,y,z = super().R1(x1, x2, x3)
+        q = self.__get_metric_tensor_components(x1, x2)
+        if (self.curvature > 0):
+            ar = (np.pi + self.curvature * self.width) / 2 - x1 * self.curvature
+            x = q * np.cos(ar)
+            y = q * np.sin(ar)
+        return x, y, z
+    
+    def R2(self, x1, x2, x3):
+        x,y,z = super().R2(x1, x2, x3)
+        
+        if (self.curvature > 0):
+            ar = (np.pi + self.curvature * self.width) / 2 - x1 * self.curvature
+            x = - np.sin(ar)
+            y = np.cos(ar)
+        return x, y, z
+    
 
     def __str__(self):
         return "K={}".format(self.curvature)

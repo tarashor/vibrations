@@ -50,6 +50,7 @@ def plot_init_and_deformed_geometry(result, x1_start, x1_end, x2_start, x2_end, 
         u = result.get_displacement_and_deriv(x1, x2, x3, time)
         u1 = u[0]
         u2 = u[4]
+        u3 = u[8]
 
         x, y, z = result.geometry.to_cartesian_coordinates(x1, x2, x3)
 
@@ -59,10 +60,12 @@ def plot_init_and_deformed_geometry(result, x1_start, x1_end, x2_start, x2_end, 
         X_init.append(x)
         Y_init.append(y)
 
-        x1_deformed = x1 + u1
-        x2_deformed = x2 + u2
-
-        x, y, z = result.geometry.to_cartesian_coordinates(x1_deformed, x2_deformed, x3)
+        R1x, R1y, R1z = result.geometry.R1(x1, x2, x3)
+        R2x, R2y, R2z = result.geometry.R2(x1, x2, x3)
+        R3x, R3y, R3z = result.geometry.R3(x1, x2, x3)
+        
+        x = x + u1*R1x + u2*R2x + u3*R3x
+        y = y + u1*R1y + u2*R2y + u3*R3y
 
         X_deformed.append(x)
         Y_deformed.append(y)
@@ -73,16 +76,19 @@ def plot_init_and_deformed_geometry(result, x1_start, x1_end, x2_start, x2_end, 
         u = result.get_displacement_and_deriv(x1, x2, x3, time)
         u1 = u[0]
         u2 = u[4]
+        u3 = u[8]
 
         x, y, z = result.geometry.to_cartesian_coordinates(x1, x2, x3)
 
         X_init.append(x)
         Y_init.append(y)
 
-        x1_deformed = x1 + u1
-        x2_deformed = x2 + u2
-
-        x, y, z = result.geometry.to_cartesian_coordinates(x1_deformed, x2_deformed, x3)
+        R1x, R1y, R1z = result.geometry.R1(x1, x2, x3)
+        R2x, R2y, R2z = result.geometry.R2(x1, x2, x3)
+        R3x, R3y, R3z = result.geometry.R3(x1, x2, x3)
+        
+        x = x + u1*R1x + u2*R2x + u3*R3x
+        y = y + u1*R1y + u2*R2y + u3*R3y
 
         X_deformed.append(x)
         Y_deformed.append(y)
