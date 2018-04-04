@@ -22,17 +22,19 @@ R, L, ga, gv = symbols("R L g_a g_v")
 init_printing()
 
 a1 = pi / 2 + (L / 2 - alpha1)/R
-x = (R + ga * cos(gv * a1)) * cos(a1)
-y = alpha2
-z = (R + ga * cos(gv * a1)) * sin(a1)
-r = x*N.i + y*N.j + z*N.k
 
+a2 = 2 * pi * alpha1 / L
+
+x = (R + ga * cos(gv * a2)) * cos(a1)
+y = alpha2
+z = (R + ga * cos(gv * a2)) * sin(a1)
+r = x*N.i + y*N.j + z*N.k
 #r1 = trigsimp(r.diff(alpha1))
 
 #r1 = ((-ga*gv*sin((L/2 - alpha_1)/R)*sin(g_v*(L + pi*R - 2*alpha_1)/(2*R)) + (R + g_a*cos(g_v*(L + pi*R - 2*alpha_1)/(2*R)))*cos((L/2 - alpha_1)/R))/sqrt(g_a**2*g_v**2*sin(g_v*(L + pi*R - 2*alpha_1)/(2*R))**2 + (R + g_a*cos(g_v*(L + pi*R - 2*alpha_1)/(2*R)))**2))*N.i + ((g_a*g_v*sin(g_v*(L + pi*R - 2*alpha_1)/(2*R))*cos((L/2 - alpha_1)/R) + (R + g_a*cos(g_v*(L + pi*R - 2*alpha_1)/(2*R)))*sin((L/2 - alpha_1)/R))/sqrt(g_a**2*g_v**2*sin(g_v*(L + pi*R - 2*alpha_1)/(2*R))**2 + (R + g_a*cos(g_v*(L + pi*R - 2*alpha_1)/(2*R)))**2))*N.k
 
 r1 = (ga*gv*cos(a1)*sin(gv*a1) + (R + ga*cos(gv*a1))*sin(a1))*N.i + (ga*gv*sin(gv*a1)*sin(a1) - (R + ga*cos(gv*a1))*cos(a1))*N.k
-#r2 = trigsimp(r.diff(alpha2))
+r2 = trigsimp(r.diff(alpha2))
 
 #r1m=r1.dot(r1)
 r1m=(R + ga*cos(gv*a1))**2+(ga*gv*sin(gv*a1))**2
@@ -59,10 +61,19 @@ display(dr1)
 #display(r1)
 ###
 ###
-#n = r1.cross(r2)
+n = r1.cross(r2)
 ###
-#n_len = trigsimp(n.dot(n))
+n_len = trigsimp(n.dot(n))
+n=n/n_len
 ###
-#display(n_len)
+display(n)
 
+Ralpha = r+alpha3*n
+
+R1=Ralpha.diff(alpha1)
+R2=Ralpha.diff(alpha2)
+R3=Ralpha.diff(alpha3)
+
+display(R1)
+display(R3)
 

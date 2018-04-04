@@ -20,8 +20,8 @@ def solve(width, curvature, thickness, corrugation_amplitude, corrugation_freque
     layers_count = 1
     layers = generate_layers(thickness, layers_count, m.Material.steel())
     mesh = me.Mesh.generate(width, layers, N, M, m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS)
-    # geometry = g.CorrugatedCylindricalPlate(width, curvature, corrugation_amplitude, corrugation_frequency)
-    geometry = g.CylindricalPlate(width, curvature)
+    geometry = g.CorrugatedCylindricalPlate(width, curvature, corrugation_amplitude, corrugation_frequency)
+#    geometry = g.CylindricalPlate(width, curvature)
 #    geometry = g.Geometry()
     model = m.Model(geometry, layers, m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS)
     return s.solve(model, mesh)
@@ -32,11 +32,11 @@ def solve(width, curvature, thickness, corrugation_amplitude, corrugation_freque
 # curvature = 1/r
 
 width = 2
-curvature = 0.8
+curvature = 0
 thickness = 0.05
 
 corrugation_amplitude = 0.03
-corrugation_frequency = 20
+corrugation_frequency = 5
 # corrugation_amplitude = 0.5*thickness
 # corrugation_frequency = 10
 
@@ -46,8 +46,8 @@ M = 10
 
 results = solve(width, curvature, thickness, corrugation_amplitude, corrugation_frequency)
 results_index = 0
-plot.plot_init_and_deformed_geometry(results[results_index], 0, width, -thickness / 2, thickness / 2, 0)
-# plot.plot_init_geometry(results[results_index].geometry, 0, width, -thickness / 2, thickness / 2, 0)
+#plot.plot_init_and_deformed_geometry(results[results_index], 0, width, -thickness / 2, thickness / 2, 0)
+plot.plot_init_geometry(results[results_index].geometry, 0, width, -thickness / 2, thickness / 2, 0)
 # plot.plot_strain(results[results_index], 0, width, -thickness / 2, thickness / 2, 0)
 
 

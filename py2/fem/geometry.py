@@ -127,14 +127,10 @@ class CorrugatedCylindricalPlate(CylindricalPlate):
 
     def to_cartesian_coordinates(self, x1, x2, x3):
         x = x1
-        y = x2
+        y = x2 + self.corrugation_amplitude * np.cos(self.corrugation_frequency * 2 * np.pi * x1 / self.width)
         z = x3
-        if (self.curvature > 0):
-            ar = (np.pi + self.curvature * self.width) / 2 - x1 * self.curvature
-            x = (1 / self.curvature + x2 + self.corrugation_amplitude * np.cos(self.corrugation_frequency * ar)) * np.cos(ar)
-            y = (1 / self.curvature + x2 + self.corrugation_amplitude * np.cos(self.corrugation_frequency * ar)) * np.sin(ar)
-
-        return x, y, z
+        return super().to_cartesian_coordinates(x, y, z)
+    
 
     def __str__(self):
         return "K={}, g_A={}, g_v={}".format(self.curvature, self.corrugation_amplitude, self.corrugation_frequency)
