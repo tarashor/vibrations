@@ -43,6 +43,14 @@ class IsotropicMaterial(OrthotropicMaterial):
         super().__init__(C11, C12, C12, C11, C12, C11, C44, C44, C44, rho)
         
         
+    def lam(self):
+        return self.v * self.E / ((1 + self.v) * (1 - 2 * self.v))
+    
+    def mu(self):
+        return self.E / ((1 + self.v) * 2)
+    
+        
+        
 
 #    def tensor_C(self, geometry, x1, x2, x3):
 #        C = np.zeros((6, 6))

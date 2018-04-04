@@ -29,18 +29,16 @@ def i_exclude(fixed_nodes_indicies, nodes_count):
     return sorted(fixed_u1_indicies + fixed_u2_indicies)
 
 
-def solve(model, mesh):
+def solve(model, mesh, s_matrix, m_matrix):
 
-    s = stiffness_matrix(model, mesh)
-    m = mass_matrix(model, mesh)
+    s = integrate_matrix(model, mesh, s_matrix)
+    m = integrate_matrix(model, mesh, m_matrix)
 
     fixed_nodes_indicies = mesh.get_fixed_nodes_indicies()
 
     s = remove_fixed_nodes(s, fixed_nodes_indicies, mesh.nodes_count())
     m = remove_fixed_nodes(m, fixed_nodes_indicies, mesh.nodes_count())
 
-#    print(s)
-#    print(m)
 
     lam, vec = la.eigh(s, m)
 
@@ -50,81 +48,48 @@ def solve(model, mesh):
     for i in range(lam.size):
         freq = np.sqrt(lam[i])
         u1 = vec[:, i][0:mesh.nodes_count()]
-        u2 = vec[:, i][mesh.nodes_count():2 * mesh.nodes_count()]
-        u3 = np.zeros((mesh.nodes_count()))
+        u3 = vec[:, i][mesh.nodes_count():2 * mesh.nodes_count()]
+        u2 = np.zeros((mesh.nodes_count()))
         r = result.Result(np.sqrt(freq), u1, u2, u3, mesh, model.geometry)
         results.append(r)
-#        print (np.sqrt(freq))
 
     return results
 
 
-def stiffness_matrix(model, mesh):
+def integrate_matrix(model, mesh, matrix_func):
     N = 2 * (mesh.nodes_count())
     K = np.zeros((N, N))
     for element in mesh.elements:
-        K_element = quadgch5nodes2dim(k_element_func, element, model.geometry)
+        K_element = quadgch5nodes2dim(element_func, element, model.geometry, matrix_func)
 
         K += convertToGlobalMatrix(K_element, element, N)
 
     return K
 
-
-def k_element_func(ksi, teta, element, geometry):
-    x1, x2 = element.to_model_coordinates(ksi, teta)
-    x3 = 0
-#    print("ksi = {}, teta = {}".format(ksi, teta))
-#    print("alpha1 = {}, alpha2 = {}".format(x1, x2))
-    C = element.material.matrix_C(geometry, x1, x2, x3)
-    E = matrices.grad_to_strain()
-    B = matrices.deriv_to_grad(geometry, x1, x2, x3)
-#    print("B={}".format(B))
-    N = matrices.element_aprox_functions(element, x1, x2, x3)
-#    print("N={}".format(N))
-    J = element.jacobian_element_coordinates()
-
-    gj = geometry.getJacobian(x1,x2,x3)
-
-    k = N.T.dot(B.T).dot(E.T).dot(C).dot(E).dot(B).dot(N) * J * gj
-#    print("k={}".format(k))
-
-    return k
-
-
-def mass_matrix(model, mesh):
-    N = 2 * (mesh.nodes_count())
-    M = np.zeros((N, N))
-    for element in mesh.elements:
-        M_element = quadgch5nodes2dim(m_element_func, element, model.geometry)
-        M += convertToGlobalMatrix(M_element, element, N)
-
-    return M
-
-
-def m_element_func(ksi, teta, element, geometry):
-    x1, x2 = element.to_model_coordinates(ksi, teta)
-    x3 = 0
-    g = geometry.metric_tensor(x1, x2, x3)
-    g = np.linalg.inv(g)
-    gj = geometry.getJacobian(x1, x2, x3)
+def element_func(ksi, teta, element, geometry, matrix_func):
+    x1, x3 = element.to_model_coordinates(ksi, teta)
+    x2 = 0
     
-    B_s = matrices.deriv_to_vect()
+    EM = matrix_func(element.material, geometry, x1, x2, x3)
     N = matrices.element_aprox_functions(element, x1, x2, x3)
     J = element.jacobian_element_coordinates()
-    return element.material.rho * N.T.dot(B_s.T.dot(g.dot(B_s.dot(N)))) * J * gj
+
+    e = N.T.dot(EM).dot(N) * J
+
+    return e
 
 
-def quadgch5nodes2dim(f, element, geometry):
+def quadgch5nodes2dim(f, element, geometry, matrix_func):
     order = 5
     w = [0.23692689, 0.47862867, 0.56888889, 0.47862867, 0.23692689]
     x = [-0.90617985, -0.53846931, 0, 0.53846931, 0.90617985]
 
-    res = w[0] * w[0] * f(x[0], x[0], element, geometry)
+    res = w[0] * w[0] * f(x[0], x[0], element, geometry, matrix_func)
 
     for i in range(order):
         for j in range(order):
             if (i != 0 or j != 0):
-                res += w[i] * w[j] * f(x[i], x[j], element, geometry)
+                res += w[i] * w[j] * f(x[i], x[j], element, geometry, matrix_func)
 
     return res
 

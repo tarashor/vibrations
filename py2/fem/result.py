@@ -26,10 +26,10 @@ class Result:
         u_nodes[2] = self.u1[element.bottom_right_index]
         u_nodes[3] = self.u1[element.bottom_left_index]
 
-        u_nodes[4] = self.u2[element.top_left_index]
-        u_nodes[5] = self.u2[element.top_right_index]
-        u_nodes[6] = self.u2[element.bottom_right_index]
-        u_nodes[7] = self.u2[element.bottom_left_index]
+        u_nodes[4] = self.u3[element.top_left_index]
+        u_nodes[5] = self.u3[element.top_right_index]
+        u_nodes[6] = self.u3[element.bottom_right_index]
+        u_nodes[7] = self.u3[element.bottom_left_index]
 
         h_e = matrices.element_aprox_functions(element, x1, x2, x3)
 

@@ -5,16 +5,16 @@ def deriv_ksiteta_to_alpha(element):
 
     D = np.zeros((12, 6))
 
-    D[0, 0] = D[4, 3] = 1
-    D[1, 1] = D[5, 4] = 2 / element.width()
-    D[2, 2] = D[6, 5] = 2 / element.height()
+    D[0, 0] = D[8, 3] = 1
+    D[1, 1] = D[9, 4] = 2 / element.width()
+    D[3, 2] = D[11, 5] = 2 / element.height()
 
     return D
 
 
 def lin_aprox_matrix(element, x1, x2, x3):
 
-    ksi, teta = element.to_element_coordinates(x1, x2)
+    ksi, teta = element.to_element_coordinates(x1, x3)
 
     f0 = 0.25 * (1 - ksi) * (1 + teta)
     f1 = 0.25 * (1 + ksi) * (1 + teta)
@@ -74,23 +74,23 @@ def deriv_to_grad(geometry, x1, x2, x3):
 
     B[0, 0] = -G[0, 0, 0]
     B[0, 1] = 1
-    B[0, 4] = -G[1, 0, 0]
+    B[0, 8] = -G[1, 0, 0]
 
-    B[1, 0] = -G[0, 0, 1]
     B[1, 2] = 1
-    B[1, 4] = -G[1, 0, 1]
-
+    
+    B[2, 0] = -G[0, 0, 1]
     B[2, 3] = 1
+    B[2, 8] = -G[1, 0, 1]
 
-    B[3, 0] = -G[0, 1, 0]
     B[3, 5] = 1
-    B[3, 4] = -G[1, 1, 0]
 
     B[4, 6] = 1
 
     B[5, 7] = 1
 
+    B[6, 0] = -G[0, 1, 0]
     B[6, 9] = 1
+    B[6, 8] = -G[1, 1, 0]
 
     B[7, 10] = 1
 
@@ -174,12 +174,19 @@ def get_index_conv(index):
 
     return i, j
 
-def model_stiffness_matrix(material, geometry, x1, x2, x3):
-    K = zeros(12,12)
-    
-    return K
 
-def model_mass_matrix(material, geometry, x1, x2, x3):
-    M = zeros(12,12)
+def stiffness_matrix(material, geometry, x1, x2, x3):
+    C = material.matrix_C(geometry, x1, x2, x3)
+    E = grad_to_strain()
+    B = deriv_to_grad(geometry, x1, x2, x3)
+    gj = geometry.getJacobian(x1, x2, x3)
     
-    return M
+    return B.T.dot(E.T).dot(C).dot(E).dot(B)* gj
+
+def mass_matrix(material, geometry, x1, x2, x3):
+    g = geometry.metric_tensor(x1, x2, x3)
+    g_inv = np.linalg.inv(g)
+    gj = geometry.getJacobian(x1, x2, x3)
+    
+    B_s = deriv_to_vect()
+    return material.rho * B_s.T.dot(g_inv.dot(B_s)) * gj

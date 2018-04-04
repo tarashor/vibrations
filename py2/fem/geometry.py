@@ -35,12 +35,12 @@ class CylindricalPlate(Geometry):
         self.width = width
         self.curvature = curvature
 
-    def __get_metric_tensor_components(self, x1, x2):
-        q = 1 + self.curvature * x2
+    def __get_metric_tensor_components(self, x1, x2, x3):
+        q = 1 + self.curvature * x3
         return q
 
     def metric_tensor(self, x1, x2, x3):
-        q = self.__get_metric_tensor_components(x1, x2)
+        q = self.__get_metric_tensor_components(x1, x2, x3)
         g = super().metric_tensor(x1, x2, x3)
 
         g[0, 0] = (q * q)
@@ -48,7 +48,7 @@ class CylindricalPlate(Geometry):
 
     def kristophel_symbols(self, x1, x2, x3):
         G = super().kristophel_symbols(x1, x2, x3)
-        q = self.__get_metric_tensor_components(x1, x2)
+        q = self.__get_metric_tensor_components(x1, x2, x3)
 
         G[1, 0, 0] = -self.curvature * q
         G[0, 0, 1] = self.curvature / q
@@ -62,31 +62,31 @@ class CylindricalPlate(Geometry):
         z = x3
         if (self.curvature > 0):
             ar = (np.pi + self.curvature * self.width) / 2 - x1 * self.curvature
-            x = (1 / self.curvature + x2) * np.cos(ar)
-            y = (1 / self.curvature + x2) * np.sin(ar)
+            x = (1 / self.curvature + x3) * np.cos(ar)
+            z = (1 / self.curvature + x3) * np.sin(ar)
 
         return x, y, z
     
     def R1(self, x1, x2, x3):
         x,y,z = super().R1(x1, x2, x3)
-        q = self.__get_metric_tensor_components(x1, x2)
+        q = self.__get_metric_tensor_components(x1, x2, x3)
         if (self.curvature > 0):
             ar = (np.pi + self.curvature * self.width) / 2 - x1 * self.curvature
             x = 1/q * np.sin(ar)
-            y = -1/q * np.cos(ar)
+            z = -1/q * np.cos(ar)
         return x, y, z
     
-    def R2(self, x1, x2, x3):
+    def R3(self, x1, x2, x3):
         x,y,z = super().R2(x1, x2, x3)
         
         if (self.curvature > 0):
             ar = (np.pi + self.curvature * self.width) / 2 - x1 * self.curvature
             x = np.cos(ar)
-            y = np.sin(ar)
+            z = np.sin(ar)
         return x, y, z
     
     def getJacobian(self, x1, x2, x3):
-        return 1 + self.curvature * x2
+        return 1 + self.curvature * x3
 
     def __str__(self):
         return "K={}".format(self.curvature)
@@ -99,28 +99,28 @@ class CorrugatedCylindricalPlate(CylindricalPlate):
         self.corrugation_amplitude = corrugation_amplitude
         self.corrugation_frequency = corrugation_frequency
 
-    def __get_metric_tensor_components(self, x1, x2):
-        q = 1 + self.curvature * x2
+    def __get_metric_tensor_components(self, x1, x2, x3):
+        q = 1 + self.curvature * x3
         a = (np.pi + self.curvature * self.width) / 2 - x1 * self.curvature
         w = q + self.corrugation_amplitude * self.curvature * np.cos(self.corrugation_frequency * a)
         z = self.corrugation_amplitude * self.corrugation_frequency * self.curvature * np.sin(self.corrugation_frequency * a)
         return q, a, w, z
 
     def metric_tensor(self, x1, x2, x3):
-        q, a, w, z = self.__get_metric_tensor_components(x1, x2)
+        q, a, w, z = self.__get_metric_tensor_components(x1, x2, x3)
         g = super().metric_tensor(x1, x2, x3)
 
         w1_2 = 1 / (w * w)
 
         g[0, 0] = w1_2
-        g[0, 1] = -z * w1_2
-        g[1, 0] = -z * w1_2
-        g[1, 1] = (w * w + z * z) * w1_2
+        g[0, 2] = -z * w1_2
+        g[2, 0] = -z * w1_2
+        g[2, 2] = (w * w + z * z) * w1_2
         return g
 
     def kristophel_symbols(self, x1, x2, x3):
         G = super().kristophel_symbols(x1, x2, x3)
-        q, a, w, z = self.__get_metric_tensor_components(x1, x2)
+        q, a, w, z = self.__get_metric_tensor_components(x1, x2, x3)
 
         G[0, 0, 0] = 2 * z * self.curvature / w
         G[1, 0, 0] = -self.curvature * self.curvature * self.corrugation_amplitude * self.corrugation_frequency * self.corrugation_frequency * np.cos(self.corrugation_frequency * a) - w * self.curvature - 2 * z * z * self.curvature / w
@@ -140,8 +140,8 @@ class CorrugatedCylindricalPlate(CylindricalPlate):
         
         if (self.curvature > 0):
             ar = (np.pi + self.curvature * self.width) / 2 - x1 * self.curvature
-            x = (1 / self.curvature + x2 + self.corrugation_amplitude * np.cos(self.corrugation_frequency * ar)) * np.cos(ar)
-            y = (1 / self.curvature + x2 + self.corrugation_amplitude * np.cos(self.corrugation_frequency * ar)) * np.sin(ar)
+            x = (1 / self.curvature + x3 + self.corrugation_amplitude * np.cos(self.corrugation_frequency * ar)) * np.cos(ar)
+            z = (1 / self.curvature + x3 + self.corrugation_amplitude * np.cos(self.corrugation_frequency * ar)) * np.sin(ar)
 
         return x, y, z
 
@@ -150,7 +150,7 @@ class CorrugatedCylindricalPlate(CylindricalPlate):
         x = x1
         y = x2
         z = x3
-        q, a, w, z = self.__get_metric_tensor_components(x1, x2)
+        q, a, w, z = self.__get_metric_tensor_components(x1, x2, x3)
         if (self.curvature > 0):
             ar = (np.pi + self.curvature * self.width) / 2 - x1 * self.curvature
             x = w * np.sin(ar) + z * np.cos(ar)
@@ -158,7 +158,7 @@ class CorrugatedCylindricalPlate(CylindricalPlate):
         return x, y, z
     
     def getJacobian(self, x1, x2, x3):
-        q, a, w, z = self.__get_metric_tensor_components(x1, x2)
+        q, a, w, z = self.__get_metric_tensor_components(x1, x2, x3)
         return w
 
     def __str__(self):

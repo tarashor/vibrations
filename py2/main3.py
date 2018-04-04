@@ -5,6 +5,8 @@ import fem.solver as s
 import fem.mesh as me
 import plot
 
+from fem.matrices import stiffness_matrix, mass_matrix
+
 
 def generate_layers(thickness, layers_count, material):
     layer_top = thickness / 2
@@ -21,11 +23,11 @@ def solve(width, curvature, thickness, corrugation_amplitude, corrugation_freque
     layers_count = 1
     layers = generate_layers(thickness, layers_count, mat.IsotropicMaterial.steel())
     mesh = me.Mesh.generate(width, layers, N, M, m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS)
-    geometry = g.CorrugatedCylindricalPlate(width, curvature, corrugation_amplitude, corrugation_frequency)
-#    geometry = g.CylindricalPlate(width, curvature)
+#    geometry = g.CorrugatedCylindricalPlate(width, curvature, corrugation_amplitude, corrugation_frequency)
+    geometry = g.CylindricalPlate(width, curvature)
 #    geometry = g.Geometry()
     model = m.Model(geometry, layers, m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS)
-    return s.solve(model, mesh)
+    return s.solve(model, mesh, stiffness_matrix, mass_matrix)
 
 
 # r=2

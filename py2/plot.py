@@ -34,7 +34,7 @@ def plot_strain(result, x1_start, x1_end, x2_start, x2_end, time):
     plt.show()
 
 
-def plot_init_and_deformed_geometry(result, x1_start, x1_end, x2_start, x2_end, time):
+def plot_init_and_deformed_geometry(result, x1_start, x1_end, x3_start, x3_end, time):
 
     dx1 = (x1_end - x1_start) / plot_x1_elements
 
@@ -43,8 +43,8 @@ def plot_init_and_deformed_geometry(result, x1_start, x1_end, x2_start, x2_end, 
     X_deformed = []
     Y_deformed = []
 
-    x3 = 0
-    x2 = x2_end
+    x2 = 0
+    x3 = x3_end
     for i in range(plot_x1_elements + 1):
         x1 = x1_start + i * dx1
         u = result.get_displacement_and_deriv(x1, x2, x3, time)
@@ -58,19 +58,19 @@ def plot_init_and_deformed_geometry(result, x1_start, x1_end, x2_start, x2_end, 
 #        print("x = {}, y = {}".format(x,y))
 
         X_init.append(x)
-        Y_init.append(y)
+        Y_init.append(z)
 
         R1x, R1y, R1z = result.geometry.R1(x1, x2, x3)
         R2x, R2y, R2z = result.geometry.R2(x1, x2, x3)
         R3x, R3y, R3z = result.geometry.R3(x1, x2, x3)
         
         x = x + u1*R1x + u2*R2x + u3*R3x
-        y = y + u1*R1y + u2*R2y + u3*R3y
+        z = z + u1*R1z + u2*R2z + u3*R3z
 
         X_deformed.append(x)
-        Y_deformed.append(y)
+        Y_deformed.append(z)
 
-    x2 = x2_start
+    x3 = x3_start
     for i in range(plot_x1_elements + 1):
         x1 = x1_end - i * dx1
         u = result.get_displacement_and_deriv(x1, x2, x3, time)
@@ -81,17 +81,17 @@ def plot_init_and_deformed_geometry(result, x1_start, x1_end, x2_start, x2_end, 
         x, y, z = result.geometry.to_cartesian_coordinates(x1, x2, x3)
 
         X_init.append(x)
-        Y_init.append(y)
+        Y_init.append(z)
 
         R1x, R1y, R1z = result.geometry.R1(x1, x2, x3)
         R2x, R2y, R2z = result.geometry.R2(x1, x2, x3)
         R3x, R3y, R3z = result.geometry.R3(x1, x2, x3)
         
         x = x + u1*R1x + u2*R2x + u3*R3x
-        y = y + u1*R1y + u2*R2y + u3*R3y
+        z = z + u1*R1z + u2*R2z + u3*R3z
 
         X_deformed.append(x)
-        Y_deformed.append(y)
+        Y_deformed.append(z)
 
     X_init.append(X_init[0])
     Y_init.append(Y_init[0])
@@ -180,15 +180,15 @@ def plot_init_and_deformed_geometry_alpha(result, x1_start, x1_end, x2_start, x2
     plt.show()
 
 
-def plot_init_geometry(geometry, x1_start, x1_end, x2_start, x2_end, time):
+def plot_init_geometry(geometry, x1_start, x1_end, x3_start, x3_end, time):
 
     dx1 = (x1_end - x1_start) / plot_x1_elements
 
     X_init = []
     Y_init = []
 
-    x3 = 0
-    x2 = x2_end
+    x2 = 0
+    x3 = x3_end
     for i in range(plot_x1_elements + 1):
         x1 = x1_start + i * dx1
 
@@ -198,16 +198,16 @@ def plot_init_geometry(geometry, x1_start, x1_end, x2_start, x2_end, time):
 #        print("x = {}, y = {}".format(x,y))
 
         X_init.append(x)
-        Y_init.append(y)
+        Y_init.append(z)
 
-    x2 = x2_start
+    x3 = x3_start
     for i in range(plot_x1_elements + 1):
         x1 = x1_end - i * dx1
 
         x, y, z = geometry.to_cartesian_coordinates(x1, x2, x3)
 
         X_init.append(x)
-        Y_init.append(y)
+        Y_init.append(z)
 
     X_init.append(X_init[0])
     Y_init.append(Y_init[0])
@@ -215,9 +215,9 @@ def plot_init_geometry(geometry, x1_start, x1_end, x2_start, x2_end, time):
     plt.plot(X_init, Y_init, "r", label="початкова конфігурація")
 
     geometry_title = str(geometry)
-    plot_title = r"Форма панелі $L={}, h={}$".format(x1_end - x1_start, x2_end - x2_start)
+    plot_title = r"Форма панелі $L={}, h={}$".format(x1_end - x1_start, x3_end - x3_start)
     if (len(geometry_title) > 0):
-        plot_title = r"Форма панелі $L={}, h={}, {}$".format(x1_end - x1_start, x2_end - x2_start, geometry_title)
+        plot_title = r"Форма панелі $L={}, h={}, {}$".format(x1_end - x1_start, x3_end - x3_start, geometry_title)
 
     plt.title(plot_title)
     plt.axes().set_aspect('equal', 'datalim')
