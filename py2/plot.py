@@ -108,6 +108,76 @@ def plot_init_and_deformed_geometry(result, x1_start, x1_end, x2_start, x2_end, 
     plt.ylabel(r"$x_2$, м", fontsize=12)
     plt.grid()
     plt.show()
+    
+def plot_init_and_deformed_geometry_alpha(result, x1_start, x1_end, x2_start, x2_end, time):
+
+    dx1 = (x1_end - x1_start) / plot_x1_elements
+
+    X_init = []
+    Y_init = []
+    X_deformed = []
+    Y_deformed = []
+
+    x3 = 0
+    x2 = x2_end
+    for i in range(plot_x1_elements + 1):
+        x1 = x1_start + i * dx1
+        u = result.get_displacement_and_deriv(x1, x2, x3, time)
+        u1 = u[0]
+        u2 = u[4]
+        u3 = u[8]
+
+
+        X_init.append(x1)
+        Y_init.append(x2)
+
+#        R1x, R1y, R1z = result.geometry.R1(x1, x2, x3)
+#        R2x, R2y, R2z = result.geometry.R2(x1, x2, x3)
+#        R3x, R3y, R3z = result.geometry.R3(x1, x2, x3)
+        
+        x = x1 + u1
+        y = x2 + u2
+
+        X_deformed.append(x)
+        Y_deformed.append(y)
+
+    x2 = x2_start
+    for i in range(plot_x1_elements + 1):
+        x1 = x1_end - i * dx1
+        u = result.get_displacement_and_deriv(x1, x2, x3, time)
+        u1 = u[0]
+        u2 = u[4]
+        u3 = u[8]
+
+
+        X_init.append(x1)
+        Y_init.append(x2)
+
+#        R1x, R1y, R1z = result.geometry.R1(x1, x2, x3)
+#        R2x, R2y, R2z = result.geometry.R2(x1, x2, x3)
+#        R3x, R3y, R3z = result.geometry.R3(x1, x2, x3)
+        
+        x = x1 + u1
+        y = x2 + u2
+
+        X_deformed.append(x)
+        Y_deformed.append(y)
+
+    X_init.append(X_init[0])
+    Y_init.append(Y_init[0])
+    X_deformed.append(X_deformed[0])
+    Y_deformed.append(Y_deformed[0])
+
+    plt.plot(X_init, Y_init, "r", label="початкова конфігурація")
+    plt.plot(X_deformed, Y_deformed, "b", label="поточна конфігурація")
+    plt.title("Переміщення")
+    # plt.title(r"Форма панелі $L={}, h={}, K={}, g_A={}, g_v={}$".format(x1_end - x1_start, x2_end - x2_start, result.geometry.curvature, result.geometry.corrugation_amplitude, result.geometry.corrugation_frequency))
+    plt.axes().set_aspect('equal', 'datalim')
+    plt.legend(loc='best')
+    plt.xlabel(r"$x_1$, м", fontsize=12)
+    plt.ylabel(r"$x_2$, м", fontsize=12)
+    plt.grid()
+    plt.show()
 
 
 def plot_init_geometry(geometry, x1_start, x1_end, x2_start, x2_end, time):

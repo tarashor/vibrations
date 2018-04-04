@@ -23,6 +23,8 @@ class Geometry:
     def R3(self, x1, x2, x3):
         return 0, 0, 1
     
+    def getJacobian(self, x1, x2, x3):
+        return 1
 
     def __str__(self):
         return ""
@@ -70,8 +72,8 @@ class CylindricalPlate(Geometry):
         q = self.__get_metric_tensor_components(x1, x2)
         if (self.curvature > 0):
             ar = (np.pi + self.curvature * self.width) / 2 - x1 * self.curvature
-            x = 1/q * np.cos(ar)
-            y = 1/q * np.sin(ar)
+            x = 1/q * np.sin(ar)
+            y = -1/q * np.cos(ar)
         return x, y, z
     
     def R2(self, x1, x2, x3):
@@ -79,10 +81,12 @@ class CylindricalPlate(Geometry):
         
         if (self.curvature > 0):
             ar = (np.pi + self.curvature * self.width) / 2 - x1 * self.curvature
-            x = np.sin(ar)
-            y = np.cos(ar)
+            x = np.cos(ar)
+            y = np.sin(ar)
         return x, y, z
     
+    def getJacobian(self, x1, x2, x3):
+        return 1 + self.curvature * x2
 
     def __str__(self):
         return "K={}".format(self.curvature)
@@ -153,6 +157,9 @@ class CorrugatedCylindricalPlate(CylindricalPlate):
             y = -w * np.cos(ar) + z * np.sin(ar)
         return x, y, z
     
+    def getJacobian(self, x1, x2, x3):
+        q, a, w, z = self.__get_metric_tensor_components(x1, x2)
+        return w
 
     def __str__(self):
         return "K={}, g_A={}, g_v={}".format(self.curvature, self.corrugation_amplitude, self.corrugation_frequency)

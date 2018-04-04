@@ -83,9 +83,9 @@ def k_element_func(ksi, teta, element, geometry):
 #    print("N={}".format(N))
     J = element.jacobian_element_coordinates()
 
-    g = geometry.metric_tensor(x1, x2, x3)
+    gj = geometry.getJacobian(x1,x2,x3)
 
-    k = N.T.dot(B.T).dot(E.T).dot(C).dot(E).dot(B).dot(N) * J * np.sqrt(np.linalg.det(g))
+    k = N.T.dot(B.T).dot(E.T).dot(C).dot(E).dot(B).dot(N) * J * gj
 #    print("k={}".format(k))
 
     return k
@@ -105,8 +105,9 @@ def m_element_func(ksi, teta, element, geometry):
     x1, x2 = element.to_model_coordinates(ksi, teta)
     x3 = 0
     g = geometry.metric_tensor(x1, x2, x3)
-    gj = np.sqrt(np.linalg.det(g))
     g = np.linalg.inv(g)
+    gj = geometry.getJacobian(x1, x2, x3)
+    
     B_s = matrices.deriv_to_vect()
     N = matrices.element_aprox_functions(element, x1, x2, x3)
     J = element.jacobian_element_coordinates()
