@@ -1,5 +1,6 @@
 import fem.geometry as g
 import fem.model as m
+import fem.material as mat
 import fem.solver as s
 import fem.mesh as me
 import plot
@@ -18,7 +19,7 @@ def generate_layers(thickness, layers_count, material):
 
 def solve(width, curvature, thickness, corrugation_amplitude, corrugation_frequency):
     layers_count = 1
-    layers = generate_layers(thickness, layers_count, m.Material.steel())
+    layers = generate_layers(thickness, layers_count, mat.IsotropicMaterial.steel())
     mesh = me.Mesh.generate(width, layers, N, M, m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS)
     geometry = g.CorrugatedCylindricalPlate(width, curvature, corrugation_amplitude, corrugation_frequency)
 #    geometry = g.CylindricalPlate(width, curvature)

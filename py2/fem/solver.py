@@ -75,7 +75,7 @@ def k_element_func(ksi, teta, element, geometry):
     x3 = 0
 #    print("ksi = {}, teta = {}".format(ksi, teta))
 #    print("alpha1 = {}, alpha2 = {}".format(x1, x2))
-    C = element.material.tensor_C(geometry, x1, x2, x3)
+    C = element.material.matrix_C(geometry, x1, x2, x3)
     E = matrices.grad_to_strain()
     B = matrices.deriv_to_grad(geometry, x1, x2, x3)
 #    print("B={}".format(B))

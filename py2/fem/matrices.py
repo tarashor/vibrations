@@ -129,3 +129,57 @@ def deriv_to_vect():
     B[0, 0] = B[1, 4] = B[2, 8] = 1
 
     return B
+
+def matrix_C(material, geometry, x1, x2, x3):
+    N = 6
+
+    C = np.zeros((N, N))
+
+    lam = self.v * self.E / ((1 + self.v) * (1 - 2 * self.v))
+    mu = self.E / ((1 + self.v) * 2)
+
+    g = geometry.metric_tensor(x1, x2, x3)
+    
+    g = np.linalg.inv(g)
+
+    for i in range(N):
+        for j in range(N):
+            n, m = self.__get_index_conv(i)
+            k, l = self.__get_index_conv(j)
+            C[i, j] = mu * (g[n, k] * g[m, l] + g[n, l] * g[m, k]) + lam * g[n, m] * g[k, l]
+
+    return C
+
+def get_index_conv(index):
+    i = 0
+    j = 0
+    if (index == 0):
+        i = 0
+        j = 0
+    elif (index == 1):
+        i = 1
+        j = 1
+    elif (index == 2):
+        i = 2
+        j = 2
+    elif (index == 3):
+        i = 0
+        j = 1
+    elif (index == 4):
+        i = 0
+        j = 2
+    elif (index == 5):
+        i = 1
+        j = 2
+
+    return i, j
+
+def model_stiffness_matrix(material, geometry, x1, x2, x3):
+    K = zeros(12,12)
+    
+    return K
+
+def model_mass_matrix(material, geometry, x1, x2, x3):
+    M = zeros(12,12)
+    
+    return M
