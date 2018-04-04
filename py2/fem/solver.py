@@ -105,10 +105,12 @@ def m_element_func(ksi, teta, element, geometry):
     x1, x2 = element.to_model_coordinates(ksi, teta)
     x3 = 0
     g = geometry.metric_tensor(x1, x2, x3)
+    gj = np.sqrt(np.linalg.det(g))
+    g = np.linalg.inv(g)
     B_s = matrices.deriv_to_vect()
     N = matrices.element_aprox_functions(element, x1, x2, x3)
     J = element.jacobian_element_coordinates()
-    return element.material.rho * N.T.dot(B_s.T.dot(g.dot(B_s.dot(N)))) * J * np.sqrt(np.linalg.det(g))
+    return element.material.rho * N.T.dot(B_s.T.dot(g.dot(B_s.dot(N)))) * J * gj
 
 
 def quadgch5nodes2dim(f, element, geometry):

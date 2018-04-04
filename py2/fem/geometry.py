@@ -70,8 +70,8 @@ class CylindricalPlate(Geometry):
         q = self.__get_metric_tensor_components(x1, x2)
         if (self.curvature > 0):
             ar = (np.pi + self.curvature * self.width) / 2 - x1 * self.curvature
-            x = q * np.cos(ar)
-            y = q * np.sin(ar)
+            x = 1/q * np.cos(ar)
+            y = 1/q * np.sin(ar)
         return x, y, z
     
     def R2(self, x1, x2, x3):
@@ -79,7 +79,7 @@ class CylindricalPlate(Geometry):
         
         if (self.curvature > 0):
             ar = (np.pi + self.curvature * self.width) / 2 - x1 * self.curvature
-            x = - np.sin(ar)
+            x = np.sin(ar)
             y = np.cos(ar)
         return x, y, z
     
@@ -120,16 +120,38 @@ class CorrugatedCylindricalPlate(CylindricalPlate):
 
         G[0, 0, 0] = 2 * z * self.curvature / w
         G[1, 0, 0] = -self.curvature * self.curvature * self.corrugation_amplitude * self.corrugation_frequency * self.corrugation_frequency * np.cos(self.corrugation_frequency * a) - w * self.curvature - 2 * z * z * self.curvature / w
-        G[0, 0, 1] = self.curvature / q
-        G[0, 1, 0] = self.curvature / q
+        
+        G[0, 0, 1] = self.curvature / w
+        G[0, 1, 0] = self.curvature / w
+        
+        G[1, 0, 1] = -z*self.curvature / w
+        G[1, 1, 0] = -z*self.curvature / w
 
         return G
 
     def to_cartesian_coordinates(self, x1, x2, x3):
         x = x1
-        y = x2 + self.corrugation_amplitude * np.cos(self.corrugation_frequency * 2 * np.pi * x1 / self.width)
+        y = x2
         z = x3
-        return super().to_cartesian_coordinates(x, y, z)
+        
+        if (self.curvature > 0):
+            ar = (np.pi + self.curvature * self.width) / 2 - x1 * self.curvature
+            x = (1 / self.curvature + x2 + self.corrugation_amplitude * np.cos(self.corrugation_frequency * ar)) * np.cos(ar)
+            y = (1 / self.curvature + x2 + self.corrugation_amplitude * np.cos(self.corrugation_frequency * ar)) * np.sin(ar)
+
+        return x, y, z
+
+    
+    def R1(self, x1, x2, x3):
+        x = x1
+        y = x2
+        z = x3
+        q, a, w, z = self.__get_metric_tensor_components(x1, x2)
+        if (self.curvature > 0):
+            ar = (np.pi + self.curvature * self.width) / 2 - x1 * self.curvature
+            x = w * np.sin(ar) + z * np.cos(ar)
+            y = -w * np.cos(ar) + z * np.sin(ar)
+        return x, y, z
     
 
     def __str__(self):
