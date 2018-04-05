@@ -194,9 +194,6 @@ def plot_init_geometry(geometry, x1_start, x1_end, x3_start, x3_end, time):
 
         x, y, z = geometry.to_cartesian_coordinates(x1, x2, x3)
 
-#        print("==x1 = {}, x2 = {}".format(x1,x2))
-#        print("x = {}, y = {}".format(x,y))
-
         X_init.append(x)
         Y_init.append(z)
 

@@ -44,10 +44,10 @@ class IsotropicMaterial(OrthotropicMaterial):
         
         
     def lam(self):
-        return self.v * self.E / ((1 + self.v) * (1 - 2 * self.v))
+        return self.C[0,1]
     
     def mu(self):
-        return self.E / ((1 + self.v) * 2)
+        return self.C[3,3]
     
         
         
