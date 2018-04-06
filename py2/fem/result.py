@@ -14,10 +14,10 @@ class Result:
         self.geometry = geometry
 
     def get_displacement_and_deriv(self, x1, x2, x3, time):
-        element = self.mesh.get_element(x1, x2)
+        element = self.mesh.get_element(x1, x3)
 
         if (element is None):
-            print ("x1 = {}, x2 = {}".format(x1, x2))
+            print ("x1 = {}, x2 = {}".format(x1, x3))
 
         u_nodes = np.zeros((8))
 

@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 from matplotlib import cm
+import matplotlib.patches as patches
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 
@@ -118,8 +119,8 @@ def plot_init_and_deformed_geometry_alpha(result, x1_start, x1_end, x2_start, x2
     X_deformed = []
     Y_deformed = []
 
-    x3 = 0
-    x2 = x2_end
+    x2 = 0
+    x3 = x2_end
     for i in range(plot_x1_elements + 1):
         x1 = x1_start + i * dx1
         u = result.get_displacement_and_deriv(x1, x2, x3, time)
@@ -127,21 +128,13 @@ def plot_init_and_deformed_geometry_alpha(result, x1_start, x1_end, x2_start, x2
         u2 = u[4]
         u3 = u[8]
 
-
         X_init.append(x1)
-        Y_init.append(x2)
+        Y_init.append(x3)
 
-#        R1x, R1y, R1z = result.geometry.R1(x1, x2, x3)
-#        R2x, R2y, R2z = result.geometry.R2(x1, x2, x3)
-#        R3x, R3y, R3z = result.geometry.R3(x1, x2, x3)
-        
-        x = x1 + u1
-        y = x2 + u2
+        X_deformed.append(x1 + u1)
+        Y_deformed.append(x3 + u3)
 
-        X_deformed.append(x)
-        Y_deformed.append(y)
-
-    x2 = x2_start
+    x3 = x2_start
     for i in range(plot_x1_elements + 1):
         x1 = x1_end - i * dx1
         u = result.get_displacement_and_deriv(x1, x2, x3, time)
@@ -149,19 +142,11 @@ def plot_init_and_deformed_geometry_alpha(result, x1_start, x1_end, x2_start, x2
         u2 = u[4]
         u3 = u[8]
 
-
         X_init.append(x1)
-        Y_init.append(x2)
+        Y_init.append(x3)
 
-#        R1x, R1y, R1z = result.geometry.R1(x1, x2, x3)
-#        R2x, R2y, R2z = result.geometry.R2(x1, x2, x3)
-#        R3x, R3y, R3z = result.geometry.R3(x1, x2, x3)
-        
-        x = x1 + u1
-        y = x2 + u2
-
-        X_deformed.append(x)
-        Y_deformed.append(y)
+        X_deformed.append(x1 + u1)
+        Y_deformed.append(x3 + u3)
 
     X_init.append(X_init[0])
     Y_init.append(Y_init[0])
@@ -175,9 +160,67 @@ def plot_init_and_deformed_geometry_alpha(result, x1_start, x1_end, x2_start, x2
     plt.axes().set_aspect('equal', 'datalim')
     plt.legend(loc='best')
     plt.xlabel(r"$x_1$, м", fontsize=12)
-    plt.ylabel(r"$x_2$, м", fontsize=12)
+    plt.ylabel(r"$x_5$, м", fontsize=12)
     plt.grid()
     plt.show()
+    
+def plot_mesh(mesh, L, h):
+    fig2 = plt.figure()
+    ax2 = fig2.add_subplot(111, aspect='equal')
+    for fe in mesh.elements:        
+        ax2.add_patch(
+            patches.Rectangle(
+                (fe.bottom_left.x1, fe.bottom_left.x2),
+                fe.width(),
+                fe.height(),
+                fill=False      # remove background
+            )
+        )
+     
+    for n in mesh.nodes:        
+        plt.text(n.x1, n.x2, "{}".format(n.index))
+    
+            
+    x_eps = L*0.1
+    y_eps = h*0.1
+            
+    plt.xlim([0-x_eps, L+x_eps])
+    plt.ylim([-h/2 - x_eps, h/2 + x_eps])
+    fig2.show()
+
+def plot_deformed_mesh(result, L, h):
+    fig2 = plt.figure()
+    ax2 = fig2.add_subplot(111, aspect='equal')
+    for fe in result.mesh.elements:
+        points = []
+        u1 = result.u1[fe.top_left.index]
+        u3 = result.u3[fe.top_left.index]
+        points.append((fe.top_left.x1 + u1, fe.top_left.x2 + u3))
+        u1 = result.u1[fe.top_right.index]
+        u3 = result.u3[fe.top_right.index]
+        points.append((fe.top_right.x1 + u1, fe.top_right.x2 + u3))
+        u1 = result.u1[fe.bottom_right.index]
+        u3 = result.u3[fe.bottom_right.index]
+        points.append((fe.bottom_right.x1 + u1, fe.bottom_right.x2 + u3))
+        u1 = result.u1[fe.bottom_left.index]
+        u3 = result.u3[fe.bottom_left.index]
+        points.append((fe.bottom_left.x1 + u1, fe.bottom_left.x2 + u3))
+        ax2.add_patch(
+            patches.Polygon(points, closed=True, fill=False)
+        )
+     
+    for n in result.mesh.nodes:     
+        u1 = result.u1[n.index]
+        u3 = result.u3[n.index]
+        plt.text(n.x1 + u1, n.x2 + u3, "{}".format(n.index))
+    
+            
+    x_eps = L*0.1
+    y_eps = h*0.1
+            
+    plt.xlim([0-x_eps, L+x_eps])
+    plt.ylim([-h/2 - x_eps, h/2 + x_eps])
+    fig2.show()
 
 
 def plot_init_geometry(geometry, x1_start, x1_end, x3_start, x3_end, time):
