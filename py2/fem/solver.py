@@ -46,7 +46,7 @@ def solve(model, mesh, s_matrix, m_matrix):
     lam, vec = la.eigh(s, m)
     
     i = 0
-    print(s.dot(vec[:,i]) - lam[i]*m.dot(vec[:,i]))
+#    print(s.dot(vec[:,i]) - lam[i]*m.dot(vec[:,i]))
 
     vec = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count())
 

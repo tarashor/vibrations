@@ -33,6 +33,8 @@ class FiniteElement2D(object):
         return self.top_right.x1 - self.bottom_left.x1
 
     def contains(self, x1, x2):
+#        if (self.top_right_index == 10):
+#            print(self.top_right.x1)
         return self.bottom_left.x1 <= x1 and x1 <= self.top_right.x1 and self.bottom_left.x2 <= x2 and x2 <= self.top_right.x2
 
     @property

@@ -110,43 +110,47 @@ def plot_init_and_deformed_geometry(result, x1_start, x1_end, x3_start, x3_end, 
     plt.grid()
     plt.show()
     
-def plot_init_and_deformed_geometry_alpha(result, x1_start, x1_end, x2_start, x2_end, time):
-
-    dx1 = (x1_end - x1_start) / plot_x1_elements
-
+def plot_init_and_deformed_geometry_in_cartesian(result, x1_start, x1_end, x3_start, x3_end, time, to_cartesian_coordinates=None):
+    
+    alphas_toward = np.vstack((np.linspace(x1_start, x1_end, num=plot_x1_elements), np.linspace(x3_end,x3_end,plot_x1_elements)))
+    alphas_backward = np.vstack((np.linspace(x1_end, x1_start, num=plot_x1_elements), np.linspace(x3_start,x3_start,plot_x1_elements)))
+    
+    alphas = np.concatenate((alphas_toward,alphas_backward), axis=1)
+    
+    rows, cols = alphas.shape
+    
     X_init = []
     Y_init = []
     X_deformed = []
     Y_deformed = []
 
     x2 = 0
-    x3 = x2_end
-    for i in range(plot_x1_elements + 1):
-        x1 = x1_start + i * dx1
+    
+    for i in range(cols):
+        x1 = alphas[0, i]
+        x3 = alphas[1, i]
+        
         u = result.get_displacement_and_deriv(x1, x2, x3, time)
         u1 = u[0]
         u2 = u[4]
         u3 = u[8]
 
-        X_init.append(x1)
-        Y_init.append(x3)
-
-        X_deformed.append(x1 + u1)
-        Y_deformed.append(x3 + u3)
-
-    x3 = x2_start
-    for i in range(plot_x1_elements + 1):
-        x1 = x1_end - i * dx1
-        u = result.get_displacement_and_deriv(x1, x2, x3, time)
-        u1 = u[0]
-        u2 = u[4]
-        u3 = u[8]
-
-        X_init.append(x1)
-        Y_init.append(x3)
-
-        X_deformed.append(x1 + u1)
-        Y_deformed.append(x3 + u3)
+        x=x1
+        y=x2
+        z=x3
+        if (to_cartesian_coordinates != None):
+            x,y,z=to_cartesian_coordinates(x1,x2,x3)
+            
+        xu=x1 + u1
+        yu=x3 + u3
+        zu=x3 + u3
+        if (to_cartesian_coordinates != None):
+            xu,yu,zu=to_cartesian_coordinates(x1 + u1,x2 + u2,x3 + u3)
+            
+        X_init.append(x)
+        Y_init.append(z)
+        X_deformed.append(xu)
+        Y_deformed.append(zu)
 
     X_init.append(X_init[0])
     Y_init.append(Y_init[0])

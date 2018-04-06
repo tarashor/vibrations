@@ -35,27 +35,27 @@ def solve(width, curvature, thickness, corrugation_amplitude, corrugation_freque
 # curvature = 1/r
 
 width = 2
-curvature = 0
-thickness = 0.5
+curvature = 0.8
+thickness = 0.05
 
 corrugation_amplitude = 0.03
 corrugation_frequency = 20
 # corrugation_amplitude = 0.5*thickness
 # corrugation_frequency = 10
 
-N = 10
-M = 3
+N = 50
+M = 4
 
 
 results = solve(width, curvature, thickness, corrugation_amplitude, corrugation_frequency)
 results_index = 0
 #plot.plot_mesh(results[results_index].mesh, width, thickness)
 
-print(results[results_index].u1)
+#print(results[results_index].u1)
 
-plot.plot_deformed_mesh(results[results_index], width, thickness)
+#plot.plot_deformed_mesh(results[results_index], width, thickness)
 
-#plot.plot_init_and_deformed_geometry(results[results_index], 0, width, -thickness / 2, thickness / 2, 0)
+plot.plot_init_and_deformed_geometry(results[results_index], 0, width, -thickness / 2, thickness / 2, 0)
 #plot.plot_init_geometry(results[results_index].geometry, 0, width, -thickness / 2, thickness / 2, 0)
 # plot.plot_strain(results[results_index], 0, width, -thickness / 2, thickness / 2, 0)
 

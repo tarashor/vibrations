@@ -10,6 +10,10 @@
 
 from sympy import *
 from sympy.vector import CoordSys3D
+import matplotlib.pyplot as plt
+from matplotlib import cm
+from IPython.display import display
+
 N = CoordSys3D('N')
 x1, x2, x3 = symbols("x_1 x_2 x_3")
 alpha1, alpha2, alpha3 = symbols("alpha_1 alpha_2 alpha_3")
@@ -57,13 +61,8 @@ display(R3)
 
 # ### Draw
 
-
-import matplotlib.pyplot as plt
-from matplotlib import cm
-
-
-alpha1_x = lambdify([R, L, alpha1], x, "numpy")
-alpha3_z = lambdify([R, L, alpha1], z, "numpy")
+alpha_x = lambdify([R, L, alpha1, alpha3], R_alpha.dot(N.i), "numpy")
+alpha_z = lambdify([R, L, alpha1, alpha3], R_alpha.dot(N.k), "numpy")
 
 R_num = 1/0.8
 L_num = 2
@@ -83,8 +82,8 @@ x3 = 0
 for i in range(plot_x1_elements + 1):
     x1 = x1_start + i * dx1
 
-    x=alpha1_x(R_num, L_num, x1)
-    z=alpha3_z(R_num, L_num, x1)
+    x=alpha_x(R_num, L_num, x1, x3)
+    z=alpha_z(R_num, L_num, x1, x3)
 
     X_init.append(x)
     Y_init.append(z)
@@ -119,6 +118,7 @@ display(R_2)
 display(R_3)
 
 
+#%%
 # #### Jacobi matrix:
 
 dx1da1=R1.dot(N.i)
@@ -618,8 +618,10 @@ expand(simplify(square_int))
 
 # In[84]:
 
-
+K=Symbol('K')
 S = simplify(D_p.T*C_isotropic_matrix_alpha_p*D_p*(1+alpha3/R))
+S = simplify(S.subs(R, 1/K))
+S
 
 
 # ## Mass matrix in physical coordinates
@@ -639,19 +641,20 @@ M
 # In[89]:
 
 
-M_p = rho*B_h.T*B_h
+M_p = rho*B_h.T*B_h*(1+alpha3/R)
+M_p = simplify(M_p.subs(R, 1/K))
 M_p
 
 
 # In[90]:
 
 
-mass_matrix_func = lambdify(rho, M_p, "numpy")
-mass_matrix_func(100)
+mass_matrix_func = lambdify([K, rho, alpha3], M_p, "numpy")
+mass_matrix_func(100, 200, 400)
 
 
 
-stiffness_matrix_func = lambdify([R, mu, la, alpha3], S, "numpy")
+stiffness_matrix_func = lambdify([K, mu, la, alpha3], S, "numpy")
 stiffness_matrix_func(100, 200, 300, 400)
 
 
@@ -693,8 +696,8 @@ def stiffness_matrix(material, geometry, x1, x2, x3):
     return stiffness_matrix_func(1/geometry.curvature, material.mu(), material.lam(), x3)
 
 def mass_matrix(material, geometry, x1, x2, x3):
-    gj = geometry.getJacobian(x1, x2, x3)
-    return mass_matrix_func(material.rho)* gj
+    return mass_matrix_func(1/geometry.curvature, material.rho, x3)
+
 
 
 # r=2
@@ -702,17 +705,23 @@ def mass_matrix(material, geometry, x1, x2, x3):
 # curvature = 1/r
 
 width = 2
-curvature = 0
-thickness = 0.1
+curvature = 0.8
+thickness = 0.05
 
-N = 10
+N = 100
 M = 4
 
+def to_cartesian(x1, x2, x3):
+    x=alpha_x(1/curvature, width, x1, x3)
+    z=alpha_z(1/curvature, width, x1, x3)
+    return x,0,z
 
 results = solve(width, curvature, thickness, N, M)
 results_index = 0
-plot.plot_deformed_mesh(results[results_index], width, thickness)
-#plot.plot_init_and_deformed_geometry_alpha(results[results_index], 0, width, -thickness / 2, thickness / 2, 0)
+
+#print(results[results_index].mesh.elements)
+#plot.plot_mesh(results[results_index].mesh, width, thickness)
+plot.plot_init_and_deformed_geometry_in_cartesian(results[results_index], 0, width, -thickness / 2, thickness / 2, 0, to_cartesian)
 #plot.plot_init_geometry(results[results_index].geometry, 0, width, -thickness / 2, thickness / 2, 0)
 # plot.plot_strain(results[results_index], 0, width, -thickness / 2, thickness / 2, 0)
 
