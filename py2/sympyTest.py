@@ -650,9 +650,9 @@ M_p
 
 
 mass_matrix_func = lambdify([K, rho, alpha3], M_p, "numpy")
-mass_matrix_func(100, 200, 400)
+mass_matrix_func(0, 200, 400)
 
-
+#%%
 
 stiffness_matrix_func = lambdify([K, mu, la, alpha3], S, "numpy")
 stiffness_matrix_func(100, 200, 300, 400)
@@ -693,10 +693,10 @@ def solve(width, curvature, thickness, N, M):
     return s.solve(model, mesh, stiffness_matrix, mass_matrix)
 
 def stiffness_matrix(material, geometry, x1, x2, x3):
-    return stiffness_matrix_func(1/geometry.curvature, material.mu(), material.lam(), x3)
+    return stiffness_matrix_func(geometry.curvature, material.mu(), material.lam(), x3)
 
 def mass_matrix(material, geometry, x1, x2, x3):
-    return mass_matrix_func(1/geometry.curvature, material.rho, x3)
+    return mass_matrix_func(geometry.curvature, material.rho, x3)
 
 
 
@@ -705,7 +705,7 @@ def mass_matrix(material, geometry, x1, x2, x3):
 # curvature = 1/r
 
 width = 2
-curvature = 0.8
+curvature = 0
 thickness = 0.05
 
 N = 100
@@ -721,7 +721,7 @@ results_index = 0
 
 #print(results[results_index].mesh.elements)
 #plot.plot_mesh(results[results_index].mesh, width, thickness)
-plot.plot_init_and_deformed_geometry_in_cartesian(results[results_index], 0, width, -thickness / 2, thickness / 2, 0, to_cartesian)
+plot.plot_init_and_deformed_geometry_in_cartesian(results[results_index], 0, width, -thickness / 2, thickness / 2, 0)
 #plot.plot_init_geometry(results[results_index].geometry, 0, width, -thickness / 2, thickness / 2, 0)
 # plot.plot_strain(results[results_index], 0, width, -thickness / 2, thickness / 2, 0)
 
