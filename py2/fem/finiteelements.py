@@ -17,6 +17,7 @@ class Node2D(object):
 
 
 class FiniteElement2D(object):
+    
     """docstring for MeshElement"""
 
     def __init__(self, top_left, top_right, bottom_right, bottom_left, material):
@@ -33,9 +34,10 @@ class FiniteElement2D(object):
         return self.top_right.x1 - self.bottom_left.x1
 
     def contains(self, x1, x2):
+        eps = 0.00000001
 #        if (self.top_right_index == 10):
 #            print(self.top_right.x1)
-        return self.bottom_left.x1 <= x1 and x1 <= self.top_right.x1 and self.bottom_left.x2 <= x2 and x2 <= self.top_right.x2
+        return self.bottom_left.x1 - eps <= x1 and x1 <= self.top_right.x1 + eps and self.bottom_left.x2 - eps <= x2 and x2 <= self.top_right.x2 + eps
 
     @property
     def top_left_index(self):

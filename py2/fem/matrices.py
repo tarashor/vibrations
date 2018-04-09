@@ -130,22 +130,20 @@ def deriv_to_vect():
 
     return B
 
-def matrix_C(material, geometry, x1, x2, x3):
+def tensor_C(material, geometry, x1, x2, x3):
     N = 6
 
     C = np.zeros((N, N))
 
-    lam = self.v * self.E / ((1 + self.v) * (1 - 2 * self.v))
-    mu = self.E / ((1 + self.v) * 2)
+    lam = material.lam()
+    mu = material.mu()
 
-    g = geometry.metric_tensor(x1, x2, x3)
-    
-    g = np.linalg.inv(g)
+    g = geometry.metric_tensor_inv(x1, x2, x3)
 
     for i in range(N):
         for j in range(N):
-            n, m = self.__get_index_conv(i)
-            k, l = self.__get_index_conv(j)
+            n, m = get_index_conv(i)
+            k, l = get_index_conv(j)
             C[i, j] = mu * (g[n, k] * g[m, l] + g[n, l] * g[m, k]) + lam * g[n, m] * g[k, l]
 
     return C
@@ -174,9 +172,36 @@ def get_index_conv(index):
 
     return i, j
 
+def deformations_nl(geometry, grad_u, x1, x2, x3):
+    N = 3
+
+    du = np.zeros((N, N))
+
+    g = geometry.metric_tensor_inv(x1, x2, x3)
+
+    for i in range(N):
+        for j in range(N):
+            index = i*N+j
+            du[j,i] = grad_u[index]
+    
+    tensor_e_nl = 0.5*du.dot(g).dot(du.T)
+     
+    M = 6
+     
+    e_nl = np.zeros((M))
+     
+    for i in range(M):
+        ti, tj = get_index_conv(i)
+        e_nl[i] = tensor_e_nl[ti, tj]
+        if (ti != tj):
+            e_nl[i] = 2*e_nl[i]
+
+
+    return e_nl
+
 
 def stiffness_matrix(material, geometry, x1, x2, x3):
-    C = material.matrix_C(geometry, x1, x2, x3)
+    C = tensor_C(material, geometry, x1, x2, x3)
     E = grad_to_strain()
     B = deriv_to_grad(geometry, x1, x2, x3)
     gj = geometry.getJacobian(x1, x2, x3)

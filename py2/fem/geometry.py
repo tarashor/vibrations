@@ -1,8 +1,16 @@
 import numpy as np
 
 
-class Geometry:
+class Plate:
+    def __init__(self, width):
+        self.width = width
+        
     def metric_tensor(self, x1, x2, x3):
+        g = np.zeros((3, 3))
+        g[0, 0] = g[1, 1] = g[2, 2] = 1
+        return g
+    
+    def metric_tensor_inv(self, x1, x2, x3):
         g = np.zeros((3, 3))
         g[0, 0] = g[1, 1] = g[2, 2] = 1
         return g
@@ -27,12 +35,12 @@ class Geometry:
         return 1
 
     def __str__(self):
-        return ""
+        return r"L={}".format(self.width)
 
 
-class CylindricalPlate(Geometry):
+class CylindricalPlate(Plate):
     def __init__(self, width, curvature):
-        self.width = width
+        super().__init__(width)
         self.curvature = curvature
 
     def __get_metric_tensor_components(self, x1, x2, x3):
@@ -44,6 +52,13 @@ class CylindricalPlate(Geometry):
         g = super().metric_tensor(x1, x2, x3)
 
         g[0, 0] = (q * q)
+        return g
+    
+    def metric_tensor_inv(self, x1, x2, x3):
+        q = self.__get_metric_tensor_components(x1, x2, x3)
+        g = super().metric_tensor_inv(x1, x2, x3)
+
+        g[0, 0] = 1/(q * q)
         return g
 
     def kristophel_symbols(self, x1, x2, x3):
@@ -89,7 +104,8 @@ class CylindricalPlate(Geometry):
         return 1 + self.curvature * x3
 
     def __str__(self):
-        return "K={}".format(self.curvature)
+        r = super().__str__()
+        return r+", K={}".format(self.curvature)
 
 
 class CorrugatedCylindricalPlate(CylindricalPlate):
@@ -162,4 +178,5 @@ class CorrugatedCylindricalPlate(CylindricalPlate):
         return w
 
     def __str__(self):
-        return "K={}, g_A={}, g_v={}".format(self.curvature, self.corrugation_amplitude, self.corrugation_frequency)
+        r = super().__str__()
+        return r + ", g_a={}, g_v={}".format(self.curvature, self.corrugation_amplitude, self.corrugation_frequency)

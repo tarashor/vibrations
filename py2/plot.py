@@ -3,18 +3,21 @@ from matplotlib import cm
 import matplotlib.patches as patches
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
+from fem import matrices
 
 plot_x1_elements = 400
-plot_x2_elements = 40
+plot_x2_elements = 20
 
 
-def plot_strain(result, x1_start, x1_end, x2_start, x2_end, time):
+def plot_strain(result, x1_start, x1_end, x2_start, x2_end, time, strain_index):
 
     dx1 = (x1_end - x1_start) / plot_x1_elements
     dx2 = (x2_end - x2_start) / plot_x2_elements
 
     x1 = set()
     x2 = set()
+    
+    plt.figure()
 
     v = np.zeros((plot_x1_elements + 1, plot_x2_elements + 1))
 
@@ -22,7 +25,7 @@ def plot_strain(result, x1_start, x1_end, x2_start, x2_end, time):
         for j in range(plot_x2_elements + 1):
             x1c = x1_start + i * dx1
             x2c = x2_start + j * dx2
-            v[i, j] = result.get_strain(x1c, x2c, 0, time)[3]
+            v[i, j] = result.get_strain(x1c, 0, x2c, time)[strain_index]
             x1.add(x1c)
             x2.add(x2c)
 
@@ -31,8 +34,55 @@ def plot_strain(result, x1_start, x1_end, x2_start, x2_end, time):
 
     (X1, X2) = np.meshgrid(x1, x2)
     surf = plt.contourf(X1, X2, v.T, cmap=cm.rainbow)
+    e_i, e_j = matrices.get_index_conv(strain_index)
+    plt.title("Деформації " + r"$E_{{{}{}}}$".format(e_i + 1, e_j + 1))
     plt.colorbar(surf)
     plt.show()
+    
+    
+def plot_strain_2(result, N, M, x1_start, x1_end, x2_start, x2_end, time, strain_index):
+
+    x1 = set()
+    x2 = set()
+    
+    plt.figure()
+
+    v_nl = np.zeros((N + 1, M + 1))
+    v = np.zeros((N + 1, M + 1))
+
+    for node in result.mesh.nodes:
+        x1c = node.x1
+        x2c = node.x2
+        j = node.index // (N+1)
+        i = node.index % (N+1)
+        e_nl = result.get_strain_nl(x1c, 0, x2c, time)
+        v_nl[i, j] = e_nl[strain_index]
+        e = result.get_strain(x1c, 0, x2c, time)
+        v[i, j] = e[strain_index]
+        x1.add(x1c)
+        x2.add(x2c)
+
+    x1 = sorted(x1)
+    x2 = sorted(x2)
+
+    (X1, X2) = np.meshgrid(x1, x2)
+    
+    plt.subplot(2, 1, 1)
+    
+    e_i, e_j = matrices.get_index_conv(strain_index)
+    plt.title("Деформації " + r"$E_{{{}{}}}$".format(e_i + 1, e_j+1))
+    
+    surf = plt.contourf(X1, X2, v.T, cmap=cm.rainbow)
+    plt.colorbar(surf)
+    plt.ylabel("Лінійні")
+    
+    plt.subplot(2, 1, 2)
+    surf = plt.contourf(X1, X2, v_nl.T, cmap=cm.rainbow)
+    plt.colorbar(surf)
+    plt.ylabel("Нелінійні")
+    
+    plt.show()
+
 
 
 def plot_init_and_deformed_geometry(result, x1_start, x1_end, x3_start, x3_end, time):

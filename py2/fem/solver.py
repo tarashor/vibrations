@@ -45,42 +45,46 @@ def solve(model, mesh, s_matrix, m_matrix):
 
     lam, vec = la.eigh(s, m)
     
-    i = 0
+#    i = 0
 #    print(s.dot(vec[:,i]) - lam[i]*m.dot(vec[:,i]))
 
     vec = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count())
+    
+    return lam, vec
 
+def convert_to_results(eigenvalues, eigenvectors, mesh, geometry):
+    
     results = []
-    for i in range(lam.size):
-        freq = np.sqrt(lam[i])
-        u1 = vec[:, i][0:mesh.nodes_count()]
-        u3 = vec[:, i][mesh.nodes_count():2 * mesh.nodes_count()]
+    for i in range(eigenvalues.size):
+        freq = np.sqrt(eigenvalues[i])
+        u1 = eigenvectors[:, i][0:mesh.nodes_count()]
+        u3 = eigenvectors[:, i][mesh.nodes_count():2 * mesh.nodes_count()]
         u2 = np.zeros((mesh.nodes_count()))
-        r = result.Result(np.sqrt(freq), u1, u2, u3, mesh, model.geometry)
+        r = result.Result(freq, u1, u2, u3, mesh, geometry)
         results.append(r)
 
     return results
-
+    
 
 def integrate_matrix(model, mesh, matrix_func):
     N = 2 * (mesh.nodes_count())
-    K = np.zeros((N, N))
+    global_matrix = np.zeros((N, N))
     for element in mesh.elements:
-        K_element = quadgch5nodes2dim(element_func, element, model.geometry, matrix_func)
+        element_matrix = quadgch5nodes2dim(element_func, element, model.geometry, matrix_func)
 
-        K += convertToGlobalMatrix(K_element, element, N)
+        global_matrix += convertToGlobalMatrix(element_matrix, element, N)
 
-    return K
+    return global_matrix
 
 def element_func(ksi, teta, element, geometry, matrix_func):
     x1, x3 = element.to_model_coordinates(ksi, teta)
     x2 = 0
     
     EM = matrix_func(element.material, geometry, x1, x2, x3)
-    N = matrices.element_aprox_functions(element, x1, x2, x3)
+    H = matrices.element_aprox_functions(element, x1, x2, x3)
     J = element.jacobian_element_coordinates()
 
-    e = N.T.dot(EM).dot(N) * J
+    e = H.T.dot(EM).dot(H) * J
 
     return e
 

@@ -705,10 +705,10 @@ def mass_matrix(material, geometry, x1, x2, x3):
 # curvature = 1/r
 
 width = 2
-curvature = 0
+curvature = 0.8
 thickness = 0.05
 
-N = 100
+N = 50
 M = 4
 
 def to_cartesian(x1, x2, x3):
@@ -721,7 +721,7 @@ results_index = 0
 
 #print(results[results_index].mesh.elements)
 #plot.plot_mesh(results[results_index].mesh, width, thickness)
-plot.plot_init_and_deformed_geometry_in_cartesian(results[results_index], 0, width, -thickness / 2, thickness / 2, 0)
+plot.plot_init_and_deformed_geometry_in_cartesian(results[results_index], 0, width, -thickness / 2, thickness / 2, 0, to_cartesian)
 #plot.plot_init_geometry(results[results_index].geometry, 0, width, -thickness / 2, thickness / 2, 0)
 # plot.plot_strain(results[results_index], 0, width, -thickness / 2, thickness / 2, 0)
 

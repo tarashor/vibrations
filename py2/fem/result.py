@@ -5,6 +5,9 @@ from math import cos
 
 
 class Result:
+    def __init__(self):
+        pass
+    
     def __init__(self, freq, u1, u2, u3, mesh, geometry):
         self.freq = freq
         self.u1 = u1
@@ -46,6 +49,21 @@ class Result:
         E = matrices.grad_to_strain()
 #        E_NL = grad_to_strain_nonlinear_matrix(alpha1, alpha2, geometry, grad_u)
         return E.dot(grad_u)
+    
+    def get_strain_nl(self, x1, x2, x3, time):
+
+        B = matrices.deriv_to_grad(self.geometry, x1, x2, x3)
+
+        u = self.get_displacement_and_deriv(x1, x2, x3, time)
+
+        grad_u = B.dot(u)
+
+        E = matrices.grad_to_strain()
+        
+        E_NL = matrices.deformations_nl(self.geometry, grad_u, x1, x2, x3)
+        
+        return E.dot(grad_u) + E_NL
+    
 
     def fi(self, time):
         return cos(self.freq * time)
