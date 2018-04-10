@@ -680,24 +680,19 @@ def generate_layers(thickness, layers_count, material):
     return layers
 
 
-def solve(width, curvature, thickness, N, M):
+def solve(geometry, thickness):
     layers_count = 1
     layers = generate_layers(thickness, layers_count, mat.IsotropicMaterial.steel())
-    mesh = me.Mesh.generate(width, layers, N, M, m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS)
-    
-    print(mesh.nodes_count())
-#    geometry = g.CorrugatedCylindricalPlate(width, curvature, corrugation_amplitude, corrugation_frequency)
-    geometry = g.CylindricalPlate(width, curvature)
-#    geometry = g.Geometry()
     model = m.Model(geometry, layers, m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS)
-    return s.solve(model, mesh, stiffness_matrix, mass_matrix)
+    mesh = me.Mesh.generate(width, layers, N, M, m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS)
+    lam, vec = s.solve(model, mesh, stiffness_matrix, mass_matrix)
+    
+    return lam, vec, mesh, geometry
 
-def stiffness_matrix(material, geometry, x1, x2, x3):
-    return stiffness_matrix_func(geometry.curvature, material.mu(), material.lam(), x3)
-
-def mass_matrix(material, geometry, x1, x2, x3):
-    return mass_matrix_func(geometry.curvature, material.rho, x3)
-
+def to_cartesian(x1, x2, x3):
+    x=alpha_x(1/curvature, width, x1, x3)
+    z=alpha_z(1/curvature, width, x1, x3)
+    return x,0,z
 
 
 # r=2
@@ -705,31 +700,80 @@ def mass_matrix(material, geometry, x1, x2, x3):
 # curvature = 1/r
 
 width = 2
-curvature = 0.8
+curvature = 1
 thickness = 0.05
 
-N = 50
-M = 4
+corrugation_amplitude = 0.03
+corrugation_frequency = 20
 
-def to_cartesian(x1, x2, x3):
-    x=alpha_x(1/curvature, width, x1, x3)
-    z=alpha_z(1/curvature, width, x1, x3)
-    return x,0,z
+#geometry = g.CorrugatedCylindricalPlate(width, curvature, corrugation_amplitude, corrugation_frequency)
+geometry = g.CylindricalPlate(width, curvature)
+#geometry = g.Plate()
 
-results = solve(width, curvature, thickness, N, M)
-results_index = 0
+N = 200
+M = 20
 
-#print(results[results_index].mesh.elements)
-#plot.plot_mesh(results[results_index].mesh, width, thickness)
-plot.plot_init_and_deformed_geometry_in_cartesian(results[results_index], 0, width, -thickness / 2, thickness / 2, 0, to_cartesian)
-#plot.plot_init_geometry(results[results_index].geometry, 0, width, -thickness / 2, thickness / 2, 0)
-# plot.plot_strain(results[results_index], 0, width, -thickness / 2, thickness / 2, 0)
+toCalculate = False
 
+def save_mesh(filename, mesh):
+    with open(filename + '.mesh', 'wb') as f:
+        pickle.dump(mesh, f)
+        
+def save_geometry(filename, geometry):
+    with open(filename + '.geom', 'wb') as f:
+        pickle.dump(geometry, f)
 
-to_print = 20
-if (len(results) < to_print):
-    to_print = len(results)
+def load_geometry(filename):
+    with open(filename + '.geom', 'rb') as f:
+        return pickle.load(f)
+    
+def load_mesh(filename):
+    with open(filename + '.mesh', 'rb') as f:
+        return pickle.load(f)
+    
+def save_results(filename, results):
+    with open(filename + '.res', 'wb') as f:
+        pickle.dump(results, f)
 
-for i in range(to_print):
-    print(results[i].freq)
+def load_results(filename):
+    with open(filename + '.res', 'rb') as f:
+        return pickle.load(f)
+    
+filename = str(geometry) + "_{}x{}".format(N,M)
 
+if (toCalculate): 
+    lam, vec, mesh, geometry = solve(geometry, thickness)
+    results = s.convert_to_results(lam, vec, mesh, geometry)
+    save_results(filename, results)
+#    
+#    save_mesh(meshfile, mesh)
+#    
+#    save_geometry(geometryfile, geometry)
+    
+else:
+    results = load_results(filename)
+
+    
+    results_index = 0
+    
+#    plot.plot_mesh(results[results_index].mesh, width, thickness)
+    
+#    plot.plot_deformed_mesh(results[results_index], width, thickness)
+    
+    plot.plot_init_and_deformed_geometry_in_cartesian(results[results_index], 0, width, -thickness / 2, thickness / 2, 0, to_cartesian)
+    
+#    plot.plot_init_and_deformed_geometry(results[results_index], 0, width, -thickness / 2, thickness / 2, 0)
+    
+#    plot.plot_init_geometry(results[results_index].geometry, 0, width, -thickness / 2, thickness / 2, 0)
+    
+#    for i in range(6):
+#        plot.plot_strain_2(results[results_index], N, M, 0, width, -thickness / 2, thickness / 2, 0, i)
+#        plot.plot_strain(results[results_index], 0, width, -thickness / 2, thickness / 2, 0, i)
+    
+    
+    to_print = 20
+    if (len(results) < to_print):
+        to_print = len(results)
+    
+    for i in range(to_print):
+        print(results[i].freq)
