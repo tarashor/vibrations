@@ -46,8 +46,8 @@ corrugation_frequency = 20
 geometry = g.CylindricalPlate(width, curvature)
 #geometry = g.Plate()
 
-N = 200
-M = 20
+N = 50
+M = 4
 
 toCalculate = False
 

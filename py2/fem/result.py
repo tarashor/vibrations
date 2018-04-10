@@ -62,7 +62,7 @@ class Result:
         
         E_NL = matrices.deformations_nl(self.geometry, grad_u, x1, x2, x3)
         
-        return E.dot(grad_u) + E_NL
+        return (E + E_NL).dot(grad_u)
     
 
     def fi(self, time):

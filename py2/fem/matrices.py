@@ -184,20 +184,37 @@ def deformations_nl(geometry, grad_u, x1, x2, x3):
             index = i*N+j
             du[j,i] = grad_u[index]
     
-    tensor_e_nl = 0.5*du.dot(g).dot(du.T)
-     
-    M = 6
-     
-    e_nl = np.zeros((M))
-     
-    for i in range(M):
-        ti, tj = get_index_conv(i)
-        e_nl[i] = tensor_e_nl[ti, tj]
-        if (ti != tj):
-            e_nl[i] = 2*e_nl[i]
+    a_values = 0.5*du.dot(g)
+    
+    
+    E_NL = np.zeros((6,9))
+    E_NL[0,0] = a_values[0,0]
+    E_NL[0,3] = a_values[0,1]
+    E_NL[0,6] = a_values[0,2]
+    
+    E_NL[1,1] = a_values[1,0]
+    E_NL[1,4] = a_values[1,1]
+    E_NL[1,7] = a_values[1,2]
+    
+    E_NL[2,2] = a_values[2,0]
+    E_NL[2,5] = a_values[2,1]
+    E_NL[2,8] = a_values[2,2]
+    
+    E_NL[3,1] = 2*a_values[0,0]
+    E_NL[3,4] = 2*a_values[0,1]
+    E_NL[3,7] = 2*a_values[0,2]
+    
+    E_NL[4,2] = 2*a_values[0,0]
+    E_NL[4,5] = 2*a_values[0,1]
+    E_NL[4,8] = 2*a_values[0,2]
+    
+    E_NL[5,2] = 2*a_values[1,0]
+    E_NL[5,5] = 2*a_values[1,1]
+    E_NL[5,8] = 2*a_values[1,2]
 
 
-    return e_nl
+    return E_NL
+
 
 
 def stiffness_matrix(material, geometry, x1, x2, x3):
