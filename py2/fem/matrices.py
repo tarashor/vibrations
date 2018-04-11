@@ -225,6 +225,15 @@ def stiffness_matrix(material, geometry, x1, x2, x3):
     
     return B.T.dot(E.T).dot(C).dot(E).dot(B)* gj
 
+def stiffness_matrix_nl(material, geometry, x1, x2, x3, grad_u):
+    E_NL = deformations_nl(geometry, grad_u, x1, x2, x3)
+    C = tensor_C(material, geometry, x1, x2, x3)
+    E = grad_to_strain()
+    B = deriv_to_grad(geometry, x1, x2, x3)
+    gj = geometry.getJacobian(x1, x2, x3)
+    
+    return B.T.dot(E_NL.T).dot(C).dot(E).dot(B)* gj + B.T.dot(E.T).dot(C).dot(E_NL).dot(B)* gj
+
 def mass_matrix(material, geometry, x1, x2, x3):
     g = geometry.metric_tensor(x1, x2, x3)
     g_inv = np.linalg.inv(g)

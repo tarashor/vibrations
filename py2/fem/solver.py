@@ -46,40 +46,49 @@ def solve(model, mesh, s_matrix, m_matrix):
     
     return lam, vec
 
-def solve_nonlinearity(model, mesh, s_matrix, m_matrix):
+def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl):
 
     s = integrate_matrix(model, mesh, s_matrix)
     m = integrate_matrix(model, mesh, m_matrix)
+    
 
     fixed_nodes_indicies = mesh.get_fixed_nodes_indicies()
 
     s = remove_fixed_nodes(s, fixed_nodes_indicies, mesh.nodes_count())
     m = remove_fixed_nodes(m, fixed_nodes_indicies, mesh.nodes_count())
 
+
     lam, vec = la.eigh(s, m)
+    
+#    i = 0
+#    print(s.dot(vec[:,i]) - lam[i]*m.dot(vec[:,i]))
 
-    res = extend_with_fixed_nodes(vec[:, 0], fixed_nodes_indicies, mesh.nodes_count())
-    res_prev = np.zeros(res.shape)
+    vec = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count())
+    
 
-    res = normalize(res)
+    res = normalize(vec[:, 0])
     lam_nl = lam[0]
+    
+    res_prev = np.zeros(res.shape)
+    
+    print("Norm = {}".format(np.linalg.norm(res)))
 
-    eps = 0.1
+    eps = 0.001
     i = 0
     while (np.linalg.norm(res - res_prev) > eps and i < 20):
         res_prev = res
         # print(res_prev.T.shape)
-        s_nl = stiffness_nl_matrix(res_prev, model, mesh)
+        s_nl = integrate_matrix_with_disp(model, mesh, s_matrix_nl, res_prev)
         s_nl = remove_fixed_nodes(s_nl, fixed_nodes_indicies, mesh.nodes_count())
-        l_nl, vec_nl = la.eigh(s + s_nl, m)
-        print("Freq nl = {}".format(l_nl[0]))
-        res = extend_with_fixed_nodes(vec_nl[:, 0], fixed_nodes_indicies, mesh.nodes_count())
-        res = normalize(res)
+        lam, vec = la.eigh(s + s_nl, m)
+        vec = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count())
+        
+        res = normalize(vec[:, 0])
         print("Norm = {}".format(np.linalg.norm(res)))
-        lam_nl = l_nl[0]
         i += 1
+    
+    return lam, vec
 
-    return NonlinearResult(lam_nl, res, mesh, model)
 
 def convert_to_results(eigenvalues, eigenvectors, mesh, geometry):
     
@@ -109,7 +118,7 @@ def integrate_matrix_with_disp(model, mesh, matrix_func, disp):
     N = 2 * (mesh.nodes_count())
     global_matrix = np.zeros((N, N))
     for element in mesh.elements:
-        element_matrix = quadgch5nodes2dim(element_func, element, model.geometry, matrix_func, disp)
+        element_matrix = quadgch5nodes2dim(element_func_disp, element, model.geometry, matrix_func, disp)
 
         global_matrix += convertToGlobalMatrix(element_matrix, element, N)
 
@@ -127,13 +136,25 @@ def element_func(ksi, teta, element, geometry, matrix_func):
 
     return e
 
+def element_func_disp(ksi, teta, element, geometry, matrix_func, disp):
+    x1, x3 = element.to_model_coordinates(ksi, teta)
+    x2 = 0
+    
+    EM = matrix_func(element.material, geometry, x1, x2, x3, disp)
+    H = matrices.element_aprox_functions(element, x1, x2, x3)
+    J = element.jacobian_element_coordinates()
+
+    e = H.T.dot(EM).dot(H) * J
+
+    return e
+
 
 def quadgch5nodes2dim(f, element, geometry, matrix_func, disp = None):
     order = 5
     w = [0.23692689, 0.47862867, 0.56888889, 0.47862867, 0.23692689]
     x = [-0.90617985, -0.53846931, 0, 0.53846931, 0.90617985]
 
-    if (disp == None):
+    if (disp is None):
         res = w[0] * w[0] * f(x[0], x[0], element, geometry, matrix_func)
     else:
         res = w[0] * w[0] * f(x[0], x[0], element, geometry, matrix_func, disp)
@@ -141,7 +162,7 @@ def quadgch5nodes2dim(f, element, geometry, matrix_func, disp = None):
     for i in range(order):
         for j in range(order):
             if (i != 0 or j != 0):
-                if (disp == None):
+                if (disp is None):
                     res += w[i] * w[j] * f(x[i], x[j], element, geometry, matrix_func)
                 else:
                     res += w[i] * w[j] * f(x[i], x[j], element, geometry, matrix_func, disp)
