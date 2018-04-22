@@ -27,10 +27,12 @@ class MyClass:
         return "{}".format(self.a)
 
 
-print(list(range(10, 100+1, 10)))
+print(list(range(10, 100 + 1, 10)))
 
 o1 = MyClass(1)
 o2 = MyClass(1)
+
+print(repr(o1))
 
 print(isinstance(o1, MyClass))
 print(o1 == o2)
@@ -70,10 +72,13 @@ print(np.insert(A, [0, 1, 3, 2], 5, axis=0))
 print(list(range(10)))
 
 
-v={1,2,5,3,2}
+v = {1, 2, 5, 3, 2}
 print(v)
-v=sorted(v)
+v = sorted(v)
 print(v)
+
+vec = np.zeros(3)
+print(A.dot(vec).shape)
 
 # noprimes = [j for i in range(2, 8) for j in range(i * 2, 50, i)]
 # print(noprimes)
