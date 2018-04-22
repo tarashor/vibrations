@@ -320,6 +320,44 @@ def plot_init_geometry(geometry, x1_start, x1_end, x3_start, x3_end, time):
     plt.ylabel(r"$x_2$, м", fontsize=12)
     plt.grid()
     plt.show()
+    
+def plot_init_geometry_2(x1_start, x1_end, x3_start, x3_end, to_cartesian_coordinates):
+
+    dx1 = (x1_end - x1_start) / plot_x1_elements
+
+    X_init = []
+    Y_init = []
+
+    x2 = 0
+    x3 = x3_end
+    for i in range(plot_x1_elements + 1):
+        x1 = x1_start + i * dx1
+
+        x, y, z = to_cartesian_coordinates(x1, x2, x3)
+
+        X_init.append(x)
+        Y_init.append(z)
+
+    x3 = x3_start
+    for i in range(plot_x1_elements + 1):
+        x1 = x1_end - i * dx1
+
+        x, y, z =to_cartesian_coordinates(x1, x2, x3)
+
+        X_init.append(x)
+        Y_init.append(z)
+
+    X_init.append(X_init[0])
+    Y_init.append(Y_init[0])
+
+    plt.plot(X_init, Y_init, "r", label="початкова конфігурація")
+
+    plt.axes().set_aspect('equal', 'datalim')
+    plt.legend(loc='best')
+    plt.xlabel(r"$x_1$, м", fontsize=12)
+    plt.ylabel(r"$x_3$, м", fontsize=12)
+    plt.grid()
+    plt.show()
 
 
 def plot_freq_from_corrugated_freq(g_v, w_min, N, M):
