@@ -12,46 +12,6 @@ class Model:
         self.boundary_conditions = boundary_conditions
 
 
-class Geometry:
-    def __init__(self, width, curvature, corrugation_amplitude, corrugation_frequency):
-        self.width = width
-        self.curvature = curvature
-        self.corrugation_amplitude = corrugation_amplitude
-        self.corrugation_frequency = corrugation_frequency
-
-    def __get_metric_tensor_components(self, alpha1, alpha2):
-        q = 1 + self.curvature * alpha2
-        a = (np.pi + self.curvature * self.width) / 2 - self.curvature * alpha1
-        w = q + self.corrugation_amplitude * self.curvature * np.cos(self.corrugation_frequency * a)
-        z = self.corrugation_amplitude * self.corrugation_frequency * self.curvature * np.sin(self.corrugation_frequency * a)
-        return q, a, w, z
-
-    def get_g_11(self, alpha1, alpha2):
-        q, a, w, z = self.__get_metric_tensor_components(alpha1, alpha2)
-        return 1 / (w * w + z * z)
-
-    def get_G(self, alpha1, alpha2):
-        q, a, w, z = self.__get_metric_tensor_components(alpha1, alpha2)
-
-        G111 = 2 * z * self.curvature / w
-        G211 = -self.corrugation_amplitude * self.corrugation_frequency * self.corrugation_frequency * self.curvature * self.curvature * np.cos(self.corrugation_frequency * a) - w * self.curvature - 2 * z * z * self.curvature / w
-        G112 = self.curvature / q
-        G121 = G112
-
-        return G111, G211, G112, G121
-
-
-class Material:
-    def __init__(self, E, v, rho):
-        self.E = E
-        self.v = v
-        self.rho = rho
-
-    @staticmethod
-    def steel():
-        return Material(210000000000, 0.3, 8000)
-
-
 class Layer:
     def __init__(self, bottom, top, material, index_from_top):
         self.bottom = bottom
