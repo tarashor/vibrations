@@ -15,6 +15,10 @@ class Result:
         self.u3 = u3
         self.mesh = mesh
         self.geometry = geometry
+        
+    def rad_per_sec_to_Hz(self, rps):
+        return rps/(2*np.pi)
+
 
     def get_displacement_and_deriv(self, x1, x2, x3, time):
         element = self.mesh.get_element(x1, x3)
