@@ -139,12 +139,8 @@ def element_func(ksi, teta, element, geometry, matrix_func):
 def element_func_disp(ksi, teta, element, geometry, matrix_func, disp):
     x1, x3 = element.to_model_coordinates(ksi, teta)
     x2 = 0
-    B = matrices.deriv_to_grad(geometry, x1, x2, x3)
-
-    u = self.get_displacement_and_deriv(x1, x2, x3, time)
-
-    grad_u = B.dot(u)
-    EM = matrix_func(element.material, geometry, x1, x2, x3, grad_u)
+    
+    EM = matrix_func(element.material, geometry, x1, x2, x3, disp)
     H = matrices.element_aprox_functions(element, x1, x2, x3)
     J = element.jacobian_element_coordinates()
 

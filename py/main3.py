@@ -50,8 +50,8 @@ geometry = g.CorrugatedCylindricalPlate(width, curvature, corrugation_amplitude,
 #geometry = g.CylindricalPlate(width, curvature)
 #geometry = g.Plate()
 
-N = 100
-M = 10
+N = 50
+M = 4
 
 toCalculate = False
 linear = False

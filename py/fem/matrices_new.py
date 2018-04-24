@@ -3,13 +3,13 @@ import numpy as np
 
 def deriv_ksiteta_to_alpha(element):
 
-    D = np.zeros((12, 6))
+    I = np.zeros((12, 6))
 
-    D[0, 0] = D[8, 3] = 1
-    D[1, 1] = D[9, 4] = 2 / element.width()
-    D[3, 2] = D[11, 5] = 2 / element.height()
+    I[0, 0] = I[8, 3] = 1
+    I[1, 1] = I[9, 4] = 2 / element.width()
+    I[3, 2] = I[11, 5] = 2 / element.height()
 
-    return D
+    return I
 
 
 def lin_aprox_matrix(element, x1, x2, x3):
@@ -96,29 +96,6 @@ def deriv_to_grad(geometry, x1, x2, x3):
 
     B[8, 11] = 1
 
-#    K = geometry.curvature
-#    q=1+K*x2
-#
-#    B[0, 0] = 0
-#    B[0, 1] = 1/q
-#    B[0, 4] = K/q
-#
-#    B[1, 2] = 1
-#
-#    B[2, 3] = 1
-#
-#    B[3, 0] = -K/q
-#    B[3, 5] = 1/q
-#
-#    B[4, 6] = 1
-#
-#    B[5, 7] = 1
-#
-#    B[6, 9] = 1/q
-#
-#    B[7, 10] = 1
-#
-#    B[8, 11] = 1
 
     return B
 
@@ -172,7 +149,7 @@ def get_index_conv(index):
 
     return i, j
 
-def deformations_nl(geometry, grad_u, x1, x2, x3):
+def deformations_nl_1(geometry, grad_u, x1, x2, x3):
     N = 3
 
     du = np.zeros((N, N))
@@ -204,9 +181,9 @@ def deformations_nl(geometry, grad_u, x1, x2, x3):
     E_NL[3,4] = 2*a_values[0,1]
     E_NL[3,7] = 2*a_values[0,2]
     
-    E_NL[4,2] = 2*a_values[0,0]
-    E_NL[4,5] = 2*a_values[0,1]
-    E_NL[4,8] = 2*a_values[0,2]
+    E_NL[4,0] = 2*a_values[2,0]
+    E_NL[4,3] = 2*a_values[2,1]
+    E_NL[4,6] = 2*a_values[2,2]
     
     E_NL[5,2] = 2*a_values[1,0]
     E_NL[5,5] = 2*a_values[1,1]
@@ -215,24 +192,63 @@ def deformations_nl(geometry, grad_u, x1, x2, x3):
 
     return E_NL
 
+def deformations_nl_2(geometry, grad_u, x1, x2, x3):
+    N = 3
+
+    du = np.zeros((N, N))
+
+    g = geometry.metric_tensor_inv(x1, x2, x3)
+
+    for i in range(N):
+        for j in range(N):
+            index = i*N+j
+            du[j,i] = grad_u[index]
+    
+    a_values = 0.5*du.dot(g)
+    
+    
+    E_NL = np.zeros((6,9))
+    E_NL[0,0] = a_values[0,0]
+    E_NL[0,3] = a_values[0,1]
+    E_NL[0,6] = a_values[0,2]
+    
+    E_NL[1,1] = a_values[1,0]
+    E_NL[1,4] = a_values[1,1]
+    E_NL[1,7] = a_values[1,2]
+    
+    E_NL[2,2] = a_values[2,0]
+    E_NL[2,5] = a_values[2,1]
+    E_NL[2,8] = a_values[2,2]
+    
+    E_NL[3,0] = 2*a_values[1,0]
+    E_NL[3,3] = 2*a_values[1,1]
+    E_NL[3,6] = 2*a_values[1,2]
+    
+    E_NL[4,2] = 2*a_values[0,0]
+    E_NL[4,5] = 2*a_values[0,1]
+    E_NL[4,8] = 2*a_values[0,2]
+    
+    E_NL[5,1] = 2*a_values[2,0]
+    E_NL[5,4] = 2*a_values[2,1]
+    E_NL[5,7] = 2*a_values[2,2]
 
 
-def stiffness_matrix(material, geometry, x1, x2, x3):
+    return E_NL
+
+
+
+def tangent_stiffness_matrix(material, geometry, x1, x2, x3, grad_u):
+    B = deriv_to_grad(geometry, x1, x2, x3)
+    
+    E_NL_1 = deformations_nl_1(geometry, grad_u, x1, x2, x3)
+    E_NL_2 = deformations_nl_2(geometry, grad_u, x1, x2, x3)
+    E_NL = E_NL_1 + E_NL_2
     C = tensor_C(material, geometry, x1, x2, x3)
     E = grad_to_strain()
-    B = deriv_to_grad(geometry, x1, x2, x3)
+    
     gj = geometry.getJacobian(x1, x2, x3)
     
-    return B.T.dot(E.T).dot(C).dot(E).dot(B)* gj
-
-def stiffness_matrix_nl(material, geometry, x1, x2, x3, grad_u):
-    E_NL = deformations_nl(geometry, grad_u, x1, x2, x3)
-    C = tensor_C(material, geometry, x1, x2, x3)
-    E = grad_to_strain()
-    B = deriv_to_grad(geometry, x1, x2, x3)
-    gj = geometry.getJacobian(x1, x2, x3)
-    
-    return B.T.dot(E_NL.T).dot(C).dot(E).dot(B)* gj + B.T.dot(E.T).dot(C).dot(E_NL).dot(B)* gj
+    return B.T.dot((E+E_NL).T).dot(C).dot(E+E_NL).dot(B)* gj
 
 def mass_matrix(material, geometry, x1, x2, x3):
     g = geometry.metric_tensor(x1, x2, x3)
@@ -242,11 +258,16 @@ def mass_matrix(material, geometry, x1, x2, x3):
     B_s = deriv_to_vect()
     return material.rho * B_s.T.dot(g_inv.dot(B_s)) * gj
 
-def stiffness_matrix(material, geometry, x1, x2, x3, grad_u):
-    E_NL = deformations_nl(geometry, grad_u, x1, x2, x3)
+def force_vector(material, geometry, x1, x2, x3, grad_u):
+    B = deriv_to_grad(geometry, x1, x2, x3)
+    
+    E_NL_1 = deformations_nl_1(geometry, grad_u, x1, x2, x3)
+    E_NL_2 = deformations_nl_2(geometry, grad_u, x1, x2, x3)
+    E_NL = E_NL_1 + E_NL_2
     C = tensor_C(material, geometry, x1, x2, x3)
     E = grad_to_strain()
-    B = deriv_to_grad(geometry, x1, x2, x3)
+    
     gj = geometry.getJacobian(x1, x2, x3)
     
-    return B.T.dot(E_NL.T).dot(C).dot(E).dot(B)* gj + B.T.dot(E.T).dot(C).dot(E_NL).dot(B)* gj
+    
+    return B.T.dot((E+E_NL).T).dot(C).dot(E+E_NL_1).dot(grad_u)* gj
