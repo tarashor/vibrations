@@ -44,15 +44,16 @@ def solve(model, mesh, t_s_matrix, m_matrix, f_vector, T, time_intervals, u0, v0
     
     for i in range(time_intervals):
         ut = u0
+        K = integrate_matrix_with_disp(model, mesh, t_s_matrix, ut)
         while True:
             # statement(s)
-            
+            F = integrate_vector_with_disp(model, mesh, f_vector, ut)
+            ut = ut + delta_u
             if not np.linalg.norm(delta_u) < eps:
                 break
-        L = integrate_vector_with_disp(model, mesh, f_vector, u0)
-        delta_u = zeros
         
-    K = integrate_matrix_with_disp(model, mesh, t_s_matrix)
+        
+    
     
 
     fixed_nodes_indicies = mesh.get_fixed_nodes_indicies()
