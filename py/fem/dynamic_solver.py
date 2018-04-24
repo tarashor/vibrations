@@ -29,118 +29,89 @@ def i_exclude(fixed_nodes_indicies, nodes_count):
     return sorted(fixed_u1_indicies + fixed_u2_indicies)
 
 
-def solve(model, mesh, s_matrix, m_matrix):
+def solve(model, mesh, t_s_matrix, m_matrix, f_vector, T, time_intervals, u0, v0):
 
-    s = integrate_matrix(model, mesh, s_matrix)
-    m = integrate_matrix(model, mesh, m_matrix)
-
-    fixed_nodes_indicies = mesh.get_fixed_nodes_indicies()
-
-    s = remove_fixed_nodes(s, fixed_nodes_indicies, mesh.nodes_count())
-    m = remove_fixed_nodes(m, fixed_nodes_indicies, mesh.nodes_count())
-
-
-    lam, vec = la.eigh(s, m)
-
-    vec = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count())
+    U = [u0]
     
-    return lam, vec
-
-def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl):
-
-    s = integrate_matrix(model, mesh, s_matrix)
-    m = integrate_matrix(model, mesh, m_matrix)
-    
-
-    fixed_nodes_indicies = mesh.get_fixed_nodes_indicies()
-
-    s = remove_fixed_nodes(s, fixed_nodes_indicies, mesh.nodes_count())
-    m = remove_fixed_nodes(m, fixed_nodes_indicies, mesh.nodes_count())
-
-
-    lam, vec = la.eigh(s, m)
-    
-#    i = 0
-#    print(s.dot(vec[:,i]) - lam[i]*m.dot(vec[:,i]))
-
-    vec = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count())
-    
-
-    res = normalize(vec[:, 0])
-    lam_nl = lam[0]
-    
-    res_prev = np.zeros(res.shape)
-    
-    print("Norm = {}".format(np.linalg.norm(res)))
-
     eps = 0.001
-    i = 0
-    while (np.linalg.norm(res - res_prev) > eps and i < 20):
-        res_prev = res
-        # print(res_prev.T.shape)
-        s_nl = integrate_matrix_with_disp(model, mesh, s_matrix_nl, res_prev)
-        s_nl = remove_fixed_nodes(s_nl, fixed_nodes_indicies, mesh.nodes_count())
-        lam, vec = la.eigh(s + s_nl, m)
-        vec = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count())
+    
+    M = integrate_matrix_with_disp(model, mesh, m_matrix, u0)
+    M_inv=  M**-1
+    F0 = integrate_vector_with_disp(model, mesh, f_vector, u0)
+    
+    w0 = -M_inv.dot(F0)
+    
+    
+    for i in range(time_intervals):
+        ut = u0
+        while True:
+            # statement(s)
+            
+            if not np.linalg.norm(delta_u) < eps:
+                break
+        L = integrate_vector_with_disp(model, mesh, f_vector, u0)
+        delta_u = zeros
         
-        res = normalize(vec[:, 0])
-        print("Norm = {}".format(np.linalg.norm(res)))
-        i += 1
+    K = integrate_matrix_with_disp(model, mesh, t_s_matrix)
+    
+
+    fixed_nodes_indicies = mesh.get_fixed_nodes_indicies()
+
+    s = remove_fixed_nodes(s, fixed_nodes_indicies, mesh.nodes_count())
+    m = remove_fixed_nodes(m, fixed_nodes_indicies, mesh.nodes_count())
+
+
+    lam, vec = la.eigh(s, m)
+
+    vec = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count())
     
     return lam, vec
 
-
-def convert_to_results(eigenvalues, eigenvectors, mesh, geometry):
-    
-    results = []
-    for i in range(eigenvalues.size):
-        freq = np.sqrt(eigenvalues[i])
-        u1 = eigenvectors[:, i][0:mesh.nodes_count()]
-        u3 = eigenvectors[:, i][mesh.nodes_count():2 * mesh.nodes_count()]
-        u2 = np.zeros((mesh.nodes_count()))
-        r = result.Result(freq, u1, u2, u3, mesh, geometry)
-        results.append(r)
-
-    return results
-    
-
-def integrate_matrix(model, mesh, matrix_func):
+def integrate_vector_with_disp(model, mesh, vector_func, disp):
     N = 2 * (mesh.nodes_count())
-    global_matrix = np.zeros((N, N))
+    global_vector = np.zeros((N, N))
     for element in mesh.elements:
-        element_matrix = quadgch5nodes2dim(element_func, element, model.geometry, matrix_func)
+        u_element = matrices.get_u_element(element, disp, mesh.nodes_count())
+        element_vector = quadgch5nodes2dim(element_vector_func_disp, element, model.geometry, vector_func, u_element)
 
-        global_matrix += convertToGlobalMatrix(element_matrix, element, N)
+        global_vector += convertToGlobalVector(element_vector, element, N)
 
-    return global_matrix
+    return global_vector
+
+
+def element_vector_func_disp(ksi, teta, element, geometry, vector_func, u_element):
+    x1, x3 = element.to_model_coordinates(ksi, teta)
+    x2 = 0
+    
+    grad_u = matrices.get_grad_u(element, u_element, x1, x2, x3)
+    
+    EF = vector_func(element.material, geometry, x1, x2, x3, grad_u)
+    H = matrices.element_aprox_functions(element, x1, x2, x3)
+    J = element.jacobian_element_coordinates()
+
+    e = H.T.dot(EF) * J
+
+    return e    
 
 def integrate_matrix_with_disp(model, mesh, matrix_func, disp):
     N = 2 * (mesh.nodes_count())
     global_matrix = np.zeros((N, N))
     for element in mesh.elements:
-        element_matrix = quadgch5nodes2dim(element_func_disp, element, model.geometry, matrix_func, disp)
+        u_element = matrices.get_u_element(element, disp, mesh.nodes_count())
+        element_matrix = quadgch5nodes2dim(element_func_disp, element, model.geometry, matrix_func, u_element)
 
         global_matrix += convertToGlobalMatrix(element_matrix, element, N)
 
     return global_matrix
 
-def element_func(ksi, teta, element, geometry, matrix_func):
+
+def element_func_disp(ksi, teta, element, geometry, matrix_func, u_element):
     x1, x3 = element.to_model_coordinates(ksi, teta)
     x2 = 0
     
-    EM = matrix_func(element.material, geometry, x1, x2, x3)
-    H = matrices.element_aprox_functions(element, x1, x2, x3)
-    J = element.jacobian_element_coordinates()
-
-    e = H.T.dot(EM).dot(H) * J
-
-    return e
-
-def element_func_disp(ksi, teta, element, geometry, matrix_func, disp):
-    x1, x3 = element.to_model_coordinates(ksi, teta)
-    x2 = 0
+    grad_u = matrices.get_grad_u(element, u_element, x1, x2, x3)
     
-    EM = matrix_func(element.material, geometry, x1, x2, x3, disp)
+    EM = matrix_func(element.material, geometry, x1, x2, x3, grad_u)
     H = matrices.element_aprox_functions(element, x1, x2, x3)
     J = element.jacobian_element_coordinates()
 
@@ -197,6 +168,15 @@ def convertToGlobalMatrix(local_matrix, element, N):
             global_matrix[i_global, j_global] = local_matrix[i, j]
 
     return global_matrix
+
+def convertToGlobalVector(local_vector, element, N):
+    global_vector = np.zeros((N))
+    rows, columns = local_vector.shape
+    for i in range(rows):
+        i_global = map_local_to_global_matrix_index(i, element, N)
+        global_vector[i_global] = local_vector[i]
+
+    return global_vector
 
 
 def normalize(v):

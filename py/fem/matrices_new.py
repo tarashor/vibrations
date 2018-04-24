@@ -72,30 +72,52 @@ def deriv_to_grad(geometry, x1, x2, x3):
 
     G = geometry.kristophel_symbols(x1, x2, x3)
 
+#    G[i, j, k]
+
     B[0, 0] = -G[0, 0, 0]
     B[0, 1] = 1
-    B[0, 8] = -G[1, 0, 0]
-
-    B[1, 2] = 1
+    B[0, 4] = -G[0, 0, 1]
+    B[0, 8] = -G[0, 0, 2]
     
-    B[2, 0] = -G[0, 0, 1]
+    B[1, 0] = -G[0, 1, 0]
+    B[1, 2] = 1
+    B[1, 4] = -G[0, 1, 1]
+    B[1, 8] = -G[0, 1, 2]
+    
+    B[2, 0] = -G[0, 2, 0]
     B[2, 3] = 1
-    B[2, 8] = -G[1, 0, 1]
-
+    B[2, 4] = -G[0, 2, 1]
+    B[2, 8] = -G[0, 2, 2]
+    
+    B[3, 0] = -G[1, 0, 0]
     B[3, 5] = 1
-
+    B[3, 4] = -G[1, 0, 1]
+    B[3, 8] = -G[1, 0, 2]
+    
+    B[4, 0] = -G[1, 1, 0]
     B[4, 6] = 1
-
+    B[4, 4] = -G[1, 1, 1]
+    B[4, 8] = -G[1, 1, 2]
+    
+    B[5, 0] = -G[1, 2, 0]
     B[5, 7] = 1
-
-    B[6, 0] = -G[0, 1, 0]
+    B[5, 4] = -G[1, 2, 1]
+    B[5, 8] = -G[1, 2, 2]
+    
+    B[6, 0] = -G[2, 0, 0]
     B[6, 9] = 1
-    B[6, 8] = -G[1, 1, 0]
-
+    B[6, 4] = -G[2, 0, 1]
+    B[6, 8] = -G[2, 0, 2]
+    
+    B[7, 0] = -G[2, 1, 0]
     B[7, 10] = 1
-
+    B[7, 4] = -G[2, 1, 1]
+    B[7, 8] = -G[2, 1, 2]
+    
+    B[8, 0] = -G[2, 2, 0]
     B[8, 11] = 1
-
+    B[8, 4] = -G[2, 2, 1]
+    B[8, 8] = -G[2, 2, 2]
 
     return B
 
@@ -235,24 +257,71 @@ def deformations_nl_2(geometry, grad_u, x1, x2, x3):
 
     return E_NL
 
+def get_stress_matrix(S_vec):
+    S_matrix = np.zeros((9, 9))
+    for index in range(6):
+        i,j = get_index_conv(index)
+        for delta in range(3):
+            S_matrix[i+delta*3,j+delta*3] = S_vec[index]
+            S_matrix[j+delta*3,i+delta*3] = S_vec[index]
+            
+    return S_matrix
+
+def getQmat(geometry, x1, x2, x3):
+    Q = np.zeros((9, 9))
+    g_inv = geometry.metric_tensor_inv(x1, x2, x3)
+    for i in range(3):
+        for j in range(3):
+            g = g_inv[i,j]
+            for l in range(3):
+                Q[i*3+l, j*3+l] = g
+            
+            
+    return Q
+
+def get_u_element(element, u, nodes_count):
+    u_nodes = np.zeros((8))
+
+    u_nodes[0] = u[element.top_left_index]
+    u_nodes[1] = u[element.top_right_index]
+    u_nodes[2] = u[element.bottom_right_index]
+    u_nodes[3] = u[element.bottom_left_index]
+
+    u_nodes[4] = u[element.top_left_index + nodes_count]
+    u_nodes[5] = u[element.top_right_index + nodes_count]
+    u_nodes[6] = u[element.bottom_right_index + nodes_count]
+    u_nodes[7] = u[element.bottom_left_index + nodes_count]
+
+    return u_nodes
+    
+
+def get_grad_u(element,u_element, x1, x2, x3):
+    h_e = element_aprox_functions(element, x1, x2, x3)
+
+    return h_e.dot(u_element)
 
 
-def tangent_stiffness_matrix(material, geometry, x1, x2, x3, grad_u):
+
+def tangent_stiffness_matrix(material, geometry, x1, x2, x3, grad_u_0):
     B = deriv_to_grad(geometry, x1, x2, x3)
     
-    E_NL_1 = deformations_nl_1(geometry, grad_u, x1, x2, x3)
-    E_NL_2 = deformations_nl_2(geometry, grad_u, x1, x2, x3)
+    E_NL_1 = deformations_nl_1(geometry, grad_u_0, x1, x2, x3)
+    E_NL_2 = deformations_nl_2(geometry, grad_u_0, x1, x2, x3)
     E_NL = E_NL_1 + E_NL_2
     C = tensor_C(material, geometry, x1, x2, x3)
     E = grad_to_strain()
     
+    S_0 = C.dot(E+E_NL_1).dot(grad_u_0)
+    
+    S_0_mat = get_stress_matrix(S_0)
+    Q = getQmat(geometry, x1, x2, x3)
+    
     gj = geometry.getJacobian(x1, x2, x3)
     
-    return B.T.dot((E+E_NL).T).dot(C).dot(E+E_NL).dot(B)* gj
+    return B.T.dot((E+E_NL).T).dot(C).dot(E+E_NL).dot(B) + B.T.dot(S_0_mat).dot(Q).dot(B)* gj
 
-def mass_matrix(material, geometry, x1, x2, x3):
-    g = geometry.metric_tensor(x1, x2, x3)
-    g_inv = np.linalg.inv(g)
+def mass_matrix(material, geometry, x1, x2, x3, grad_u):
+    g_inv = geometry.metric_tensor_inv(x1, x2, x3)
     gj = geometry.getJacobian(x1, x2, x3)
     
     B_s = deriv_to_vect()
