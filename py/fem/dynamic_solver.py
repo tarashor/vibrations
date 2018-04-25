@@ -44,17 +44,19 @@ def solve(model, mesh, t_s_matrix, m_matrix, f_vector, T, time_intervals, u0, v0
     M = integrate_matrix_with_disp(model, mesh, m_matrix, u0)
     F0 = integrate_vector_with_disp(model, mesh, f_vector, u0)
     
+    
     fixed_nodes_indicies = mesh.get_fixed_nodes_indicies()
     
-#    M = remove_fixed_nodes(M, fixed_nodes_indicies, mesh.nodes_count())
+    M = remove_fixed_nodes(M, fixed_nodes_indicies, mesh.nodes_count())
     
-#    F0 = remove_fixed_nodes_vector(F0, fixed_nodes_indicies, mesh.nodes_count())
+    F0 = remove_fixed_nodes_vector(F0, fixed_nodes_indicies, mesh.nodes_count())
     
     M_inv= np.linalg.inv(M)
 #    print(F0.shape)
     
     
     w0 = -M_inv.dot(F0)
+    w0 = extend_with_fixed_nodes(w0, fixed_nodes_indicies, mesh.nodes_count())
 #    print(w0)
     
     delta_t = T / time_intervals
@@ -66,7 +68,7 @@ def solve(model, mesh, t_s_matrix, m_matrix, f_vector, T, time_intervals, u0, v0
 #        print("w0 = {}".format(w0))
         
         K = integrate_matrix_with_disp(model, mesh, t_s_matrix, u0)
-#        K = remove_fixed_nodes(K, fixed_nodes_indicies, mesh.nodes_count())
+        K = remove_fixed_nodes(K, fixed_nodes_indicies, mesh.nodes_count())
         
         K_l = K + 4/delta_t2 * M
         K_r = np.linalg.inv(K_l)
@@ -76,8 +78,10 @@ def solve(model, mesh, t_s_matrix, m_matrix, f_vector, T, time_intervals, u0, v0
         while True:
             # statement(s)
             F = integrate_vector_with_disp(model, mesh, f_vector, ut)
-#            F = remove_fixed_nodes_vector(F, fixed_nodes_indicies, mesh.nodes_count())
-            delta_u = K_r.dot(-F-M.dot(wt))
+            F = remove_fixed_nodes_vector(F, fixed_nodes_indicies, mesh.nodes_count())
+            wt_r = remove_fixed_nodes_vector(wt, fixed_nodes_indicies, mesh.nodes_count())
+            delta_u = K_r.dot(-F-M.dot(wt_r))
+            delta_u = extend_with_fixed_nodes(delta_u, fixed_nodes_indicies, mesh.nodes_count())
 #            print("delta_u = {}".format(delta_u))    
             ut = ut + delta_u
             vt = 2/delta_t*(ut-u0) - v0
