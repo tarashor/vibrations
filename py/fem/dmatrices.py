@@ -281,6 +281,7 @@ def getQmat(geometry, x1, x2, x3):
 
 def get_u_element(element, u, nodes_count):
     u_nodes = np.zeros((8))
+#    print(u[element.top_left_index])
 
     u_nodes[0] = u[element.top_left_index]
     u_nodes[1] = u[element.top_right_index]
@@ -295,10 +296,16 @@ def get_u_element(element, u, nodes_count):
     return u_nodes
     
 
-def get_grad_u(element,u_element, x1, x2, x3):
+def get_u_deriv(element,u_element, x1, x2, x3):
     h_e = element_aprox_functions(element, x1, x2, x3)
 
     return h_e.dot(u_element)
+
+def get_grad_u(element,geometry,u_element, x1, x2, x3):
+    B = deriv_to_grad(geometry, x1, x2, x3)
+    h_e = element_aprox_functions(element, x1, x2, x3)
+
+    return B.dot(h_e).dot(u_element)
 
 
 
@@ -338,5 +345,7 @@ def force_vector(material, geometry, x1, x2, x3, grad_u):
     
     gj = geometry.getJacobian(x1, x2, x3)
     
+    s = C.dot(E+E_NL_1)
+    S_0 = s.dot(grad_u)
     
-    return B.T.dot((E+E_NL).T).dot(C).dot(E+E_NL_1).dot(grad_u)* gj
+    return B.T.dot((E+E_NL).T).dot(S_0)* gj

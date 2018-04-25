@@ -65,9 +65,9 @@ class CylindricalPlate(Plate):
         G = super().kristophel_symbols(x1, x2, x3)
         q = self.__get_metric_tensor_components(x1, x2, x3)
 
-        G[1, 0, 0] = -self.curvature * q
-        G[0, 0, 1] = self.curvature / q
-        G[0, 1, 0] = self.curvature / q
+        G[0, 0, 2] = -self.curvature * q
+        G[0, 2, 0] = self.curvature / q
+        G[2, 0, 0] = self.curvature / q
 
         return G
 
