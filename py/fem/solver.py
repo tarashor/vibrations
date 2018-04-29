@@ -62,18 +62,21 @@ def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl):
     
 #    i = 0
 #    print(s.dot(vec[:,i]) - lam[i]*m.dot(vec[:,i]))
+    print(vec.T.dot(m).dot(vec))
 
     vec = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count())
-    
 
-    res = normalize(vec[:, 0])
+
+    res = vec[:,0]
+    print("Norm = {}".format(np.linalg.norm(res)))
+    res = normalize(res)
     lam_nl = lam[0]
     
     res_prev = np.zeros(res.shape)
     
-    print("Norm = {}".format(np.linalg.norm(res)))
+    
 
-    eps = 0.001
+    eps = 0.0001
     i = 0
     while (np.linalg.norm(res - res_prev) > eps and i < 20):
         res_prev = res
@@ -118,7 +121,8 @@ def integrate_matrix_with_disp(model, mesh, matrix_func, disp):
     N = 2 * (mesh.nodes_count())
     global_matrix = np.zeros((N, N))
     for element in mesh.elements:
-        element_matrix = quadgch5nodes2dim(element_func_disp, element, model.geometry, matrix_func, disp)
+        u_element = matrices.get_u_element(element, disp, mesh.nodes_count())
+        element_matrix = quadgch5nodes2dim(element_func_disp, element, model.geometry, matrix_func, u_element)
 
         global_matrix += convertToGlobalMatrix(element_matrix, element, N)
 
@@ -128,6 +132,7 @@ def element_func(ksi, teta, element, geometry, matrix_func):
     x1, x3 = element.to_model_coordinates(ksi, teta)
     x2 = 0
     
+    
     EM = matrix_func(element.material, geometry, x1, x2, x3)
     H = matrices.element_aprox_functions(element, x1, x2, x3)
     J = element.jacobian_element_coordinates()
@@ -136,14 +141,10 @@ def element_func(ksi, teta, element, geometry, matrix_func):
 
     return e
 
-def element_func_disp(ksi, teta, element, geometry, matrix_func, disp):
+def element_func_disp(ksi, teta, element, geometry, matrix_func, u_element):
     x1, x3 = element.to_model_coordinates(ksi, teta)
     x2 = 0
-    B = matrices.deriv_to_grad(geometry, x1, x2, x3)
-
-    u = self.get_displacement_and_deriv(x1, x2, x3, time)
-
-    grad_u = B.dot(u)
+    grad_u = matrices.get_grad_u(element, geometry, u_element, x1, x2, x3)
     EM = matrix_func(element.material, geometry, x1, x2, x3, grad_u)
     H = matrices.element_aprox_functions(element, x1, x2, x3)
     J = element.jacobian_element_coordinates()
@@ -207,4 +208,4 @@ def normalize(v):
     norm = np.linalg.norm(v)
     if norm == 0:
         return v
-    return v / norm
+    return v*0.3 / norm

@@ -46,8 +46,8 @@ thickness = 0.05
 corrugation_amplitude = 0.03
 corrugation_frequency = 20
 
-geometry = g.CorrugatedCylindricalPlate(width, curvature, corrugation_amplitude, corrugation_frequency)
-#geometry = g.CylindricalPlate(width, curvature)
+#geometry = g.CorrugatedCylindricalPlate(width, curvature, corrugation_amplitude, corrugation_frequency)
+geometry = g.CylindricalPlate(width, curvature)
 #geometry = g.Plate()
 
 N = 50

@@ -241,6 +241,8 @@ def plot_init_and_deformed_geometry_in_cartesian(result, x1_start, x1_end, x3_st
     plt.grid()
     plt.show()
     
+
+    
 def plot_mesh(mesh, L, h):
     fig2 = plt.figure()
     ax2 = fig2.add_subplot(111, aspect='equal')

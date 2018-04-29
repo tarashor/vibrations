@@ -178,10 +178,15 @@ def deformations_nl_1(geometry, grad_u, x1, x2, x3):
 
     g = geometry.metric_tensor_inv(x1, x2, x3)
 
+#    print("===Deformations===")
+
     for i in range(N):
         for j in range(N):
             index = i*N+j
+            print("[{}, {}] = {}".format(j,i, index))
             du[j,i] = grad_u[index]
+    
+#    print("========")
     
     a_values = 0.5*du.dot(g)
     
@@ -303,9 +308,13 @@ def get_u_deriv(element,u_element, x1, x2, x3):
 
 def get_grad_u(element,geometry,u_element, x1, x2, x3):
     B = deriv_to_grad(geometry, x1, x2, x3)
+#    print("u = {}".format(u_element))
     h_e = element_aprox_functions(element, x1, x2, x3)
-
-    return B.dot(h_e).dot(u_element)
+    u_deriv = h_e.dot(u_element)
+#    print("u_deriv = {}".format(u_deriv))
+    grad_u=B.dot(u_deriv)
+#    print("grad_u = {}".format(grad_u))
+    return grad_u
 
 
 
@@ -325,14 +334,14 @@ def tangent_stiffness_matrix(material, geometry, x1, x2, x3, grad_u_0):
     
     gj = geometry.getJacobian(x1, x2, x3)
     
-    return B.T.dot((E+E_NL).T).dot(C).dot(E+E_NL).dot(B) + B.T.dot(S_0_mat).dot(Q).dot(B)* gj
+    return B.T.dot((E+E_NL).T).dot(C).dot(E+E_NL).dot(B)*gj + B.T.dot(S_0_mat).dot(Q).dot(B)* gj
 
 def mass_matrix(material, geometry, x1, x2, x3, grad_u):
-    g_inv = geometry.metric_tensor_inv(x1, x2, x3)
+    g = geometry.metric_tensor(x1, x2, x3)
     gj = geometry.getJacobian(x1, x2, x3)
     
     B_s = deriv_to_vect()
-    return material.rho * B_s.T.dot(g_inv.dot(B_s)) * gj
+    return material.rho * B_s.T.dot(g.dot(B_s)) * gj
 
 def force_vector(material, geometry, x1, x2, x3, grad_u):
     B = deriv_to_grad(geometry, x1, x2, x3)
@@ -345,7 +354,22 @@ def force_vector(material, geometry, x1, x2, x3, grad_u):
     
     gj = geometry.getJacobian(x1, x2, x3)
     
-    s = C.dot(E+E_NL_1)
-    S_0 = s.dot(grad_u)
+#    e = (E+E_NL_1).dot(grad_u)
+    e = E.dot(grad_u)
+    S_0 = C.dot(e)
+#    print("grad_u = {}".format(grad_u))
+#    print("e = {}".format(e))
+#    print("S0 = {}".format(S_0))
+#    
+    return B.T.dot((E).T).dot(S_0)* gj
+
+def force_out_vector(material, geometry, x1, x2, x3, grad_u):
+    B = deriv_to_grad(geometry, x1, x2, x3)
+    g = geometry.metric_tensor(x1, x2, x3)
+    gj = geometry.getJacobian(x1, x2, x3)
     
-    return B.T.dot((E+E_NL).T).dot(S_0)* gj
+    r=np.zeros((3))
+#    r[2] = -10
+    
+    B_s = deriv_to_vect()
+    return material.rho * B_s.T.dot(g).dot(r) * gj

@@ -2,14 +2,15 @@ import fem.geometry as g
 import fem.model as m
 import fem.material as mat
 import fem.solver as s
-import fem.dynamic_solver as ds
+import fem.dynamic_solver2 as ds
 import fem.mesh as me
+import fem.result as r
 import numpy as np
 import matplotlib.pyplot as plt
 import plot
 
 
-from fem.dmatrices import tangent_stiffness_matrix, mass_matrix, force_vector
+from fem.dmatrices import tangent_stiffness_matrix, mass_matrix, force_vector, force_out_vector
 
 
 def generate_layers(thickness, layers_count, material):
@@ -37,13 +38,17 @@ def solve_dynamic(geometry, thickness, T, time_intervals, u_1_0, u_3_0, v_1_0, v
         v0[node.index]=v_1_0(node.x1, node.x2)
         v0[node.index+nodes_count]=v_3_0(node.x1, node.x2)
         
-    return ds.solve(model, mesh, tangent_stiffness_matrix, mass_matrix, force_vector, T, time_intervals, u0, v0)
+    U = ds.solve(model, mesh, tangent_stiffness_matrix, mass_matrix, force_vector, force_out_vector, T, time_intervals, u0, v0)
+    
+    init_result = r.Result(0, u0[0:nodes_count], np.zeros((nodes_count)), u0[nodes_count:2*nodes_count], mesh, geometry)
+    
+    return U, init_result
 
 def u_1_0(x1, x3):
-    return np.sin(np.pi*x1/width)
+    return 0.01*np.sin(2*np.pi*x1/width)
 
 def u_3_0(x1, x3):
-    return np.sin(2*np.pi*x1/width)
+    return thickness*np.sin(np.pi*x1/width)
 
 def v_1_0(x1, x3):
     return 0
@@ -64,25 +69,27 @@ corrugation_amplitude = 0.03
 corrugation_frequency = 20
 
 #geometry = g.CorrugatedCylindricalPlate(width, curvature, corrugation_amplitude, corrugation_frequency)
-geometry = g.CylindricalPlate(width, curvature)
-#geometry = g.Plate()
+#geometry = g.CylindricalPlate(width, curvature)
+geometry = g.Plate(width)
 
-N = 50
-M = 4
+N = 10
+M = 2
 
-T = 1
-time_intervals = 50
+T = 0.1
+time_intervals = 10
 
-dresults = solve_dynamic(geometry, thickness, T, time_intervals, u_1_0, u_3_0, v_1_0, v_3_0)
+U, init_result = solve_dynamic(geometry, thickness, T, time_intervals, u_1_0, u_3_0, v_1_0, v_3_0)
+
+#plot.plot_init_and_deformed_geometry(init_result, 0, width, -thickness / 2, thickness / 2, 0)
 
 nodes_count = (N+1)*(M+1)
 u1=[]
 u3=[]
 
 for t in range(time_intervals):
-    u=dresults[t]
-    r1=u[nodes_count//2]
-    r3=u[nodes_count//2+nodes_count]
+    u=U[t]
+    r1=u[nodes_count//2-1]
+    r3=u[nodes_count//2-1+nodes_count]
     print(r1)
     print(r3)
     u1.append(r1)

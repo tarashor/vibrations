@@ -35,68 +35,63 @@ def i_exclude(fixed_nodes_indicies, nodes_count):
     return sorted(fixed_u1_indicies + fixed_u2_indicies)
 
 
-def solve(model, mesh, t_s_matrix, m_matrix, f_vector, T, time_intervals, u0, v0):
+def solve(model, mesh, t_s_matrix, m_matrix, f_vector, r_vector, T, time_intervals, u0, v0):
 
     U = [u0]
-    
-    eps = 0.001
+#    print(u0)
     
     M = integrate_matrix_with_disp(model, mesh, m_matrix, u0)
+#    print(np.linalg.norm(u0))
     F0 = integrate_vector_with_disp(model, mesh, f_vector, u0)
     
+    R0 = integrate_vector_with_disp(model, mesh, f_vector, u0)
+#    Fv0 = integrate_vector_with_disp(model, mesh, f_vector, v0)
+#    print(F0-Fv0)
     
+    fixed_nodes_indicies = mesh.get_fixed_nodes_indicies()
     
+    Mr = remove_fixed_nodes(M, fixed_nodes_indicies, mesh.nodes_count())
     
-#    M = remove_fixed_nodes(M, fixed_nodes_indicies, mesh.nodes_count())
+    F0 = remove_fixed_nodes_vector(F0, fixed_nodes_indicies, mesh.nodes_count())
+    R0 = remove_fixed_nodes_vector(R0, fixed_nodes_indicies, mesh.nodes_count())
+
     
-#    F0 = remove_fixed_nodes_vector(F0, fixed_nodes_indicies, mesh.nodes_count())
-    
-    M_inv= np.linalg.inv(M)
+    M_inv= np.linalg.inv(Mr)
 #    print(F0.shape)
     
     
-    w0 = -M_inv.dot(F0)
-    print("w0 = {}".format(w0))
-#    w0 = extend_with_fixed_nodes(w0, fixed_nodes_indicies, mesh.nodes_count())
+    w0 = M_inv.dot(R0-F0)
+    
+    w0 = extend_with_fixed_nodes(w0, fixed_nodes_indicies, mesh.nodes_count())
 #    print(w0)
     
     delta_t = T / time_intervals
     delta_t2 = delta_t * delta_t
-    fixed_nodes_indicies = mesh.get_fixed_nodes_indicies()
-#    M = remove_fixed_nodes(M, fixed_nodes_indicies, mesh.nodes_count())
+    
+#    print(M)
+    
+    M_inv = delta_t2*M_inv
+    u_minus_1 = u0-delta_t*v0+delta_t2/2*w0
     
     for i in range(time_intervals):
         print("Iteration = {}".format(i))
+        print(u0)
 #        print("u0 = {}".format(u0))
-#        print("w0 = {}".format(w0))
+        F = integrate_vector_with_disp(model, mesh, f_vector, u0)
+        R = integrate_vector_with_disp(model, mesh, r_vector, u0)
         
-        K = integrate_matrix_with_disp(model, mesh, t_s_matrix, u0)
-#        K = remove_fixed_nodes(K, fixed_nodes_indicies, mesh.nodes_count())
+        R_hat = R-F+2/delta_t2*M.dot(u0)-1/delta_t2*M.dot(u_minus_1)
         
-        K_l = K + 4/delta_t2 * M
-        K_r = np.linalg.inv(K_l)
-        ut = u0
-        while True:
-            # statement(s)
-            F = integrate_vector_with_disp(model, mesh, f_vector, ut)
-#            F = remove_fixed_nodes_vector(F, fixed_nodes_indicies, mesh.nodes_count())
-            wt = 4/delta_t2*(ut-u0) - 4/delta_t * v0 - w0
-#            wt_r = remove_fixed_nodes_vector(wt, fixed_nodes_indicies, mesh.nodes_count())
-            delta_u = K_r.dot(-F-M.dot(wt))
-#            delta_u = extend_with_fixed_nodes(delta_u, fixed_nodes_indicies, mesh.nodes_count())
-            
-#            print(delta_u)
-#            print("delta_u = {}".format(delta_u))    
-            ut = ut + delta_u
-            
-            if np.linalg.norm(delta_u) < eps:
-                U.append(ut)
-                
-                w0 =  4/delta_t2*(ut-u0) - 4/delta_t * v0 - w0
-                v0 = 2/delta_t*(ut-u0) - v0
-                u0 = ut
-                break
-            
+        R_hat = remove_fixed_nodes_vector(R_hat, fixed_nodes_indicies, mesh.nodes_count())
+        
+        ut = M_inv.dot(R_hat)
+        
+        ut = extend_with_fixed_nodes(ut, fixed_nodes_indicies, mesh.nodes_count())
+        
+        u_minus_1 = u0
+        u0 = ut
+        U.append(ut)
+#            
     return U
 
 def integrate_vector_with_disp(model, mesh, vector_func, disp):
