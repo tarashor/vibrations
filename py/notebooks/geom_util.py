@@ -58,17 +58,8 @@ def getMetricTensorUp(R_1, R_2, R_3):
     G=trigsimp(G)
     return G
 
-def getChristoffelSymbols2(G_up, G_down, axis):
+def getChristoffelSymbols2(G_up, G_down_diff, axis):
     DIM = 3
-
-    G_down_diff = MutableDenseNDimArray.zeros(DIM, DIM, DIM)
-    for i in range(DIM):
-        for j in range(DIM):
-            for k in range(DIM):
-                xdiff = axis[k]
-                
-                G_down_diff[i,j,k]=G_down[i,j].diff(xdiff)
-                
     
     
     GK = MutableDenseNDimArray.zeros(DIM, DIM, DIM)
@@ -223,26 +214,62 @@ def getIsotropicStiffnessTensor():
     return convertStiffnessMatrixToTensor(C_isotropic_matrix)
 
 def getUHat3D(alpha1,alpha2,alpha3):
-    u1 = Function("u_1")
-    u2 = Function("u_2")
-    u3 = Function("u_3")
+    
+    u1, u2, u3 = symbols("u_1, u_2, u_3")
+    
+    
+    du = zeros(DIM,DIM)
+    for i in range(DIM):
+        for j in range(DIM):
+            du[i,j]=Symbol('u_{{{},{}}}'.format(i+1,j+1))
     
     
     gu = zeros(12,1) 
-    gu[0] = u1(alpha1,alpha2,alpha3)
-    gu[1] = u1(alpha1,alpha2,alpha3).diff(alpha1)
-    gu[2] = u1(alpha1,alpha2,alpha3).diff(alpha2)
-    gu[3] = u1(alpha1,alpha2,alpha3).diff(alpha3)
+    gu[0] = u1
+    gu[1] = du[0,0]
+    gu[2] = du[0,1]
+    gu[3] = du[0,2]
     
-    gu[4] = u2(alpha1,alpha2,alpha3)
-    gu[5] = u2(alpha1,alpha2,alpha3).diff(alpha1)
-    gu[6] = u2(alpha1,alpha2,alpha3).diff(alpha2)
-    gu[7] = u2(alpha1,alpha2,alpha3).diff(alpha3)
+    gu[4] = u2
+    gu[5] = du[1,0]
+    gu[6] = du[1,1]
+    gu[7] = du[1,2]
     
-    gu[8] = u3(alpha1,alpha2,alpha3)
-    gu[9] = u3(alpha1,alpha2,alpha3).diff(alpha1)
-    gu[10] = u3(alpha1,alpha2,alpha3).diff(alpha2)
-    gu[11] = u3(alpha1,alpha2,alpha3).diff(alpha3)
+    gu[8] = u3
+    gu[9] = du[2,0]
+    gu[10] = du[2,1]
+    gu[11] = du[2,2]
+    
+    return gu
+
+def getUHat3DPlane(alpha1,alpha2,alpha3):
+    
+    u1, u3 = symbols("u_1, u_3")
+    u2=S(0)
+    
+    
+    du = zeros(DIM,DIM)
+    for i in range(DIM):
+        for j in range(DIM):
+            if (i != 1 and j != 1):
+                du[i,j]=Symbol('u_{{{},{}}}'.format(i+1,j+1))
+    
+    
+    gu = zeros(12,1) 
+    gu[0] = u1
+    gu[1] = du[0,0]
+    gu[2] = du[0,1]
+    gu[3] = du[0,2]
+    
+    gu[4] = u2
+    gu[5] = du[1,0]
+    gu[6] = du[1,1]
+    gu[7] = du[1,2]
+    
+    gu[8] = u3
+    gu[9] = du[2,0]
+    gu[10] = du[2,1]
+    gu[11] = du[2,2]
     
     return gu
 
