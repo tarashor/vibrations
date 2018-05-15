@@ -398,3 +398,124 @@ def plot_freq_from_corrugated_freq(g_v, w_min, N, M):
     plt.ylim(ymin=0)
     plt.grid()
     plt.show()
+    
+    
+#os.environ["PATH"] += os.pathsep + '/usr/local/texlive/2017/bin/x86_64-darwin'
+
+def plot_normals(geometry, x1_start, x1_end, x2_start, x2_end):
+    fig = plt.figure()
+    
+    plt.rc('text', usetex=True)
+    
+    plt.rc('font', family='serif')
+    SMALL_SIZE = 42
+    MEDIUM_SIZE = 42
+    BIGGER_SIZE = 42
+    
+    plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
+    plt.rc('axes', titlesize=SMALL_SIZE)     # fontsize of the axes title
+    plt.rc('axes', labelsize=MEDIUM_SIZE)    # fontsize of the x and y labels
+    plt.rc('xtick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
+    plt.rc('ytick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
+    plt.rc('legend', fontsize=SMALL_SIZE)    # legend fontsize
+    plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
+
+    dx1 = (x1_end - x1_start) / plot_x1_elements
+
+    X_init = []
+    Y_init = []
+
+    x3 = 0
+    x2 = x2_end
+    for i in range(plot_x1_elements + 1):
+        x1 = x1_start + i * dx1
+
+        x, y, z = geometry.to_cartesian_coordinates(x1, x2, x3)
+
+        X_init.append(x)
+        Y_init.append(y)
+        
+    plt.plot(X_init, Y_init, "g")
+    X_init = []
+    Y_init = []
+
+    x2 = x2_start
+    for i in range(plot_x1_elements + 1):
+        x1 = x1_start + i * dx1
+
+        x, y, z = geometry.to_cartesian_coordinates(x1, x2, x3)
+
+        X_init.append(x)
+        Y_init.append(y)
+    
+    
+    plt.plot(X_init, Y_init, "g")
+    
+    X_init = []
+    Y_init = []
+
+    x2 = (x2_start + x2_end) / 2
+    for i in range(plot_x1_elements + 1):
+        x1 = x1_start + i * dx1
+
+        x, y, z = geometry.to_cartesian_coordinates(x1, x2, x3)
+
+        X_init.append(x)
+        Y_init.append(y)
+        
+    plt.plot(X_init, Y_init, "g")
+    
+    
+    arrows_elements = 50
+    
+    dx1 = (x1_end - x1_start) / arrows_elements
+    
+    X_middle = []
+    Y_middle = []
+    
+    X_middle_normal = []
+    Y_middle_normal = []
+
+    x2 = (x2_start + x2_end) / 2
+    for i in range(arrows_elements + 1):
+        x1 = x1_start + i * dx1
+
+        x, y, z = geometry.to_cartesian_coordinates(x1, x2, x3)
+
+        X_middle.append(x)
+        Y_middle.append(y)
+        
+        n_x, n_y, n_z = geometry.normal_to_middle_surface(x1, x2, x3)
+
+        X_middle_normal.append(n_x)
+        Y_middle_normal.append(n_y)
+        
+        
+    plt.quiver(X_middle, Y_middle, X_middle_normal, Y_middle_normal, color='r', width=0.002)
+
+
+#    geometry_title = str(geometry)
+#    start_title = "The shape of the panel with the following parameters:\n"
+#    L = x1_end - x1_start
+#    h = x2_end - x2_start
+#    plot_title = start_title + r"$L={}$m, $h={}$m".format(L, h)
+#    if (len(geometry_title) > 0):
+#        plot_title += r", {}".format(geometry_title)
+        
+    
+    #fig.text(0.5, 0.01, plot_title, ha='center')
+
+    #plt.title(plot_title)
+    plt.gca().set_aspect('equal', 'datalim')
+#    plt.legend(loc='best')
+    plt.xlabel(r"$x_1$,m")
+    plt.ylabel(r"$x_2$,m")
+    
+    #plt.gca().xaxis.set_label_coords(1, -0.02) 
+#    plt.gca().yaxis.set_label_coords(-0.005, 1) 
+    plt.grid()
+    #fig.subplots_adjust(bottom=0.2) 
+    #plt.tight_layout()
+    plt.show()
+    
+    #plt.savefig(filename + '.png')
