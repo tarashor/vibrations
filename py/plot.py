@@ -84,6 +84,29 @@ def plot_strain_2(result, N, M, x1_start, x1_end, x2_start, x2_end, time, strain
     plt.show()
 
 
+def plot_point_in_time(result, x1, x2, x3, time_points):
+    u1 = []
+    u2 = []
+    u3 = []
+    
+    for time in time_points:
+        u = result.get_displacement_and_deriv(x1, x2, x3, time)
+        u1.append(u[0])
+        u2.append(u[4])
+        u3.append(u[8])
+
+
+    plt.plot(time_points, u1, "r", label="u1")
+    plt.plot(time_points, u3, "b", label="u3")
+    plt.title("Переміщення точки")
+    # plt.title(r"Форма панелі $L={}, h={}, K={}, g_A={}, g_v={}$".format(x1_end - x1_start, x2_end - x2_start, result.geometry.curvature, result.geometry.corrugation_amplitude, result.geometry.corrugation_frequency))
+    plt.axes().set_aspect('equal', 'datalim')
+    plt.legend(loc='best')
+    plt.xlabel(r"$час$, sec", fontsize=12)
+    plt.ylabel(r"$переміщення$, м", fontsize=12)
+    plt.grid()
+    plt.show()
+
 
 def plot_init_and_deformed_geometry(result, x1_start, x1_end, x3_start, x3_end, time):
 
@@ -218,6 +241,8 @@ def plot_init_and_deformed_geometry_in_cartesian(result, x1_start, x1_end, x3_st
     plt.grid()
     plt.show()
     
+
+    
 def plot_mesh(mesh, L, h):
     fig2 = plt.figure()
     ax2 = fig2.add_subplot(111, aspect='equal')
@@ -318,6 +343,44 @@ def plot_init_geometry(geometry, x1_start, x1_end, x3_start, x3_end, time):
     plt.legend(loc='best')
     plt.xlabel(r"$x_1$, м", fontsize=12)
     plt.ylabel(r"$x_2$, м", fontsize=12)
+    plt.grid()
+    plt.show()
+    
+def plot_init_geometry_2(x1_start, x1_end, x3_start, x3_end, to_cartesian_coordinates):
+
+    dx1 = (x1_end - x1_start) / plot_x1_elements
+
+    X_init = []
+    Y_init = []
+
+    x2 = 0
+    x3 = x3_end
+    for i in range(plot_x1_elements + 1):
+        x1 = x1_start + i * dx1
+
+        x, y, z = to_cartesian_coordinates(x1, x2, x3)
+
+        X_init.append(x)
+        Y_init.append(z)
+
+    x3 = x3_start
+    for i in range(plot_x1_elements + 1):
+        x1 = x1_end - i * dx1
+
+        x, y, z =to_cartesian_coordinates(x1, x2, x3)
+
+        X_init.append(x)
+        Y_init.append(z)
+
+    X_init.append(X_init[0])
+    Y_init.append(Y_init[0])
+
+    plt.plot(X_init, Y_init, "r", label="початкова конфігурація")
+
+    plt.axes().set_aspect('equal', 'datalim')
+    plt.legend(loc='best')
+    plt.xlabel(r"$x_1$, м", fontsize=12)
+    plt.ylabel(r"$x_3$, м", fontsize=12)
     plt.grid()
     plt.show()
 

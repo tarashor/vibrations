@@ -1,5 +1,5 @@
 from . import finiteelements
-from . import matrices
+from . import dmatrices as matrices
 from . import result
 import numpy as np
 # from . import mesh as m
@@ -12,6 +12,12 @@ def remove_fixed_nodes(matrix, fixed_nodes_indicies, all_nodes_count):
     free_nodes1 = [i for i in range(matrix.shape[0]) if i not in indicies_to_exclude]
     free_nodes2 = [i for i in range(matrix.shape[1]) if i not in indicies_to_exclude]
     return matrix[np.ix_(free_nodes1, free_nodes2)]
+
+def remove_fixed_nodes_vector(vector, fixed_nodes_indicies, all_nodes_count):
+    indicies_to_exclude = i_exclude(fixed_nodes_indicies, all_nodes_count)
+
+    free_nodes1 = [i for i in range(vector.shape[0]) if i not in indicies_to_exclude]
+    return vector[free_nodes1]
 
 
 def extend_with_fixed_nodes(eig_vectors, fixed_nodes_indicies, all_nodes_count):
@@ -29,93 +35,95 @@ def i_exclude(fixed_nodes_indicies, nodes_count):
     return sorted(fixed_u1_indicies + fixed_u2_indicies)
 
 
-def solve(model, mesh, s_matrix, m_matrix):
+def solve(model, mesh, t_s_matrix, m_matrix, f_vector, T, time_intervals, u0, v0):
 
-    s = integrate_matrix(model, mesh, s_matrix)
-    m = integrate_matrix(model, mesh, m_matrix)
-
+    U = [u0]
+    
+    eps = 0.001
+    
+    M = integrate_matrix_with_disp(model, mesh, m_matrix, u0)
+    F0 = integrate_vector_with_disp(model, mesh, f_vector, u0)
+    
+    
+    
+    
+#    M = remove_fixed_nodes(M, fixed_nodes_indicies, mesh.nodes_count())
+    
+#    F0 = remove_fixed_nodes_vector(F0, fixed_nodes_indicies, mesh.nodes_count())
+    
+    M_inv= np.linalg.inv(M)
+#    print(F0.shape)
+    
+    
+    w0 = -M_inv.dot(F0)
+    print("w0 = {}".format(w0))
+#    w0 = extend_with_fixed_nodes(w0, fixed_nodes_indicies, mesh.nodes_count())
+#    print(w0)
+    
+    delta_t = T / time_intervals
+    delta_t2 = delta_t * delta_t
     fixed_nodes_indicies = mesh.get_fixed_nodes_indicies()
-
-    s = remove_fixed_nodes(s, fixed_nodes_indicies, mesh.nodes_count())
-    m = remove_fixed_nodes(m, fixed_nodes_indicies, mesh.nodes_count())
-
-
-    lam, vec = la.eigh(s, m)
-
-    vec = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count())
+#    M = remove_fixed_nodes(M, fixed_nodes_indicies, mesh.nodes_count())
     
-    return lam, vec
-
-def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl):
-
-    s = integrate_matrix(model, mesh, s_matrix)
-    m = integrate_matrix(model, mesh, m_matrix)
-    
-
-    fixed_nodes_indicies = mesh.get_fixed_nodes_indicies()
-
-    s = remove_fixed_nodes(s, fixed_nodes_indicies, mesh.nodes_count())
-    m = remove_fixed_nodes(m, fixed_nodes_indicies, mesh.nodes_count())
-
-
-    lam, vec = la.eigh(s, m)
-    
-#    i = 0
-#    print(s.dot(vec[:,i]) - lam[i]*m.dot(vec[:,i]))
-    print(vec.T.dot(m).dot(vec))
-
-    vec = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count())
-
-
-    res = vec[:,0]
-    print("Norm = {}".format(np.linalg.norm(res)))
-    res = normalize(res)
-    lam_nl = lam[0]
-    
-    res_prev = np.zeros(res.shape)
-    
-    
-
-    eps = 0.0001
-    i = 0
-    while (np.linalg.norm(res - res_prev) > eps and i < 20):
-        res_prev = res
-        # print(res_prev.T.shape)
-        s_nl = integrate_matrix_with_disp(model, mesh, s_matrix_nl, res_prev)
-        s_nl = remove_fixed_nodes(s_nl, fixed_nodes_indicies, mesh.nodes_count())
-        lam, vec = la.eigh(s + s_nl, m)
-        vec = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count())
+    for i in range(time_intervals):
+        print("Iteration = {}".format(i))
+#        print("u0 = {}".format(u0))
+#        print("w0 = {}".format(w0))
         
-        res = normalize(vec[:, 0])
-        print("Norm = {}".format(np.linalg.norm(res)))
-        i += 1
-    
-    return lam, vec
+        K = integrate_matrix_with_disp(model, mesh, t_s_matrix, u0)
+#        K = remove_fixed_nodes(K, fixed_nodes_indicies, mesh.nodes_count())
+        
+        K_l = K + 4/delta_t2 * M
+        K_r = np.linalg.inv(K_l)
+        ut = u0
+        while True:
+            # statement(s)
+            F = integrate_vector_with_disp(model, mesh, f_vector, ut)
+#            F = remove_fixed_nodes_vector(F, fixed_nodes_indicies, mesh.nodes_count())
+            wt = 4/delta_t2*(ut-u0) - 4/delta_t * v0 - w0
+#            wt_r = remove_fixed_nodes_vector(wt, fixed_nodes_indicies, mesh.nodes_count())
+            delta_u = K_r.dot(-F-M.dot(wt))
+#            delta_u = extend_with_fixed_nodes(delta_u, fixed_nodes_indicies, mesh.nodes_count())
+            
+#            print(delta_u)
+#            print("delta_u = {}".format(delta_u))    
+            ut = ut + delta_u
+            
+            if np.linalg.norm(delta_u) < eps:
+                U.append(ut)
+                
+                w0 =  4/delta_t2*(ut-u0) - 4/delta_t * v0 - w0
+                v0 = 2/delta_t*(ut-u0) - v0
+                u0 = ut
+                break
+            
+    return U
 
-
-def convert_to_results(eigenvalues, eigenvectors, mesh, geometry):
-    
-    results = []
-    for i in range(eigenvalues.size):
-        freq = np.sqrt(eigenvalues[i])
-        u1 = eigenvectors[:, i][0:mesh.nodes_count()]
-        u3 = eigenvectors[:, i][mesh.nodes_count():2 * mesh.nodes_count()]
-        u2 = np.zeros((mesh.nodes_count()))
-        r = result.Result(freq, u1, u2, u3, mesh, geometry)
-        results.append(r)
-
-    return results
-    
-
-def integrate_matrix(model, mesh, matrix_func):
+def integrate_vector_with_disp(model, mesh, vector_func, disp):
     N = 2 * (mesh.nodes_count())
-    global_matrix = np.zeros((N, N))
+    global_vector = np.zeros((N))
     for element in mesh.elements:
-        element_matrix = quadgch5nodes2dim(element_func, element, model.geometry, matrix_func)
+        u_element = matrices.get_u_element(element, disp, mesh.nodes_count())
+        element_vector = quadgch5nodes2dim(element_vector_func_disp, element, model.geometry, vector_func, u_element)
 
-        global_matrix += convertToGlobalMatrix(element_matrix, element, N)
+        global_vector += convertToGlobalVector(element_vector, element, N)
 
-    return global_matrix
+    return global_vector
+
+
+def element_vector_func_disp(ksi, teta, element, geometry, vector_func, u_element):
+    x1, x3 = element.to_model_coordinates(ksi, teta)
+    x2 = 0
+    
+    grad_u = matrices.get_grad_u(element, geometry, u_element, x1, x2, x3)
+    
+    EF = vector_func(element.material, geometry, x1, x2, x3, grad_u)
+    H = matrices.element_aprox_functions(element, x1, x2, x3)
+    J = element.jacobian_element_coordinates()
+
+    e = H.T.dot(EF) * J
+
+    return e    
 
 def integrate_matrix_with_disp(model, mesh, matrix_func, disp):
     N = 2 * (mesh.nodes_count())
@@ -128,23 +136,13 @@ def integrate_matrix_with_disp(model, mesh, matrix_func, disp):
 
     return global_matrix
 
-def element_func(ksi, teta, element, geometry, matrix_func):
-    x1, x3 = element.to_model_coordinates(ksi, teta)
-    x2 = 0
-    
-    
-    EM = matrix_func(element.material, geometry, x1, x2, x3)
-    H = matrices.element_aprox_functions(element, x1, x2, x3)
-    J = element.jacobian_element_coordinates()
-
-    e = H.T.dot(EM).dot(H) * J
-
-    return e
 
 def element_func_disp(ksi, teta, element, geometry, matrix_func, u_element):
     x1, x3 = element.to_model_coordinates(ksi, teta)
     x2 = 0
+    
     grad_u = matrices.get_grad_u(element, geometry, u_element, x1, x2, x3)
+    
     EM = matrix_func(element.material, geometry, x1, x2, x3, grad_u)
     H = matrices.element_aprox_functions(element, x1, x2, x3)
     J = element.jacobian_element_coordinates()
@@ -203,9 +201,18 @@ def convertToGlobalMatrix(local_matrix, element, N):
 
     return global_matrix
 
+def convertToGlobalVector(local_vector, element, N):
+    global_vector = np.zeros((N))
+    rows,  = local_vector.shape
+    for i in range(rows):
+        i_global = map_local_to_global_matrix_index(i, element, N)
+        global_vector[i_global] = local_vector[i]
+
+    return global_vector
+
 
 def normalize(v):
     norm = np.linalg.norm(v)
     if norm == 0:
         return v
-    return v*0.3 / norm
+    return v / norm

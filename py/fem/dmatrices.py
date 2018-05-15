@@ -3,13 +3,13 @@ import numpy as np
 
 def deriv_ksiteta_to_alpha(element):
 
-    D = np.zeros((12, 6))
+    I = np.zeros((12, 6))
 
-    D[0, 0] = D[8, 3] = 1
-    D[1, 1] = D[9, 4] = 2 / element.width()
-    D[3, 2] = D[11, 5] = 2 / element.height()
+    I[0, 0] = I[8, 3] = 1
+    I[1, 1] = I[9, 4] = 2 / element.width()
+    I[3, 2] = I[11, 5] = 2 / element.height()
 
-    return D
+    return I
 
 
 def lin_aprox_matrix(element, x1, x2, x3):
@@ -121,6 +121,7 @@ def deriv_to_grad(geometry, x1, x2, x3):
 
     return B
 
+
 def deriv_to_vect():
     B = np.zeros((3, 12))
 
@@ -170,7 +171,6 @@ def get_index_conv(index):
 
     return i, j
 
-
 def deformations_nl_1(geometry, grad_u, x1, x2, x3):
     N = 3
 
@@ -178,10 +178,15 @@ def deformations_nl_1(geometry, grad_u, x1, x2, x3):
 
     g = geometry.metric_tensor_inv(x1, x2, x3)
 
+#    print("===Deformations===")
+
     for i in range(N):
         for j in range(N):
             index = i*N+j
+            print("[{}, {}] = {}".format(j,i, index))
             du[j,i] = grad_u[index]
+    
+#    print("========")
     
     a_values = 0.5*du.dot(g)
     
@@ -257,6 +262,27 @@ def deformations_nl_2(geometry, grad_u, x1, x2, x3):
 
     return E_NL
 
+def get_stress_matrix(S_vec):
+    S_matrix = np.zeros((9, 9))
+    for index in range(6):
+        i,j = get_index_conv(index)
+        for delta in range(3):
+            S_matrix[i+delta*3,j+delta*3] = S_vec[index]
+            S_matrix[j+delta*3,i+delta*3] = S_vec[index]
+            
+    return S_matrix
+
+def getQmat(geometry, x1, x2, x3):
+    Q = np.zeros((9, 9))
+    g_inv = geometry.metric_tensor_inv(x1, x2, x3)
+    for i in range(3):
+        for j in range(3):
+            g = g_inv[i,j]
+            for l in range(3):
+                Q[i*3+l, j*3+l] = g
+            
+            
+    return Q
 
 def get_u_element(element, u, nodes_count):
     u_nodes = np.zeros((8))
@@ -282,36 +308,68 @@ def get_u_deriv(element,u_element, x1, x2, x3):
 
 def get_grad_u(element,geometry,u_element, x1, x2, x3):
     B = deriv_to_grad(geometry, x1, x2, x3)
+#    print("u = {}".format(u_element))
     h_e = element_aprox_functions(element, x1, x2, x3)
+    u_deriv = h_e.dot(u_element)
+#    print("u_deriv = {}".format(u_deriv))
+    grad_u=B.dot(u_deriv)
+#    print("grad_u = {}".format(grad_u))
+    return grad_u
 
-    return B.dot(h_e).dot(u_element)
 
 
-
-def stiffness_matrix(material, geometry, x1, x2, x3):
+def tangent_stiffness_matrix(material, geometry, x1, x2, x3, grad_u_0):
+    B = deriv_to_grad(geometry, x1, x2, x3)
+    
+    E_NL_1 = deformations_nl_1(geometry, grad_u_0, x1, x2, x3)
+    E_NL_2 = deformations_nl_2(geometry, grad_u_0, x1, x2, x3)
+    E_NL = E_NL_1 + E_NL_2
     C = tensor_C(material, geometry, x1, x2, x3)
     E = grad_to_strain()
-    B = deriv_to_grad(geometry, x1, x2, x3)
+    
+    S_0 = C.dot(E+E_NL_1).dot(grad_u_0)
+    
+    S_0_mat = get_stress_matrix(S_0)
+    Q = getQmat(geometry, x1, x2, x3)
+    
     gj = geometry.getJacobian(x1, x2, x3)
     
-    return B.T.dot(E.T).dot(C).dot(E).dot(B)* gj
+    return B.T.dot((E+E_NL).T).dot(C).dot(E+E_NL).dot(B)*gj + B.T.dot(S_0_mat).dot(Q).dot(B)* gj
 
-def stiffness_matrix_nl(material, geometry, x1, x2, x3, grad_u):
-    E_NL_1 = deformations_nl_1(geometry, grad_u, x1, x2, x3)
-    E_NL_2 = deformations_nl_2(geometry, grad_u, x1, x2, x3)
-    C = tensor_C(material, geometry, x1, x2, x3)
-    E = grad_to_strain()
-    B = deriv_to_grad(geometry, x1, x2, x3)
-    gj = geometry.getJacobian(x1, x2, x3)
-    E_NL = E_NL_1+E_NL_2
-    
-    return B.T.dot((E_NL).T).dot(C).dot(E_NL_1).dot(B)* gj
-
-def mass_matrix(material, geometry, x1, x2, x3):
+def mass_matrix(material, geometry, x1, x2, x3, grad_u):
     g = geometry.metric_tensor(x1, x2, x3)
-    g_inv = np.linalg.inv(g)
     gj = geometry.getJacobian(x1, x2, x3)
     
     B_s = deriv_to_vect()
-    return material.rho * B_s.T.dot(g_inv.dot(B_s)) * gj
+    return material.rho * B_s.T.dot(g.dot(B_s)) * gj
 
+def force_vector(material, geometry, x1, x2, x3, grad_u):
+    B = deriv_to_grad(geometry, x1, x2, x3)
+    
+    E_NL_1 = deformations_nl_1(geometry, grad_u, x1, x2, x3)
+    E_NL_2 = deformations_nl_2(geometry, grad_u, x1, x2, x3)
+    E_NL = E_NL_1 + E_NL_2
+    C = tensor_C(material, geometry, x1, x2, x3)
+    E = grad_to_strain()
+    
+    gj = geometry.getJacobian(x1, x2, x3)
+    
+#    e = (E+E_NL_1).dot(grad_u)
+    e = E.dot(grad_u)
+    S_0 = C.dot(e)
+#    print("grad_u = {}".format(grad_u))
+#    print("e = {}".format(e))
+#    print("S0 = {}".format(S_0))
+#    
+    return B.T.dot((E).T).dot(S_0)* gj
+
+def force_out_vector(material, geometry, x1, x2, x3, grad_u):
+    B = deriv_to_grad(geometry, x1, x2, x3)
+    g = geometry.metric_tensor(x1, x2, x3)
+    gj = geometry.getJacobian(x1, x2, x3)
+    
+    r=np.zeros((3))
+#    r[2] = -10
+    
+    B_s = deriv_to_vect()
+    return material.rho * B_s.T.dot(g).dot(r) * gj

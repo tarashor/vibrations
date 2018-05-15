@@ -1,1 +1,1 @@
-__all__ = ["model", "mesh", "solver", "geometry", "finiteelements", "matrices", "result", "nonlinearSolver"]
+__all__ = ["model", "mesh", "solver", "geometry", "finiteelements", "matrices", "result", "nonlinearSolver", "dmatrices"]
