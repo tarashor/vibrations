@@ -35,20 +35,17 @@ r = x1*N.i + x2*N.j + x3*N.k
 z = ga/R*gv*sin(gv*a1)
 w = 1 + ga/R*cos(gv*a1)
 
-r1x=(z*cos(a1) + w*sin(a1))
-r1z=(z*sin(a1) - w*cos(a1))
+dr1x=(z*cos(a1) + w*sin(a1))
+dr1z=(z*sin(a1) - w*cos(a1))
 
-r1 = r1x*N.i + r1z*N.k
+r1 = dr1x*N.i + dr1z*N.k
 r2 = trigsimp(r.diff(alpha2))
-
-dr1x = r1x.diff(alpha1)
-dr1z = r1z.diff(alpha1)
 
 #r1m=r1.dot(r1)
 mag=sqrt((w)**2+(z)**2)
 #r1m=sympify("((R + g_a*cos(g_v*(L + pi*R - 2*alpha_1)/(2*R)))**2 + g_a**2*g_v**2*sin(g_v*(L + pi*R - 2*alpha_1)/(2*R))**2)")
 
-#display(mag)
+display(mag)
 
 #k1 = sqrt(r1m)
 #r1 = simplify(r1/k1)
@@ -66,33 +63,41 @@ display(dr1x)
 display(dr1z)
 
 
-dr1=dr1x*N.i+dr1z*N.k
-
 #r2 = r2/k2
 #
 #display(r1)
 ###
 ###
-n = r1.cross(r2)
+n = (-dr1z*N.i+dr1x*N.k)/mag
 ###
 #n_len = trigsimp(n.dot(n))
 #n=n/n_len
 ###
 #display(n)
 
-dn=-dr1z*N.i+dr1x*N.k
+nx = -dr1z/mag
+dnx=nx.diff(alpha1)
+
+nz = dr1x/mag
+dnz=nz.diff(alpha1)
+
+#dn=n.diff(alpha1)
+
+display(trigsimp(nx*dnx))
+#display(nz*dnz)
 
 #%%
 
 
 Ralpha = r+alpha3*n
 #
-R1=dr1+alpha3*dn
+R1=r1+alpha3*dn
 R2=Ralpha.diff(alpha2)
 R3=n
 #
-display(R1)
-display(R3)
+#display(trigsimp(R1.dot(R1)))
+#display(trigsimp(R3.dot(R1)))
+display(trigsimp(dn.dot(n)))
 
 #%%
 
