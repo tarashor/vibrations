@@ -9,7 +9,7 @@ def getMetricTensorDownLame(H1, H2, H3):
     H32 = H3*H3
     
     G_con=Matrix([[H12, 0, 0],[0, H22, 0], [0, 0, H32]])
-    G_con=trigsimp(G_con)
+#    G_con=trigsimp(G_con)
     return G_con
     
     
@@ -20,7 +20,7 @@ def getMetricTensorUpLame(H1, H2, H3):
     H32 = H3*H3
     
     G=Matrix([[1/H12, 0, 0],[0, 1/H22, 0], [0, 0, 1/H32]])
-    G=trigsimp(G)
+#    G=trigsimp(G)
     return G
 
 def getMetricTensorDown(R1, R2, R3):
@@ -69,7 +69,7 @@ def getChristoffelSymbols2(G_up, G_down_diff, axis):
                 res = S(0)
                 for m in range(DIM):
                     res = res + G_up[m,k]*(G_down_diff[i,m,j]+G_down_diff[j,m,i]-G_down_diff[i,j,m])
-                GK[i,j,k] = simplify(S(1)/S(2)*res)
+                GK[i,j,k] = S(1)/S(2)*res
     
     
     return GK

@@ -95,9 +95,9 @@ R1=r1+alpha3*dn
 R2=Ralpha.diff(alpha2)
 R3=n
 #
-#display(trigsimp(R1.dot(R1)))
+print(R1.dot(R1))
 #display(trigsimp(R3.dot(R1)))
-display(trigsimp(dn.dot(n)))
+#display(trigsimp(dn.dot(n))) # EQUALS 0
 
 #%%
 
