@@ -290,4 +290,17 @@ def getUHatU3Main(alpha1,alpha2,alpha3):
     
     return gu
 
+def getUHatU3MainPlane(alpha1,alpha2,alpha3):
+    u1 = Function("u_1")
+    u3 = Function("u_3")
+    
+    
+    gu = zeros(12,1) 
+    gu[0] = u1(alpha1,alpha2,alpha3)
+    
+    gu[8] = u3(alpha1,alpha2,alpha3)
+    gu[9] = u3(alpha1,alpha2,alpha3).diff(alpha1)
+    
+    return gu
+
 #new
