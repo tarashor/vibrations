@@ -143,7 +143,7 @@ def convertStiffnessMatrixToTensor(C):
         for t in range(s, 6):
             i,j = getCIndecies(s)
             k,l = getCIndecies(t)
-            el = C_tensor[s, t]
+            el = C[s, t]
             C_tensor[i,j,k,l] = el
             C_tensor[i,j,l,k] = el
             C_tensor[j,i,k,l] = el

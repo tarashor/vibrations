@@ -83,8 +83,23 @@ dnz=nz.diff(alpha1)
 
 #dn=n.diff(alpha1)
 
-display(trigsimp(nx*dnx))
+#display(trigsimp(nx*dnx))
 #display(nz*dnz)
+
+dn=dnx*N.i+dnz*N.k
+
+display(dn)
+
+
+
+#%%
+
+ddr=r1.diff(alpha1)
+cp=r1.cross(ddr)
+
+k=cp.magnitude()/(mag**3)
+display(k)
+
 
 #%%
 
