@@ -172,14 +172,14 @@ def plot_init_and_deformed_geometry(result, x1_start, x1_end, x3_start, x3_end, 
     X_deformed.append(X_deformed[0])
     Y_deformed.append(Y_deformed[0])
 
-    plt.plot(X_init, Y_init, "r", label="початкова конфігурація")
-    plt.plot(X_deformed, Y_deformed, "b", label="поточна конфігурація")
-    plt.title("Переміщення")
+    plt.plot(X_init, Y_init, "r", label="init configuration")
+    plt.plot(X_deformed, Y_deformed, "b", label="current configuration")
+    plt.title("Displacement related to minimal natural frequency")
     # plt.title(r"Форма панелі $L={}, h={}, K={}, g_A={}, g_v={}$".format(x1_end - x1_start, x2_end - x2_start, result.geometry.curvature, result.geometry.corrugation_amplitude, result.geometry.corrugation_frequency))
     plt.axes().set_aspect('equal', 'datalim')
     plt.legend(loc='best')
-    plt.xlabel(r"$x_1$, м", fontsize=12)
-    plt.ylabel(r"$x_2$, м", fontsize=12)
+    plt.xlabel(r"$x_1$, m", fontsize=12)
+    plt.ylabel(r"$x_3$, m", fontsize=12)
     plt.grid()
     plt.show()
     
@@ -331,18 +331,18 @@ def plot_init_geometry(geometry, x1_start, x1_end, x3_start, x3_end, time):
     X_init.append(X_init[0])
     Y_init.append(Y_init[0])
 
-    plt.plot(X_init, Y_init, "r", label="початкова конфігурація")
+    plt.plot(X_init, Y_init, "r", label="init configuration")
 
-    geometry_title = str(geometry)
-    plot_title = r"Форма панелі $L={}, h={}$".format(x1_end - x1_start, x3_end - x3_start)
-    if (len(geometry_title) > 0):
-        plot_title = r"Форма панелі $L={}, h={}, {}$".format(x1_end - x1_start, x3_end - x3_start, geometry_title)
+#    geometry_title = str(geometry)
+#    plot_title = r"Форма панелі $L={}, h={}$".format(x1_end - x1_start, x3_end - x3_start)
+#    if (len(geometry_title) > 0):
+#        plot_title = r"Форма панелі $L={}, h={}, {}$".format(x1_end - x1_start, x3_end - x3_start, geometry_title)
 
-    plt.title(plot_title)
+#    plt.title(plot_title)
     plt.axes().set_aspect('equal', 'datalim')
     plt.legend(loc='best')
-    plt.xlabel(r"$x_1$, м", fontsize=12)
-    plt.ylabel(r"$x_2$, м", fontsize=12)
+    plt.xlabel(r"$x_1$, m", fontsize=12)
+    plt.ylabel(r"$x_3$, m", fontsize=12)
     plt.grid()
     plt.show()
     
@@ -383,6 +383,7 @@ def plot_init_geometry_2(x1_start, x1_end, x3_start, x3_end, to_cartesian_coordi
     plt.ylabel(r"$x_3$, m", fontsize=12)
     plt.grid()
     plt.show()
+    plt.savefig('plot1.png')
 
 
 def plot_freq_from_corrugated_freq(g_v, w_min, N, M):
