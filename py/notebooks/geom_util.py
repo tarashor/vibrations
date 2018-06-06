@@ -191,12 +191,10 @@ def getOrthotropicStiffnessTensor():
             
     return convertStiffnessMatrixToTensor(C_orthotropic_matrix)
 
-def getIsotropicStiffnessTensor():
+def getIsotropicStiffnessTensor(mu, la):
 
     C_isotropic_matrix = zeros(6)
 
-    mu = Symbol('mu')
-    la = Symbol('lambda')
     
     for s in range(6):
         for t in range(s, 6):
