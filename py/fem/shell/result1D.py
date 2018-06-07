@@ -32,9 +32,9 @@ class Result:
         u_nodes[1] = self.g[element.start_index]
         u_nodes[2] = self.w[element.start_index]
 
-        u_nodes[3] = self.u[element.top_left_index]
-        u_nodes[4] = self.g[element.top_right_index]
-        u_nodes[5] = self.w[element.bottom_right_index]
+        u_nodes[3] = self.u[element.end_index]
+        u_nodes[4] = self.g[element.end_index]
+        u_nodes[5] = self.w[element.end_index]
 
         h_e = matrices1D.element_aprox_functions(element, x1, x2, x3)
         u3D = matrices1D.ugw_to_u1u3(x1, x2, x3)

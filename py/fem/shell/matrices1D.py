@@ -1,7 +1,7 @@
 import numpy as np
 
 def ugw_to_u1u3(x1, x2, x3):
-    T=np.zeros((6,6))
+    T=np.zeros((12,6))
     T[0,0]=1
     T[0,2]=x3
     T[1,1]=1

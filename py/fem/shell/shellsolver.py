@@ -26,7 +26,7 @@ def extend_with_fixed_nodes(eig_vectors, fixed_nodes_indicies, all_nodes_count):
 def i_exclude(fixed_nodes_indicies, nodes_count):
     fixed_indicies3 = [3 * x + 2 for x in fixed_nodes_indicies]
     fixed_indicies1 = [3 * x for x in fixed_nodes_indicies]
-    fixed_indicies2 = [3 * x + 1 for x in fixed_nodes_indicies]
+    fixed_indicies2 = []#[3 * x + 1 for x in fixed_nodes_indicies]
     return sorted(fixed_indicies1+fixed_indicies2+fixed_indicies3)
 
 
@@ -36,7 +36,6 @@ def solve(model, mesh, s_matrix, m_matrix):
     
     m = integrate_matrix(model, mesh, m_matrix)
     
-    print(m)
 
     fixed_nodes_indicies = mesh.get_fixed_nodes_indicies()
 
@@ -69,8 +68,6 @@ def integrate_matrix(model, mesh, matrix_func):
     global_matrix = np.zeros((N, N))
     for element in mesh.elements:
         element_matrix = quadgch5nodes1dim(element_func, element, model.geometry, matrix_func)
-        
-        print(element_matrix)
 
         global_matrix += convertToGlobalMatrix(element_matrix, element, N)
 
