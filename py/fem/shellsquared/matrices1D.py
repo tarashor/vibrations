@@ -7,7 +7,7 @@ def ugw_to_u1u3(x1, x2, x3, h):
     
     dp0 = -1/h
     dp1 = 1/h
-    dp2 = -2*(2*x3/h)
+    dp2 = -8*x3/(h*h)
     
     L=np.zeros((12,12))
     
