@@ -1,6 +1,5 @@
 import numpy as np
-from . import finiteelements as fe
-from . import matrices
+from . import matrices2D as matrices
 from math import cos
 
 
@@ -16,8 +15,8 @@ class Result:
         self.mesh = mesh
         self.geometry = geometry
         
-    def rad_per_sec_to_Hz(self, rps):
-        return rps/(2*np.pi)
+    def freqHz(self):
+        return self.freq/(2*np.pi)
 
 
     def get_displacement_and_deriv(self, x1, x2, x3, time):
@@ -71,3 +70,17 @@ class Result:
 
     def fi(self, time):
         return cos(self.freq * time)
+    
+    
+    @staticmethod
+    def convert_to_results(eigenvalues, eigenvectors, mesh, geometry):
+        results = []
+        for i in range(eigenvalues.size):
+            freq = np.sqrt(eigenvalues[i])
+            u1 = eigenvectors[:, i][0:mesh.nodes_count()]
+            u3 = eigenvectors[:, i][mesh.nodes_count():2 * mesh.nodes_count()]
+            u2 = np.zeros((mesh.nodes_count()))
+            r = Result(freq, u1, u2, u3, mesh, geometry)
+            results.append(r)
+    
+        return results

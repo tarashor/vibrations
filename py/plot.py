@@ -3,7 +3,7 @@ from matplotlib import cm
 import matplotlib.patches as patches
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
-from fem import matrices
+from fem.general2D import matrices2D
 
 plot_x1_elements = 400
 plot_x2_elements = 20

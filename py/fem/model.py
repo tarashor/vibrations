@@ -33,3 +33,15 @@ class Layer:
 
     def height(self):
         return self.top - self.bottom
+    
+    @staticmethod
+    def generate_layers(thickness, materials):
+        layers_count = len(materials)
+        layer_top = thickness / 2
+        layer_thickness = thickness / layers_count
+        layers = set()
+        for i in range(layers_count):
+            layer = Layer(layer_top - layer_thickness, layer_top, materials[i], i)
+            layers.add(layer)
+            layer_top -= layer_thickness
+        return layers

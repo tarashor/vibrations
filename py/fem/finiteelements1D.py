@@ -19,15 +19,16 @@ class FiniteElement1D(object):
     
     """docstring for MeshElement"""
 
-    def __init__(self, start, end, material):
+    def __init__(self, start, end, material, thickness):
         self.start = start
         self.end = end
         self.material = material
+        self.thickness = thickness
 
     def width(self):
         return self.end.x1 - self.start.x1
 
-    def contains(self, x1):
+    def contains(self, x1, x2):
         eps = 0.00000001
 #        if (self.top_right_index == 10):
 #            print(self.top_right.x1)
