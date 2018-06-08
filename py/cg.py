@@ -24,31 +24,28 @@ a1 = pi / 2 + (L / 2 - alpha1)/R
 
 a2 = 2 * pi * alpha1 / L
 
-x1 = (R + ga * cos(gv * a1)) * cos(a1)
+x1 = (R + ga * cos(gv * a2)) * cos(a1)
 x2 = alpha2
-x3 = (R + ga * cos(gv * a1)) * sin(a1)
+x3 = (R + ga * cos(gv * a2)) * sin(a1)
 r = x1*N.i + x2*N.j + x3*N.k
 #r1 = trigsimp(r.diff(alpha1))
 
 #r1 = ((-ga*gv*sin((L/2 - alpha_1)/R)*sin(g_v*(L + pi*R - 2*alpha_1)/(2*R)) + (R + g_a*cos(g_v*(L + pi*R - 2*alpha_1)/(2*R)))*cos((L/2 - alpha_1)/R))/sqrt(g_a**2*g_v**2*sin(g_v*(L + pi*R - 2*alpha_1)/(2*R))**2 + (R + g_a*cos(g_v*(L + pi*R - 2*alpha_1)/(2*R)))**2))*N.i + ((g_a*g_v*sin(g_v*(L + pi*R - 2*alpha_1)/(2*R))*cos((L/2 - alpha_1)/R) + (R + g_a*cos(g_v*(L + pi*R - 2*alpha_1)/(2*R)))*sin((L/2 - alpha_1)/R))/sqrt(g_a**2*g_v**2*sin(g_v*(L + pi*R - 2*alpha_1)/(2*R))**2 + (R + g_a*cos(g_v*(L + pi*R - 2*alpha_1)/(2*R)))**2))*N.k
 
-z = ga/R*gv*sin(gv*a1)
-w = 1 + ga/R*cos(gv*a1)
+z = ga/R*gv*sin(gv*a2)
+w = 1 + ga/R*cos(gv*a2)
 
-r1x=(z*cos(a1) + w*sin(a1))
-r1z=(z*sin(a1) - w*cos(a1))
+dr1x=(z*cos(a1) + w*sin(a1))
+dr1z=(z*sin(a1) - w*cos(a1))
 
-r1 = r1x*N.i + r1z*N.k
+r1 = dr1x*N.i + dr1z*N.k
 r2 = trigsimp(r.diff(alpha2))
-
-dr1x = r1x.diff(alpha1)
-dr1z = r1z.diff(alpha1)
 
 #r1m=r1.dot(r1)
 mag=sqrt((w)**2+(z)**2)
 #r1m=sympify("((R + g_a*cos(g_v*(L + pi*R - 2*alpha_1)/(2*R)))**2 + g_a**2*g_v**2*sin(g_v*(L + pi*R - 2*alpha_1)/(2*R))**2)")
 
-#display(mag)
+display(mag)
 
 #k1 = sqrt(r1m)
 #r1 = simplify(r1/k1)
@@ -66,33 +63,56 @@ display(dr1x)
 display(dr1z)
 
 
-dr1=dr1x*N.i+dr1z*N.k
-
 #r2 = r2/k2
 #
 #display(r1)
 ###
 ###
-n = r1.cross(r2)
+n = (-dr1z*N.i+dr1x*N.k)/mag
 ###
 #n_len = trigsimp(n.dot(n))
 #n=n/n_len
 ###
 #display(n)
 
-dn=-dr1z*N.i+dr1x*N.k
+nx = -dr1z/mag
+dnx=nx.diff(alpha1)
+
+nz = dr1x/mag
+dnz=nz.diff(alpha1)
+
+#dn=n.diff(alpha1)
+
+#display(trigsimp(nx*dnx))
+#display(nz*dnz)
+
+dn=dnx*N.i+dnz*N.k
+
+display(dn)
+
+
+
+#%%
+
+ddr=r1.diff(alpha1)
+cp=r1.cross(ddr)
+
+k=cp.magnitude()/(mag**3)
+display(k)
+
 
 #%%
 
 
 Ralpha = r+alpha3*n
 #
-R1=dr1+alpha3*dn
+R1=r1+alpha3*dn
 R2=Ralpha.diff(alpha2)
 R3=n
 #
-display(R1)
-display(R3)
+print(R1.dot(R1))
+#display(trigsimp(R3.dot(R1)))
+#display(trigsimp(dn.dot(n))) # EQUALS 0
 
 #%%
 

@@ -9,7 +9,7 @@ def getMetricTensorDownLame(H1, H2, H3):
     H32 = H3*H3
     
     G_con=Matrix([[H12, 0, 0],[0, H22, 0], [0, 0, H32]])
-    G_con=trigsimp(G_con)
+#    G_con=trigsimp(G_con)
     return G_con
     
     
@@ -20,7 +20,7 @@ def getMetricTensorUpLame(H1, H2, H3):
     H32 = H3*H3
     
     G=Matrix([[1/H12, 0, 0],[0, 1/H22, 0], [0, 0, 1/H32]])
-    G=trigsimp(G)
+#    G=trigsimp(G)
     return G
 
 def getMetricTensorDown(R1, R2, R3):
@@ -69,7 +69,7 @@ def getChristoffelSymbols2(G_up, G_down_diff, axis):
                 res = S(0)
                 for m in range(DIM):
                     res = res + G_up[m,k]*(G_down_diff[i,m,j]+G_down_diff[j,m,i]-G_down_diff[i,j,m])
-                GK[i,j,k] = simplify(S(1)/S(2)*res)
+                GK[i,j,k] = S(1)/S(2)*res
     
     
     return GK
@@ -143,7 +143,7 @@ def convertStiffnessMatrixToTensor(C):
         for t in range(s, 6):
             i,j = getCIndecies(s)
             k,l = getCIndecies(t)
-            el = C_tensor[s, t]
+            el = C[s, t]
             C_tensor[i,j,k,l] = el
             C_tensor[i,j,l,k] = el
             C_tensor[j,i,k,l] = el
@@ -191,12 +191,10 @@ def getOrthotropicStiffnessTensor():
             
     return convertStiffnessMatrixToTensor(C_orthotropic_matrix)
 
-def getIsotropicStiffnessTensor():
+def getIsotropicStiffnessTensor(mu, la):
 
     C_isotropic_matrix = zeros(6)
 
-    mu = Symbol('mu')
-    la = Symbol('lambda')
     
     for s in range(6):
         for t in range(s, 6):
@@ -287,6 +285,19 @@ def getUHatU3Main(alpha1,alpha2,alpha3):
     gu[8] = u3(alpha1,alpha2,alpha3)
     gu[9] = u3(alpha1,alpha2,alpha3).diff(alpha1)
     gu[10] = u3(alpha1,alpha2,alpha3).diff(alpha2)
+    
+    return gu
+
+def getUHatU3MainPlane(alpha1,alpha2,alpha3):
+    u1 = Function("u_1")
+    u3 = Function("u_3")
+    
+    
+    gu = zeros(12,1) 
+    gu[0] = u1(alpha1,alpha2,alpha3)
+    
+    gu[8] = u3(alpha1,alpha2,alpha3)
+    gu[9] = u3(alpha1,alpha2,alpha3).diff(alpha1)
     
     return gu
 

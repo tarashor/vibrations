@@ -40,21 +40,22 @@ def solve(geometry, thickness, linear):
 # curvature = 1/r
 
 width = 2
-curvature = 1
+curvature = 0.8
 thickness = 0.05
 
 corrugation_amplitude = 0.03
 corrugation_frequency = 20
 
 #geometry = g.CorrugatedCylindricalPlate(width, curvature, corrugation_amplitude, corrugation_frequency)
-geometry = g.CylindricalPlate(width, curvature)
-#geometry = g.Plate()
+#geometry = g.CylindricalPlate(width, curvature)
+geometry = g.Plate(width)
 
 N = 50
 M = 4
 
-toCalculate = False
-linear = False
+toCalculate = True
+#toCalculate = False
+linear = True
 
 def save_mesh(filename, mesh):
     with open(filename + '.mesh', 'wb') as f:
@@ -89,14 +90,14 @@ filename = str(geometry) + "_{}x{}_{}".format(N,M,lin_suf)
 if (toCalculate): 
     lam, vec, mesh, geometry = solve(geometry, thickness, linear)
     results = s.convert_to_results(lam, vec, mesh, geometry)
-    save_results(filename, results)
+#    save_results(filename, results)
+##    
+##    save_mesh(meshfile, mesh)
+##    
+##    save_geometry(geometryfile, geometry)
 #    
-#    save_mesh(meshfile, mesh)
-#    
-#    save_geometry(geometryfile, geometry)
-    
-else:    
-    results = load_results(filename)
+#else:    
+#    results = load_results(filename)
     results_index = 0
     
 #    plot.plot_mesh(results[results_index].mesh, width, thickness)

@@ -1,6 +1,78 @@
 import numpy as np
 
 
+class General:
+    def __init__(self, width, inverted_radius, corrugation_amplitude, corrugation_frequency):
+        self.width = width
+        self.inverted_radius = inverted_radius
+        self.corrugation_amplitude = corrugation_amplitude
+        self.corrugation_frequency = corrugation_frequency
+        
+    def __get_trig_args(self, x1, x2, x3):
+        a1 = np.pi / 2 + (self.width / 2 - x1)* self.inverted_radius
+
+        a2 = 2 * np.pi * x1 / self.width
+        
+        return a1, a2
+
+#    def get_A_and_K(self, x1, x2, x3):
+#        a1, a2 = self.__get_trig_args(x1, x2, x3)
+#        
+#        z = 2*self.corrugation_amplitude * self.corrugation_frequency *np.pi*np.sin(self.corrugation_frequency*a2)/self.width
+#        w = 1 +  self.corrugation_amplitude * self.inverted_radius * np.cos(self.corrugation_frequency * a2)
+#        
+#        A = np.sqrt(w*w+z*z)
+#        
+#        q = w * self.inverted_radius +self.corrugation_amplitude*(2*np.pi*self.corrugation_frequency/self.width)*(2*np.pi*self.corrugation_frequency/self.width)*np.cos(self.corrugation_frequency*a2)
+#        K=(q*w+2*z*z* self.inverted_radius)/(A*A*A)
+#        
+#        
+#        return A,K
+    
+    
+    def get_A_and_K(self, x1, x2, x3):
+        a1, a2 = self.__get_trig_args(x1, x2, x3)
+        
+        z = self.corrugation_amplitude * self.corrugation_frequency * np.sin(self.corrugation_frequency*a1)*self.inverted_radius
+        w = 1 +  self.corrugation_amplitude * self.inverted_radius * np.cos(self.corrugation_frequency * a1)
+        
+        A = np.sqrt(w*w+z*z)
+        
+        q = w * self.inverted_radius + self.corrugation_amplitude*self.corrugation_frequency*self.corrugation_frequency*self.inverted_radius*self.inverted_radius*np.cos(self.corrugation_frequency*a1)
+        K=(q*w+2*z*z* self.inverted_radius)/(A*A*A)
+        
+        
+        return A,K
+
+    def metric_tensor(self, x1, x2, x3):
+        A,K = self.get_A_and_K(x1, x2, x3)
+        g = np.zeros((3, 3))
+        g[0, 0] = A*A*(1+x3*K)*(1+x3*K)
+        g[1, 1] = g[2, 2] = 1
+        return g
+
+
+    def to_cartesian_coordinates(self, x1, x2, x3):
+        x = x1
+        y = x2
+        z = x3
+        
+        if (self.inverted_radius > 0):
+            a1, a2 = self.__get_trig_args(x1, x2, x3)
+            x = (1 / self.inverted_radius + x3 + self.corrugation_amplitude * np.cos(self.corrugation_frequency * a1)) * np.cos(a1)
+            z = (1 / self.inverted_radius + x3 + self.corrugation_amplitude * np.cos(self.corrugation_frequency * a1)) * np.sin(a1)
+
+        return x, y, z
+
+    
+    
+    def getJacobian(self, x1, x2, x3):
+        A,K = self.get_A_and_K(x1, x2, x3)
+        return A*(1+x3*K)
+
+    def __str__(self):
+        return "L={}, 1/R={}, g_a={}, g_v={}".format(self.width, self.inverted_radius, self.corrugation_amplitude, self.corrugation_frequency)
+
 class Plate:
     def __init__(self, width):
         self.width = width
