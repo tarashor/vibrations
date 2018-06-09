@@ -14,7 +14,6 @@ def solve(geometry, thickness, material, N, M):
     model = m.Model(geometry, layers, m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS)
     mesh = me.Mesh.generate1D(geometry.width, layers, N, model.boundary_conditions)
     
-    
     lam, vec = s.solve(model, mesh, stiffness_matrix, mass_matrix)
     
     return lam, vec, mesh, geometry
@@ -33,7 +32,7 @@ corrugation_frequency = 20
 geometry = g.General(width, curvature, corrugation_amplitude, corrugation_frequency)
 
 N = 100
-M = 4
+M = 0
 
 
 lam, vec, mesh, geometry = solve(geometry, thickness, material, N, M)
@@ -41,8 +40,10 @@ results = r.Result.convert_to_results(lam, vec, mesh, geometry)
 
 results_index = 0
 
+#plot.plot_mesh(results[results_index].mesh, width, thickness)
 
-plot.plot_init_and_deformed_geometry_in_cartesian(results[results_index], 0, width, -thickness / 2, thickness / 2, 0, geometry.to_cartesian_coordinates)
+
+#plot.plot_init_and_deformed_geometry_in_cartesian(results[results_index], 0, width, -thickness / 2, thickness / 2, 0, geometry.to_cartesian_coordinates)
 
 to_print = 20
 if (len(results) < to_print):

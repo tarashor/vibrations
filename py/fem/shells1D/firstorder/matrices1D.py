@@ -123,7 +123,7 @@ def stiffness_matrix(material, geometry, x1, h):
     C_ = np.zeros((3,3))
     
     C_[0,0] = h*C[0,0]
-    C_[1,1] = h**3/12*C[0,0]
+    C_[1,1] = (h**3)/12*C[0,0]
     C_[2,2] = h*C[4,4]
     
     E=u_to_strain(geometry,x1,0,0)
