@@ -135,13 +135,14 @@ def mass_matrix(material, geometry, x1, h):
     
     A, K = geometry.get_A_and_K(x1, 0, 0)
     rho = material.rho
+    h3=h**3
     
     M=np.zeros((6,6))
     M[0,0]=A*h*rho
-    M[0,2]=A*K*h**3*rho/12
+    M[0,2]=A*K*h3*rho/12
 
-    M[2,0]=A*K*h**3*rho/12
-    M[2,2]=A*h**3*rho/12
+    M[2,0]=A*K*h3*rho/12
+    M[2,2]=A*h3*rho/12
 
     M[4,4]=A*h*rho
     

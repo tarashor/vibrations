@@ -1,19 +1,19 @@
 import fem.geometry as g
 import fem.model as m
 import fem.material as mat
-import fem.D2.solverlinear as s
-import fem.D2.result2D as r
+import fem.shells1D.secondorder.shellsolver as s
+import fem.shells1D.secondorder.result1D as r
 import fem.mesh as me
 import plot
 
-from fem.D2.matrices2D import stiffness_matrix, mass_matrix, stiffness_matrix_nl
+from fem.shells1D.secondorder.matrices1D import stiffness_matrix, mass_matrix
 
 
 def solve(geometry, thickness, material, N, M):
     layers = m.Layer.generate_layers(thickness, [material])
     model = m.Model(geometry, layers, m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS)
-    mesh = me.Mesh.generate2D(geometry.width, layers, N, M, model.boundary_conditions)
-    
+    model.fixed_x3 = -thickness/2
+    mesh = me.Mesh.generate1D(geometry.width, layers, N, model.boundary_conditions)
     
     lam, vec = s.solve(model, mesh, stiffness_matrix, mass_matrix)
     
@@ -24,22 +24,23 @@ def solve(geometry, thickness, material, N, M):
 material = mat.IsotropicMaterial.steel()
 
 width = 2
-curvature = 0.000000001
+curvature = 0
 thickness = 0.05
 
 corrugation_amplitude = 0
-corrugation_frequency = 20
+corrugation_frequency = 0
 
 geometry = g.General(width, curvature, corrugation_amplitude, corrugation_frequency)
 
-N = 50
-M = 4
+N = 200
 
 
 lam, vec, mesh, geometry = solve(geometry, thickness, material, N, M)
-results = r.Result.convert_to_results(lam, vec, mesh, geometry)
+results = r.Result.convert_to_results(lam, vec, mesh, geometry, thickness)
 
 results_index = 0
+
+#plot.plot_mesh(results[results_index].mesh, width, thickness)
 
 
 plot.plot_init_and_deformed_geometry_in_cartesian(results[results_index], 0, width, -thickness / 2, thickness / 2, 0, geometry.to_cartesian_coordinates)

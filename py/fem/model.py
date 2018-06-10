@@ -10,6 +10,7 @@ class Model:
         self.geometry = geometry
         self.layers = layers
         self.boundary_conditions = boundary_conditions
+        
 
 
 class Layer:

@@ -11,7 +11,8 @@ from fem.general2D.matrices2D import stiffness_matrix, mass_matrix, stiffness_ma
 
 def solve(geometry, thickness, material, N, M):
     layers = m.Layer.generate_layers(thickness, [material])
-    model = m.Model(geometry, layers, m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS)
+#    model = m.Model(geometry, layers, m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS)
+    model = m.Model(geometry, layers, m.Model.FIXED_LEFT_RIGHT_EDGE)
     mesh = me.Mesh.generate2D(geometry.width, layers, N, M, model.boundary_conditions)
     
     
@@ -20,19 +21,28 @@ def solve(geometry, thickness, material, N, M):
     return lam, vec, mesh, geometry
 
 
-    
+#E3f = 100000000
 material = mat.IsotropicMaterial.steel()
+#material.C[2,2] *= E3f
+#material.C[2,1] /= E3f
+#material.C[2,0] /= E3f
+
+#material.C[1,2] /= E3f
+#material.C[0,2] /= E3f 
+#material.C[4,4] *= E3f 
+
+#material.C[2,0] *= E3f 
 
 width = 2
-curvature = 0.000000001
+curvature = 0
 thickness = 0.05
 
 corrugation_amplitude = 0
-corrugation_frequency = 20
+corrugation_frequency = 0
 
 geometry = g.General(width, curvature, corrugation_amplitude, corrugation_frequency)
 
-N = 100
+N = 200
 M = 4
 
 

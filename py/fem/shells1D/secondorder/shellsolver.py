@@ -1,6 +1,4 @@
-from . import finiteelements1D
 from . import matrices1D as matrices
-from . import result1D
 import numpy as np
 # from . import mesh as m
 from scipy import linalg as la
@@ -24,9 +22,15 @@ def extend_with_fixed_nodes(eig_vectors, fixed_nodes_indicies, all_nodes_count):
 
 
 def i_exclude(fixed_nodes_indicies, nodes_count):
-    fixed_indicies3 = [6 * x + 3 for x in fixed_nodes_indicies]
-    fixed_indicies1 = [6 * x for x in fixed_nodes_indicies]
-    return sorted(fixed_indicies1+fixed_indicies3)
+    fixed_indicies1= [6 * x for x in fixed_nodes_indicies]
+    fixed_indicies2 = [6 * x + 1 for x in fixed_nodes_indicies]
+    fixed_indicies3 = [6 * x + 2 for x in fixed_nodes_indicies]
+    fixed_indicies4 = [6 * x + 3for x in fixed_nodes_indicies]
+    fixed_indicies5 = [6 * x + 4 for x in fixed_nodes_indicies]
+    fixed_indicies6 = [6 * x + 5 for x in fixed_nodes_indicies]
+    return sorted(fixed_indicies1+fixed_indicies2+
+                  fixed_indicies3+fixed_indicies4+
+                  fixed_indicies5+fixed_indicies6)
 
 
 def solve(model, mesh, s_matrix, m_matrix):
@@ -47,22 +51,6 @@ def solve(model, mesh, s_matrix, m_matrix):
     
     return lam, vec
 
-
-def convert_to_results(eigenvalues, eigenvectors, mesh, geometry, thickness):
-    
-    results = []
-    for i in range(eigenvalues.size):
-        freq = np.sqrt(eigenvalues[i])
-        u10 = eigenvectors[:, i][range(0,6 * mesh.nodes_count(),6)]
-        u11 = eigenvectors[:, i][range(1,6 * mesh.nodes_count(),6)]
-        u12 = eigenvectors[:, i][range(2,6 * mesh.nodes_count(),6)]
-        u30 = eigenvectors[:, i][range(3,6 * mesh.nodes_count(),6)]
-        u31 = eigenvectors[:, i][range(4,6 * mesh.nodes_count(),6)]
-        u32 = eigenvectors[:, i][range(5,6 * mesh.nodes_count(),6)]
-        r = result1D.Result(freq, u10, u11, u12, u30, u31, u32, mesh, geometry, thickness)
-        results.append(r)
-
-    return results
     
 
 def integrate_matrix(model, mesh, matrix_func):
@@ -80,7 +68,7 @@ def element_func(ksi, element, geometry, matrix_func):
     x3 = 0
     x2 = 0
     
-    EM = matrix_func(element.material, geometry, x1, x2, x3)
+    EM = matrix_func(element.material, geometry, x1, element.thickness)
     H = matrices.element_aprox_functions(element, x1, x2, x3)
     J = element.jacobian_element_coordinates()
 

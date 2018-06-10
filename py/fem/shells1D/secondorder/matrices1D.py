@@ -1,42 +1,5 @@
 import numpy as np
 
-def ugw_to_u1u3(x1, x2, x3, h):
-    p0=0.5-x3/h
-    p1=0.5+x3/h
-    p2=1-(2*x3/h)*(2*x3/h)
-    
-    dp0 = -1/h
-    dp1 = 1/h
-    dp2 = -8*x3/(h*h)
-    
-    L=np.zeros((12,12))
-    
-    L[0,0]=p0
-    L[0,2]=p1
-    L[0,4]=p2
-    
-    L[1,1]=p0
-    L[1,3]=p1
-    L[1,5]=p2
-    
-    L[3,0]=dp0
-    L[3,2]=dp1
-    L[3,4]=dp2
-    
-    L[8,6]=p0
-    L[8,8]=p1
-    L[8,10]=p2
-    
-    L[9,7]=p0
-    L[9,9]=p1
-    L[9,11]=p2
-    
-    L[11,6]=dp0
-    L[11,8]=dp1
-    L[11,10]=dp2
-
-    return L
-
 
 def deriv_ksiteta_to_alpha(element):
 
@@ -75,97 +38,26 @@ def element_aprox_functions(element, x1, x2, x3):
     H = deriv_ksiteta_to_alpha(element).dot(lin_aprox_matrix(element, x1, x2, x3))
     return H
 
+def u_to_strain(geometry, x1, x2, x3, h):
+    A, K = geometry.get_A_and_K(x1, x2, x3)
+    
+    hInv= 1/h
+    
+    E = np.zeros((9, 12))
+    
+    E[0, 1] = E[1, 3] = E[2, 5] = E[6, 7] = E[7, 9] = E[8, 11] = 1/A;
+    E[0, 6] = E[1, 8] = E[2, 10] = E[8, 4] = K;
+    E[5, 10] = 2 * K;
 
-def grad_to_strain():
-    E = np.zeros((6, 9))
-    E[0, 0] = 1
-    E[1, 4] = 1
-    E[2, 8] = 1
-    E[3, 1] = E[3, 3] = 1
-    E[4, 2] = E[4, 6] = 1
-    E[5, 5] = E[5, 7] = 1
+    E[3, 6] = -hInv + K / 2;
+    E[3, 8] = E[6, 2] = E[7, 2] = hInv - K / 2;
+    E[3, 10] = E[6, 4] = 4 * hInv - 2 * K;
+
+    E[4, 6] = E[6, 0] = E[7, 0] = -hInv - K / 2;
+    E[4, 8] = hInv + K / 2;
+    E[4, 10] = E[7, 4] = -4 * hInv - 2 * K;
 
     return E
-
-
-def deriv_to_grad(geometry, x1, x2, x3):
-    B = np.zeros((9, 12))
-
-    G = geometry.kristophel_symbols(x1, x2, x3)
-
-#    G[i, j, k]
-
-    B[0, 0] = -G[0, 0, 0]
-    B[0, 1] = 1
-    B[0, 4] = -G[0, 0, 1]
-    B[0, 8] = -G[0, 0, 2]
-    
-    B[1, 0] = -G[0, 1, 0]
-    B[1, 2] = 1
-    B[1, 4] = -G[0, 1, 1]
-    B[1, 8] = -G[0, 1, 2]
-    
-    B[2, 0] = -G[0, 2, 0]
-    B[2, 3] = 1
-    B[2, 4] = -G[0, 2, 1]
-    B[2, 8] = -G[0, 2, 2]
-    
-    B[3, 0] = -G[1, 0, 0]
-    B[3, 5] = 1
-    B[3, 4] = -G[1, 0, 1]
-    B[3, 8] = -G[1, 0, 2]
-    
-    B[4, 0] = -G[1, 1, 0]
-    B[4, 6] = 1
-    B[4, 4] = -G[1, 1, 1]
-    B[4, 8] = -G[1, 1, 2]
-    
-    B[5, 0] = -G[1, 2, 0]
-    B[5, 7] = 1
-    B[5, 4] = -G[1, 2, 1]
-    B[5, 8] = -G[1, 2, 2]
-    
-    B[6, 0] = -G[2, 0, 0]
-    B[6, 9] = 1
-    B[6, 4] = -G[2, 0, 1]
-    B[6, 8] = -G[2, 0, 2]
-    
-    B[7, 0] = -G[2, 1, 0]
-    B[7, 10] = 1
-    B[7, 4] = -G[2, 1, 1]
-    B[7, 8] = -G[2, 1, 2]
-    
-    B[8, 0] = -G[2, 2, 0]
-    B[8, 11] = 1
-    B[8, 4] = -G[2, 2, 1]
-    B[8, 8] = -G[2, 2, 2]
-
-    return B
-
-def deriv_to_vect():
-    B = np.zeros((3, 12))
-
-    B[0, 0] = B[1, 4] = B[2, 8] = 1
-
-    return B
-
-def tensor_C(material, geometry, x1, x2, x3):
-    N = 6
-
-    C = np.zeros((N, N))
-
-    lam = material.lam()
-    mu = material.mu()
-
-    g = geometry.metric_tensor_inv(x1, x2, x3)
-
-    for i in range(N):
-        for j in range(N):
-            n, m = get_index_conv(i)
-            k, l = get_index_conv(j)
-            C[i, j] = mu * (g[n, k] * g[m, l] + g[n, l] * g[m, k]) + lam * g[n, m] * g[k, l]
-
-    return C
 
 def get_index_conv(index):
     i = 0
@@ -190,93 +82,6 @@ def get_index_conv(index):
         j = 2
 
     return i, j
-
-
-def deformations_nl_1(geometry, grad_u, x1, x2, x3):
-    N = 3
-
-    du = np.zeros((N, N))
-
-    g = geometry.metric_tensor_inv(x1, x2, x3)
-
-    for i in range(N):
-        for j in range(N):
-            index = i*N+j
-            du[j,i] = grad_u[index]
-    
-    a_values = 0.5*du.dot(g)
-    
-    
-    E_NL = np.zeros((6,9))
-    E_NL[0,0] = a_values[0,0]
-    E_NL[0,3] = a_values[0,1]
-    E_NL[0,6] = a_values[0,2]
-    
-    E_NL[1,1] = a_values[1,0]
-    E_NL[1,4] = a_values[1,1]
-    E_NL[1,7] = a_values[1,2]
-    
-    E_NL[2,2] = a_values[2,0]
-    E_NL[2,5] = a_values[2,1]
-    E_NL[2,8] = a_values[2,2]
-    
-    E_NL[3,1] = 2*a_values[0,0]
-    E_NL[3,4] = 2*a_values[0,1]
-    E_NL[3,7] = 2*a_values[0,2]
-    
-    E_NL[4,0] = 2*a_values[2,0]
-    E_NL[4,3] = 2*a_values[2,1]
-    E_NL[4,6] = 2*a_values[2,2]
-    
-    E_NL[5,2] = 2*a_values[1,0]
-    E_NL[5,5] = 2*a_values[1,1]
-    E_NL[5,8] = 2*a_values[1,2]
-
-
-    return E_NL
-
-def deformations_nl_2(geometry, grad_u, x1, x2, x3):
-    N = 3
-
-    du = np.zeros((N, N))
-
-    g = geometry.metric_tensor_inv(x1, x2, x3)
-
-    for i in range(N):
-        for j in range(N):
-            index = i*N+j
-            du[j,i] = grad_u[index]
-    
-    a_values = 0.5*du.dot(g)
-    
-    
-    E_NL = np.zeros((6,9))
-    E_NL[0,0] = a_values[0,0]
-    E_NL[0,3] = a_values[0,1]
-    E_NL[0,6] = a_values[0,2]
-    
-    E_NL[1,1] = a_values[1,0]
-    E_NL[1,4] = a_values[1,1]
-    E_NL[1,7] = a_values[1,2]
-    
-    E_NL[2,2] = a_values[2,0]
-    E_NL[2,5] = a_values[2,1]
-    E_NL[2,8] = a_values[2,2]
-    
-    E_NL[3,0] = 2*a_values[1,0]
-    E_NL[3,3] = 2*a_values[1,1]
-    E_NL[3,6] = 2*a_values[1,2]
-    
-    E_NL[4,2] = 2*a_values[0,0]
-    E_NL[4,5] = 2*a_values[0,1]
-    E_NL[4,8] = 2*a_values[0,2]
-    
-    E_NL[5,1] = 2*a_values[2,0]
-    E_NL[5,4] = 2*a_values[2,1]
-    E_NL[5,7] = 2*a_values[2,2]
-
-
-    return E_NL
 
 
 def get_u_element(element, u, nodes_count):
@@ -307,32 +112,103 @@ def get_grad_u(element,geometry,u_element, x1, x2, x3):
 
     return B.dot(h_e).dot(u_element)
 
-
-
-def stiffness_matrix(material, geometry, x1, x2, x3):
-    C = tensor_C(material, geometry, x1, x2, x3)
-    E = grad_to_strain()
-    B = deriv_to_grad(geometry, x1, x2, x3)
-    gj = geometry.getJacobian(x1, x2, x3)
+def get_C(material, geometry, x1, h):
     
-    return B.T.dot(E.T).dot(C).dot(E).dot(B)* gj
-
-def stiffness_matrix_nl(material, geometry, x1, x2, x3, grad_u):
-    E_NL_1 = deformations_nl_1(geometry, grad_u, x1, x2, x3)
-    E_NL_2 = deformations_nl_2(geometry, grad_u, x1, x2, x3)
-    C = tensor_C(material, geometry, x1, x2, x3)
-    E = grad_to_strain()
-    B = deriv_to_grad(geometry, x1, x2, x3)
-    gj = geometry.getJacobian(x1, x2, x3)
-    E_NL = E_NL_1+E_NL_2
+    C = material.matrix_C(geometry, x1, 0, 0)
     
-    return B.T.dot((E_NL).T).dot(C).dot(E_NL_1).dot(B)* gj
+    A = np.zeros((9,9))
 
-def mass_matrix(material, geometry, x1, x2, x3):
-    g = geometry.metric_tensor(x1, x2, x3)
-    g_inv = np.linalg.inv(g)
-    gj = geometry.getJacobian(x1, x2, x3)
+    C_ = np.zeros((3,3))
     
-    B_s = deriv_to_vect()
-    return material.rho * B_s.T.dot(g_inv.dot(B_s)) * gj
+    C_[0,0] = 1/3
+    C_[0,1] = 1/6
+    C_[0,2] = 1/3
+    C_[1,0] = 1/6
+    C_[1,1] = 1/3
+    C_[1,2] = 1/3
+    C_[2,0] = 1/3
+    C_[2,1] = 1/3
+    C_[2,2] = 8/15
+    
+    A11 = C[0,0]*h*C_
+    A12 = C[0,1]*h*C_
+    A21 = C[1,0]*h*C_
+    A22 = C[1,1]*h*C_
+    A33 = C[4,4]*h*C_
+    
+    A1 = A11
+    A1 = np.concatenate((A1, A12), axis=1)
+    A1 = np.concatenate((A1, np.zeros((3,3))), axis=1)
+    
+    
+    A2 = A21
+    A2 = np.concatenate((A2, A22), axis=1)
+    A2 = np.concatenate((A2, np.zeros((3,3))), axis=1)
+    
+    A3 = np.zeros((3,6))
+    A3 = np.concatenate((A3, A33), axis=1)
+    
+    A = np.concatenate((A1, A2), axis=0)
+    A = np.concatenate((A, A3), axis=0)
+    
+
+    return A
+
+
+def stiffness_matrix(material, geometry, x1, h):
+    C = get_C(material, geometry, x1, h)
+    
+    
+    E=u_to_strain(geometry,x1,0,0, h)
+    
+#    print(E.T)
+    
+#    print(C)
+    
+    return E.T.dot(C).dot(E)
+
+def mass_matrix(material, geometry, x1, h):
+    
+    A, K = geometry.get_A_and_K(x1, 0, 0)
+    rho = material.rho
+    
+    M=np.zeros((12,12))
+    
+    M[0,0] = 0.25*A*h*rho + 0.0833333333333333*h*(-1.0*A*K*h*rho + 1.0*A*rho)
+    
+    M[0,2] = 0.166666666666667*A*h*rho
+
+    M[0,4] = 0.05*A*K*h**2*rho + 0.5*A*h*rho + 0.0833333333333333*h*(-1.0*A*K*h*rho - 2.0*A*rho)
+    
+    M[2,0] = 0.166666666666667*A*h*rho
+    
+    M[2,2] = 0.25*A*h*rho + 0.0833333333333333*h*(1.0*A*K*h*rho + 1.0*A*rho)
+    
+    M[2,4] = -0.05*A*K*h**2*rho + 0.5*A*h*rho + 0.0833333333333333*h*(1.0*A*K*h*rho - 2.0*A*rho)
+    
+    M[4,0] = 0.05*A*K*h**2*rho + 0.5*A*h*rho + 0.0833333333333333*h*(-1.0*A*K*h*rho - 2.0*A*rho)
+    
+    M[4,2] = -0.05*A*K*h**2*rho + 0.5*A*h*rho + 0.0833333333333333*h*(1.0*A*K*h*rho - 2.0*A*rho)
+    
+    M[4,4] = 8*A*h*rho/15
+    
+    M[6,6] = 0.25*A*h*rho + 0.0833333333333333*h*(-1.0*A*K*h*rho + 1.0*A*rho)
+    
+    M[6,8] = 0.166666666666667*A*h*rho
+    
+    M[6,10] = 0.05*A*K*h**2*rho + 0.5*A*h*rho + 0.0833333333333333*h*(-1.0*A*K*h*rho - 2.0*A*rho)
+    
+    M[8,6] = 0.166666666666667*A*h*rho
+    
+    M[8,8] = 0.25*A*h*rho + 0.0833333333333333*h*(1.0*A*K*h*rho + 1.0*A*rho)
+    
+    M[8,10] = -0.05*A*K*h**2*rho + 0.5*A*h*rho + 0.0833333333333333*h*(1.0*A*K*h*rho - 2.0*A*rho)
+    
+    M[10,6] = 0.05*A*K*h**2*rho + 0.5*A*h*rho + 0.0833333333333333*h*(-1.0*A*K*h*rho - 2.0*A*rho)
+    
+    M[10,8] = -0.05*A*K*h**2*rho + 0.5*A*h*rho + 0.0833333333333333*h*(1.0*A*K*h*rho - 2.0*A*rho)
+    
+    M[10,10] = 8*A*h*rho/15
+
+    return M
 

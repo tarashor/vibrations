@@ -29,6 +29,8 @@ def solve(model, mesh, s_matrix, m_matrix):
 
     s = remove_fixed_nodes(s, fixed_nodes_indicies, mesh.nodes_count())
     m = remove_fixed_nodes(m, fixed_nodes_indicies, mesh.nodes_count())
+    
+#    print(s)
 
 
     lam, vec = la.eigh(s, m)
