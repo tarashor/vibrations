@@ -5,24 +5,12 @@ import platform
 
 import utils
 
-folder = "./results/convergE3/"
+folder = "./results/shear/"
 #folder = ""
-results2D_all_n = utils.load_results(folder+"rNs2D")
-results1D1_all_n = utils.load_results(folder+"rNs1D1")
+#results2D_all_n = utils.load_results(folder+"rNs2D")
+#results1D1_all_n = utils.load_results(folder+"rNs1D1")
 results1D2_all_n = utils.load_results(folder+"rNs1D2")
 
-x = []
-y = []
-for key, value in results2D_all_n.items():
-    x.append(key)
-    y.append(value[0].freqHz())
-    
-x1D1 = []
-y1D1 = []
-for key, value in results1D1_all_n.items():
-    x1D1.append(key)
-    y1D1.append(value[0].freqHz())
-    
 x1D2 = []
 y1D2 = []
 for key, value in results1D2_all_n.items():
@@ -54,15 +42,15 @@ plt.rc('ytick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
 plt.rc('legend', fontsize=SMALL_SIZE)    # legend fontsize
 plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
 
-plt.plot(x, y, 'o-', linewidth=2.0, markersize=8, markeredgewidth=2, markeredgecolor='r', markerfacecolor='None', label = "General 2D theory")
-plt.plot(x1D1, y1D1, 'x--', linewidth=2.0, markersize=8, markeredgewidth=2, markeredgecolor='b', markerfacecolor='None', label = "Mindlin-Reissner theory")
-plt.plot(x1D2, y1D2, 'v:', linewidth=2.0, markersize=8, markeredgewidth=2, markeredgecolor='g', markerfacecolor='None', label = "Square 1D theory")
-plt.xlabel(r"$N$ - elements along $\alpha_1$")
+#plt.plot(x, y, 'o-', linewidth=2.0, markersize=8, markeredgewidth=2, markeredgecolor='r', markerfacecolor='None', label = "General 2D theory")
+#plt.plot(x1D1, y1D1, 'x--', linewidth=2.0, markersize=8, markeredgewidth=2, markeredgecolor='b', markerfacecolor='None', label = "Mindlin-Reissner theory")
+plt.plot(x1D2, y1D2, 'v-', linewidth=2.0, markersize=8, markeredgewidth=2, markeredgecolor='r', markerfacecolor='None', label = "Square 1D theory")
+plt.xlabel(r"$k$ - shear factor parameter")
 plt.ylabel(r"$\omega_{min}$, Hz")
 
 plt.legend(loc='best')
 
-plt.title(r"Convergence $\frac{E}{E_3}\rightarrow 0$")
+plt.title(r"Shear influence")
 #plt.title(r"Convergence $\frac{E}{E_3} = 1$")
 #plt.title("Збіжність")
 

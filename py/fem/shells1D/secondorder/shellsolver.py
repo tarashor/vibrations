@@ -23,11 +23,15 @@ def extend_with_fixed_nodes(eig_vectors, fixed_nodes_indicies, all_nodes_count):
 
 def i_exclude(fixed_nodes_indicies, nodes_count):
     fixed_indicies1= [6 * x for x in fixed_nodes_indicies]
-    fixed_indicies2 = [6 * x + 1 for x in fixed_nodes_indicies]
-    fixed_indicies3 = [6 * x + 2 for x in fixed_nodes_indicies]
-    fixed_indicies4 = [6 * x + 3for x in fixed_nodes_indicies]
-    fixed_indicies5 = [6 * x + 4 for x in fixed_nodes_indicies]
-    fixed_indicies6 = [6 * x + 5 for x in fixed_nodes_indicies]
+#    fixed_indicies2 = [6 * x + 1 for x in fixed_nodes_indicies]
+    fixed_indicies2 = []
+#    fixed_indicies3 = [6 * x + 2 for x in fixed_nodes_indicies]
+    fixed_indicies3 = []
+    fixed_indicies4 = [6 * x + 3 for x in fixed_nodes_indicies]
+#    fixed_indicies5 = [6 * x + 4 for x in fixed_nodes_indicies]
+    fixed_indicies5 = []
+#    fixed_indicies6 = [6 * x + 5 for x in fixed_nodes_indicies]
+    fixed_indicies6 = []
     return sorted(fixed_indicies1+fixed_indicies2+
                   fixed_indicies3+fixed_indicies4+
                   fixed_indicies5+fixed_indicies6)

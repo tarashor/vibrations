@@ -60,7 +60,7 @@ E = 40000000000
 v = 0.3
 rho = 2000
 
-E3f = 1000000000
+E3f = 1
 material = mat.IsotropicMaterial(E,v,rho)
 material.C[2,2] *= E3f
 
@@ -105,7 +105,7 @@ for n in values_N_width:
     results1D2_all_n[n]=results1D2
     
     
-folder = "./results/convergE3/"
+folder = "./results/converg/"
 #folder = ""
 utils.save_results(folder+"rNs2D", results2D_all_n)
 utils.save_results(folder+"rNs1D1", results1D1_all_n)

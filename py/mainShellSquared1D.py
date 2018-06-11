@@ -21,11 +21,15 @@ def solve(geometry, thickness, material, N, M):
 
 
     
-material = mat.IsotropicMaterial.steel()
+E = 40000000000
+v = 0.3
+rho = 2000
 
-width = 2
+material = mat.IsotropicMaterial(E,v,rho)
+
+width = 1
 curvature = 0
-thickness = 0.05
+thickness = 0.1
 
 corrugation_amplitude = 0
 corrugation_frequency = 0
