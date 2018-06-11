@@ -46,6 +46,7 @@ N = 200
 M = 4
 
 
+
 lam, vec, mesh, geometry = solve(geometry, thickness, material, N, M)
 results = r.Result.convert_to_results(lam, vec, mesh, geometry)
 

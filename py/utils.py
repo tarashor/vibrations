@@ -1,5 +1,7 @@
 import csv
 
+import pickle
+
 CSV_EXT = ".csv"
 
 
@@ -18,3 +20,12 @@ def read_from_file(file_name):
             data.append(line)
 
     return data
+
+
+def save_results(filename, results):
+    with open(filename + '.res', 'wb') as f:
+        pickle.dump(results, f)
+
+def load_results(filename):
+    with open(filename + '.res', 'rb') as f:
+        return pickle.load(f)

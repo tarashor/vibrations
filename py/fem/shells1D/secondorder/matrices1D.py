@@ -131,9 +131,9 @@ def get_C(material, geometry, x1, h):
     C_[2,2] = 8/15
     
     A11 = C[0,0]*h*C_
-    A12 = C[0,1]*h*C_
-    A21 = C[1,0]*h*C_
-    A22 = C[1,1]*h*C_
+    A12 = C[0,2]*h*C_
+    A21 = C[2,0]*h*C_
+    A22 = C[2,2]*h*C_
     A33 = C[4,4]*h*C_
     
     A1 = A11
