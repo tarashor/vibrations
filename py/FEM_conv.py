@@ -60,14 +60,14 @@ E = 40000000000
 v = 0.3
 rho = 2000
 
-E3f = 100000000
+E3f = 1000000000
 material = mat.IsotropicMaterial(E,v,rho)
 material.C[2,2] *= E3f
 
 values_N_width = [10, 25, 50, 75, 100, 150, 200, 300]
 
 width = 1
-curvature = 0.000001
+curvature = 0
 thickness = 0.1
 
 M = 6

@@ -167,7 +167,7 @@ def stiffness_matrix(material, geometry, x1, h):
     
     return E.T.dot(C).dot(E)
 
-def mass_matrix(material, geometry, x1, h):
+def mass_matrix2(material, geometry, x1, h):
     
     A, K = geometry.get_A_and_K(x1, 0, 0)
     rho = material.rho
@@ -211,4 +211,36 @@ def mass_matrix(material, geometry, x1, h):
     M[10,10] = 8*A*h*rho/15
 
     return M
+
+
+def mass_matrix(material, geometry, x1, h):
+    
+    A, K = geometry.get_A_and_K(x1, 0, 0)
+    rho = material.rho
+    
+    M=np.zeros((12,12))
+    
+    M[0,0] = 0.333333333333333*A*h*rho
+    M[0,2] = 0.166666666666667*A*h*rho
+    M[0,4] = 0.333333333333333*A*h*rho
+    M[2,0] = 0.166666666666667*A*h*rho
+    M[2,2] = 0.333333333333333*A*h*rho
+    M[2,4] = 0.333333333333333*A*h*rho
+    M[4,0] = 0.333333333333333*A*h*rho
+    M[4,2] = 0.333333333333333*A*h*rho
+    M[4,4] = 8*A*h*rho/15
+    M[6,6] = 0.333333333333333*A*h*rho
+    M[6,8] = 0.166666666666667*A*h*rho
+    M[6,10] = 0.333333333333333*A*h*rho
+    M[8,6] = 0.166666666666667*A*h*rho
+    M[8,8] = 0.333333333333333*A*h*rho
+    M[8,10] = 0.333333333333333*A*h*rho
+    M[10,6] = 0.333333333333333*A*h*rho
+    M[10,8] = 0.333333333333333*A*h*rho
+    M[10,10] = 8*A*h*rho/15
+
+    return M
+
+
+
 

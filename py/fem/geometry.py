@@ -68,7 +68,7 @@ class General:
     
     def getJacobian(self, x1, x2, x3):
         A,K = self.get_A_and_K(x1, x2, x3)
-        return A*(1+x3*K)
+        return A#*(1+x3*K)
 
     def __str__(self):
         return "L={}, 1/R={}, g_a={}, g_v={}".format(self.width, self.inverted_radius, self.corrugation_amplitude, self.corrugation_frequency)

@@ -62,15 +62,15 @@ class Mesh(object):
         fixed_nodes_indicies = []
         if (boundary_conditions == model.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS):
             fixed_nodes_indicies = [len(nodes) - 1, len(nodes) - elements_width - 1]
-            
-        if (boundary_conditions == model.Model.FIXED_LEFT_RIGHT_EDGE):
-            fixed_nodes_indicies = []
+        elif (boundary_conditions == model.Model.FIXED_LEFT_RIGHT_EDGE):
             l_count = len(layers)
             for l in range(l_count):
-                for j in range(elements_height_per_layer):
+                for j in range(elements_height_per_layer+1):
                     r = l * elements_height_per_layer * (elements_width + 1) + j * (elements_width + 1)
                     fixed_nodes_indicies.append(r)
                     fixed_nodes_indicies.append(r+elements_width)
+                    
+#        print(fixed_nodes_indicies)
 
         fixed_nodes = [node for node in nodes if node.index in fixed_nodes_indicies]
         return Mesh(elements, nodes, fixed_nodes)

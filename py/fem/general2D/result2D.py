@@ -19,11 +19,13 @@ class Result:
         return self.freq/(2*np.pi)
 
 
-    def get_displacement_and_deriv(self, x1, x2, x3, time):
+    def get_displacement_and_deriv(self, x1, x2, x3, time, isPrint = False):
         element = self.mesh.get_element(x1, x3)
 
-        if (element is None):
-            print ("x1 = {}, x2 = {}".format(x1, x3))
+        if (element is None or isPrint):
+            print ("x1 = {}, x3 = {}".format(x1, x3))
+            
+            print(element)
 
         u_nodes = np.zeros((8))
 

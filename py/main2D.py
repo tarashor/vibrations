@@ -22,7 +22,7 @@ def solve(geometry, thickness, material, N, M):
 
 
 #E3f = 100000000
-material = mat.IsotropicMaterial.steel()
+#material = mat.IsotropicMaterial.steel()
 #material.C[2,2] *= E3f
 #material.C[2,1] /= E3f
 #material.C[2,0] /= E3f
@@ -32,17 +32,25 @@ material = mat.IsotropicMaterial.steel()
 #material.C[4,4] *= E3f 
 
 #material.C[2,0] *= E3f 
+    
+E = 40000000000
+v = 0.3
+rho = 2000
 
-width = 2
+E3f = 1000000000
+material = mat.IsotropicMaterial(E,v,rho)
+material.C[2,2] *= E3f
+
+width = 1
 curvature = 0
-thickness = 0.05
+thickness = 0.1
 
 corrugation_amplitude = 0
 corrugation_frequency = 0
 
 geometry = g.General(width, curvature, corrugation_amplitude, corrugation_frequency)
 
-N = 200
+N = 100
 M = 4
 
 
@@ -54,6 +62,8 @@ results_index = 0
 
 
 plot.plot_init_and_deformed_geometry_in_cartesian(results[results_index], 0, width, -thickness / 2, thickness / 2, 0, geometry.to_cartesian_coordinates)
+
+#plot.plot_deformed_mesh(results[results_index], width, thickness)
 
 to_print = 20
 if (len(results) < to_print):

@@ -299,6 +299,8 @@ def plot_deformed_mesh(result, L, h):
             
     plt.xlim([0-x_eps, L+x_eps])
     plt.ylim([-h/2 - x_eps, h/2 + x_eps])
+    
+    plt.grid()
     fig2.show()
 
 

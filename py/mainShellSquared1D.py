@@ -1,11 +1,11 @@
 import fem.geometry as g
 import fem.model as m
 import fem.material as mat
-import fem.shells1D.secondorder.shellsolver as s
-import fem.shells1D.secondorder.result1D as r
 import fem.mesh as me
 import plot
 
+import fem.shells1D.secondorder.shellsolver as s
+import fem.shells1D.secondorder.result1D as r
 from fem.shells1D.secondorder.matrices1D import stiffness_matrix, mass_matrix
 
 
