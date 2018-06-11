@@ -224,17 +224,16 @@ def get_u_element(element, u, nodes_count):
     return u_nodes
     
 
-def get_u_deriv(element,u_element, x1, x2, x3):
+def get_u_deriv(element, u_element, x1, x2, x3):
     h_e = element_aprox_functions(element, x1, x2, x3)
 
     return h_e.dot(u_element)
 
-def get_grad_u(element,geometry,u_element, x1, x2, x3):
+def get_grad_u(element, geometry,u_element, x1, x2, x3):
     B = deriv_to_grad(geometry, x1, x2, x3)
     h_e = element_aprox_functions(element, x1, x2, x3)
 
     return B.dot(h_e).dot(u_element)
-
 
 
 def stiffness_matrix(material, geometry, x1, x2, x3):
@@ -245,11 +244,21 @@ def stiffness_matrix(material, geometry, x1, x2, x3):
     
     return B.T.dot(E.T).dot(C).dot(E).dot(B)* gj
 
-def stiffness_matrix_nl(material, geometry, x1, x2, x3, grad_u):
+def stiffness_matrix_nl_1(material, geometry, x1, x2, x3, grad_u):
     E_NL_1 = deformations_nl_1(geometry, grad_u, x1, x2, x3)
     E_NL_2 = deformations_nl_2(geometry, grad_u, x1, x2, x3)
-    C = material.matrix_C(material, geometry, x1, x2, x3)
+    C = material.matrix_C(geometry, x1, x2, x3)
     E = grad_to_strain()
+    B = deriv_to_grad(geometry, x1, x2, x3)
+    gj = geometry.getJacobian(x1, x2, x3)
+    E_NL = E_NL_1+E_NL_2
+    
+    return (B.T.dot((E_NL).T).dot(C).dot(E).dot(B)+B.T.dot((E).T).dot(C).dot(E_NL_1).dot(B))* gj
+
+def stiffness_matrix_nl_2(material, geometry, x1, x2, x3, grad_u):
+    E_NL_1 = deformations_nl_1(geometry, grad_u, x1, x2, x3)
+    E_NL_2 = deformations_nl_2(geometry, grad_u, x1, x2, x3)
+    C = material.matrix_C(geometry, x1, x2, x3)
     B = deriv_to_grad(geometry, x1, x2, x3)
     gj = geometry.getJacobian(x1, x2, x3)
     E_NL = E_NL_1+E_NL_2
@@ -258,7 +267,6 @@ def stiffness_matrix_nl(material, geometry, x1, x2, x3, grad_u):
 
 def mass_matrix(material, geometry, x1, x2, x3):
     gj = geometry.getJacobian(x1, x2, x3)
-    
     B_s = deriv_to_vect()
     return material.rho * B_s.T.dot(B_s) * gj
 

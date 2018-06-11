@@ -1,5 +1,5 @@
-from . import matrices2D as matrices
-from . import result2D as r
+from . import matrices
+from . import result
 import numpy as np
 # from . import mesh as m
 from scipy import linalg as la
@@ -11,12 +11,6 @@ def remove_fixed_nodes(matrix, fixed_nodes_indicies, all_nodes_count):
     free_nodes1 = [i for i in range(matrix.shape[0]) if i not in indicies_to_exclude]
     free_nodes2 = [i for i in range(matrix.shape[1]) if i not in indicies_to_exclude]
     return matrix[np.ix_(free_nodes1, free_nodes2)]
-
-def remove_fixed_nodes_vector(v, fixed_nodes_indicies, all_nodes_count):
-    indicies_to_exclude = i_exclude(fixed_nodes_indicies, all_nodes_count)
-
-    free_nodes1 = [i for i in range(v.shape[0]) if i not in indicies_to_exclude]
-    return v[free_nodes1]
 
 
 def extend_with_fixed_nodes(eig_vectors, fixed_nodes_indicies, all_nodes_count):
@@ -46,43 +40,32 @@ def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl_1, s_matrix_nl_2):
 
 
     lam, vec = la.eigh(s, m)
-#
+
     vec = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count())
-#
+
+
     res = vec[:,0]
     print("Norm = {}".format(np.linalg.norm(res)))
     res = normalize(res)
-#    lam_nl = lam[0]
-    
-#    res_prev = res
-    
-    s_nl_2_in = integrate_matrix_with_disp(model, mesh, s_matrix_nl_2, res)
-    s_nl_2 = remove_fixed_nodes(s_nl_2_in, fixed_nodes_indicies, mesh.nodes_count())
-    
-    s_nl_1_in = integrate_matrix_with_disp(model, mesh, s_matrix_nl_1, res)
-#    s_nl_1 = remove_fixed_nodes(s_nl_1_in, fixed_nodes_indicies, mesh.nodes_count())
-    
-    K = s - 0.75*s_nl_2
-    
-    lam, vec = la.eigh(K, m)
-    
     lam_nl = lam[0]
     
-    b1 = -0.5*s_nl_1_in.dot(res)
-    b2 = -0.25*s_nl_2_in.dot(res)
+    res_prev = np.zeros(res.shape)
+
+    eps = 0.0001
+    i = 0
+    while (np.linalg.norm(res - res_prev) > eps and i < 20):
+        res_prev = res
+        # print(res_prev.T.shape)
+        s_nl = integrate_matrix_with_disp(model, mesh, s_matrix_nl, res_prev)
+        s_nl = remove_fixed_nodes(s_nl, fixed_nodes_indicies, mesh.nodes_count())
+        lam, vec = la.eigh(s + s_nl, m)
+        vec = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count())
+        
+        res = normalize(vec[:, 0])
+        print("Norm = {}".format(np.linalg.norm(res)))
+        i += 1
     
-    b1 = remove_fixed_nodes_vector(b1, fixed_nodes_indicies, mesh.nodes_count())
-    b2 = remove_fixed_nodes_vector(b2, fixed_nodes_indicies, mesh.nodes_count())
-    
-    U1 = la.solve(K, b1)
-    U2 = la.solve(K - 4*lam_nl*m, b1)
-    U3 = la.solve(K - 9*lam_nl*m, b2)
-    
-    U1 = extend_with_fixed_nodes(U1, fixed_nodes_indicies, mesh.nodes_count())
-    U2 = extend_with_fixed_nodes(U2, fixed_nodes_indicies, mesh.nodes_count())
-    U3 = extend_with_fixed_nodes(U3, fixed_nodes_indicies, mesh.nodes_count())
-    
-    return lam_nl, res, U1, U2, U3
+    return lam, vec
 
 
 def convert_to_results(eigenvalues, eigenvectors, mesh, geometry):
@@ -93,8 +76,8 @@ def convert_to_results(eigenvalues, eigenvectors, mesh, geometry):
         u1 = eigenvectors[:, i][0:mesh.nodes_count()]
         u3 = eigenvectors[:, i][mesh.nodes_count():2 * mesh.nodes_count()]
         u2 = np.zeros((mesh.nodes_count()))
-        res = r.Result(freq, u1, u2, u3, mesh, geometry)
-        results.append(res)
+        r = result.Result(freq, u1, u2, u3, mesh, geometry)
+        results.append(r)
 
     return results
     
@@ -200,4 +183,4 @@ def normalize(v):
     norm = np.linalg.norm(v)
     if norm == 0:
         return v
-    return v*0.5 / norm
+    return v*0.3 / norm

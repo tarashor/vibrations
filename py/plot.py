@@ -4,6 +4,7 @@ import matplotlib.patches as patches
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 from fem.general2D import matrices2D
+from matplotlib import animation
 
 plot_x1_elements = 400
 plot_x2_elements = 20
@@ -402,6 +403,18 @@ def plot_freq_from_corrugated_freq(g_v, w_min, N, M):
     plt.grid()
     plt.show()
     
+def plot_vibrations(time, y):
+    plt.plot(time, y, 'o-', linewidth=3.0, markersize=7, markeredgewidth=1, markeredgecolor='r', markerfacecolor='None')
+    plt.xlabel(r"$time$", fontsize=20)
+    plt.ylabel(r"$u_3$", fontsize=20)
+
+    # + r"($N={}, M={}$)".format(N, M))
+    plt.tick_params(axis='both', which='major', labelsize=20)
+    plt.tick_params(axis='both', which='minor', labelsize=16)
+
+    plt.grid()
+    plt.show()
+    
     
 #os.environ["PATH"] += os.pathsep + '/usr/local/texlive/2017/bin/x86_64-darwin'
 
@@ -478,3 +491,83 @@ def plot_vectors(x1_start, x1_end, x3, to_cartesian_coordinates, normal_in_carte
     plt.show()
     
     #plt.savefig(filename + '.png')
+    
+def deformed_shell(result, x1_start, x1_end, x3_start, x3_end, time, to_cartesian_coordinates=None):
+    
+    alphas_toward = np.vstack((np.linspace(x1_start, x1_end, num=plot_x1_elements), np.linspace(x3_end,x3_end,plot_x1_elements)))
+    alphas_backward = np.vstack((np.linspace(x1_end, x1_start, num=plot_x1_elements), np.linspace(x3_start,x3_start,plot_x1_elements)))
+    
+    alphas = np.concatenate((alphas_toward,alphas_backward), axis=1)
+    
+    rows, cols = alphas.shape
+    
+    X_deformed = []
+    Y_deformed = []
+
+    x2 = 0
+    
+    for i in range(cols):
+        x1 = alphas[0, i]
+        x3 = alphas[1, i]
+        
+        u = result.get_displacement_and_deriv(x1, x2, x3, time)
+        u1 = u[0]
+        u2 = u[4]
+        u3 = u[8]
+
+        x=x1
+        y=x2
+        z=x3
+        if (to_cartesian_coordinates != None):
+            x,y,z=to_cartesian_coordinates(x1,x2,x3)
+            
+        xu=x1 + u1
+        yu=x3 + u3
+        zu=x3 + u3
+        if (to_cartesian_coordinates != None):
+            xu,yu,zu=to_cartesian_coordinates(x1 + u1,x2 + u2,x3 + u3)
+            
+        X_deformed.append(xu)
+        Y_deformed.append(zu)
+
+    X_deformed.append(X_deformed[0])
+    Y_deformed.append(Y_deformed[0])
+    
+    return X_deformed, Y_deformed
+
+def plot_animate_in_cartesian(result, x1_start, x1_end, x3_start, x3_end, T, count, to_cartesian_coordinates=None):
+    
+    
+    deltat = T / count
+    
+    # First set up the figure, the axis, and the plot element we want to animate
+    fig = plt.figure()
+    ax = plt.axes()
+    x, y = deformed_shell(result, x1_start, x1_end, x3_start, x3_end, 0, to_cartesian_coordinates)
+    line, = ax.plot(x, y)
+    
+    # initialization function: plot the background of each frame
+    def init():
+        print('init')
+        x, y = deformed_shell(result, x1_start, x1_end, x3_start, x3_end, 0, to_cartesian_coordinates)
+        line.set_data(x, y)
+        return line,
+    
+    # animation function.  This is called sequentially
+    def animate(i):
+        time = deltat*i
+        print(time)
+        x, y = deformed_shell(result, x1_start, x1_end, x3_start, x3_end, time, to_cartesian_coordinates)
+        line.set_data(x, y)
+        return line,
+    
+    print('count = {}'.format(count))
+#    
+#    # call the animator.  blit=True means only re-draw the parts that have changed.
+    anim = animation.FuncAnimation(fig, animate, init_func=init,
+                                   frames=count, interval=20, blit=True)
+    
+#    init()
+    
+    
+    plt.show()

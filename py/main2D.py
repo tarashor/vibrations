@@ -6,7 +6,7 @@ import fem.general2D.result2D as r
 import fem.mesh as me
 import plot
 
-from fem.general2D.matrices2D import stiffness_matrix, mass_matrix, stiffness_matrix_nl
+from fem.general2D.matrices2D import stiffness_matrix, mass_matrix
 
 
 def solve(geometry, thickness, material, N, M):
@@ -37,9 +37,9 @@ E = 40000000000
 v = 0.3
 rho = 2000
 
-E3f = 1000000000
+#E3f = 1000000000
 material = mat.IsotropicMaterial(E,v,rho)
-material.C[2,2] *= E3f
+#material.C[2,2] *= E3f
 
 width = 1
 curvature = 0

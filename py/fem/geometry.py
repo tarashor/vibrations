@@ -50,6 +50,14 @@ class General:
         g[0, 0] = A*A*(1+x3*K)*(1+x3*K)
         g[1, 1] = g[2, 2] = 1
         return g
+    
+    def metric_tensor_inv(self, x1, x2, x3):
+        A,K = self.get_A_and_K(x1, x2, x3)
+        g = np.zeros((3, 3))
+        g[0, 0] = 1/(A*A*(1+x3*K)*(1+x3*K))
+        g[1, 1] = g[2, 2] = 1
+        return g
+
 
 
     def to_cartesian_coordinates(self, x1, x2, x3):
