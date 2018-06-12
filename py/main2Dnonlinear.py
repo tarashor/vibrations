@@ -50,6 +50,8 @@ T = 0.03
 ##    time = T/tN*t
 ##    plot.plot_init_and_deformed_geometry_in_cartesian(result, 0, width, -thickness / 2, thickness / 2, time, geometry.to_cartesian_coordinates)
 
+print(result.freqHz())
+
 
 x = []
 y = []

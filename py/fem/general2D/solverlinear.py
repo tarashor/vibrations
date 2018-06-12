@@ -120,3 +120,8 @@ def convertToGlobalMatrix(local_matrix, element, N):
 
     return global_matrix
 
+def normalize(v):
+    norm = np.linalg.norm(v)
+    if norm == 0:
+        return v
+    return v*0.5 / norm

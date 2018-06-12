@@ -1,5 +1,6 @@
 import numpy as np
 from . import matrices2D as matrices
+from . import solverlinear as sol
 from math import cos
 
 
@@ -79,8 +80,10 @@ class Result:
         results = []
         for i in range(eigenvalues.size):
             freq = np.sqrt(eigenvalues[i])
-            u1 = eigenvectors[:, i][0:mesh.nodes_count()]
-            u3 = eigenvectors[:, i][mesh.nodes_count():2 * mesh.nodes_count()]
+            U = eigenvectors[:, i]
+            U = sol.normalize(U)
+            u1 = U[0:mesh.nodes_count()]
+            u3 = U[mesh.nodes_count():2 * mesh.nodes_count()]
             u2 = np.zeros((mesh.nodes_count()))
             r = Result(freq, u1, u2, u3, mesh, geometry)
             results.append(r)
