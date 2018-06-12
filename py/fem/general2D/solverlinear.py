@@ -20,7 +20,7 @@ def extend_with_fixed_nodes(eig_vectors, fixed_nodes_indicies, all_nodes_count):
     return res
 
 
-def solve(model, mesh, s_matrix, m_matrix):
+def solve(model, mesh, s_matrix, m_matrix, u_max=None):
 
     s = integrate_matrix(model, mesh, s_matrix)
     m = integrate_matrix(model, mesh, m_matrix)
@@ -30,12 +30,12 @@ def solve(model, mesh, s_matrix, m_matrix):
     s = remove_fixed_nodes(s, fixed_nodes_indicies, mesh.nodes_count())
     m = remove_fixed_nodes(m, fixed_nodes_indicies, mesh.nodes_count())
     
-#    print(s)
-
-
     lam, vec = la.eigh(s, m)
 
     vec = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count())
+    
+    if (u_max is not None):
+        vec = normalize(vec, u_max)
     
     return lam, vec
 
@@ -120,8 +120,11 @@ def convertToGlobalMatrix(local_matrix, element, N):
 
     return global_matrix
 
-def normalize(v):
-    norm = np.linalg.norm(v)
-    if norm == 0:
-        return v
-    return v*0.5 / norm
+def normalize(vec, u_max):
+    for i in range(vec.shape[1]):
+        U = vec[:, i]
+        norm = np.linalg.norm(U)
+        if norm != 0:
+            vec[:, i] *= u_max/norm
+            
+    return vec

@@ -1,5 +1,5 @@
-from . import matrices
-from . import result
+from . import matrices2D as matrices
+from . import result2D
 import numpy as np
 # from . import mesh as m
 from scipy import linalg as la
@@ -27,12 +27,11 @@ def i_exclude(fixed_nodes_indicies, nodes_count):
     fixed_u2_indicies = [nodes_count + x for x in fixed_nodes_indicies]
     return sorted(fixed_u1_indicies + fixed_u2_indicies)
 
-def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl_1, s_matrix_nl_2):
+def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl_1, s_matrix_nl_2, u_max):
 
     s = integrate_matrix(model, mesh, s_matrix)
     m = integrate_matrix(model, mesh, m_matrix)
     
-
     fixed_nodes_indicies = mesh.get_fixed_nodes_indicies()
 
     s = remove_fixed_nodes(s, fixed_nodes_indicies, mesh.nodes_count())
@@ -43,39 +42,9 @@ def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl_1, s_matrix_nl_2):
 
     vec = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count())
 
-
     res = vec[:,0]
     print("Norm = {}".format(np.linalg.norm(res)))
-    res = normalize(res)
-    lam_nl = lam[0]
-    
-    res_prev = np.zeros(res.shape)
-
-    eps = 0.0001
-    i = 0
-    while (np.linalg.norm(res - res_prev) > eps and i < 20):
-        res_prev = res
-        # print(res_prev.T.shape)
-        s_nl = integrate_matrix_with_disp(model, mesh, s_matrix_nl, res_prev)
-        s_nl = remove_fixed_nodes(s_nl, fixed_nodes_indicies, mesh.nodes_count())
-        lam, vec = la.eigh(s + s_nl, m)
-        vec = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count())
-        
-        res = normalize(vec[:, 0])
-        print("Norm = {}".format(np.linalg.norm(res)))
-        i += 1
-    
-    return lam, vec
-
-#
-    vec = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count())
-#
-    res = vec[:,0]
-    print("Norm = {}".format(np.linalg.norm(res)))
-    res = normalize(res)
-#    lam_nl = lam[0]
-    
-#    res_prev = res
+    res = normalize(res, u_max)
     
     s_nl_2_in = integrate_matrix_with_disp(model, mesh, s_matrix_nl_2, res)
     s_nl_2 = remove_fixed_nodes(s_nl_2_in, fixed_nodes_indicies, mesh.nodes_count())
@@ -83,41 +52,19 @@ def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl_1, s_matrix_nl_2):
     s_nl_1_in = integrate_matrix_with_disp(model, mesh, s_matrix_nl_1, res)
     s_nl_1 = remove_fixed_nodes(s_nl_1_in, fixed_nodes_indicies, mesh.nodes_count())
     
-    K = s + 0.75*s_nl_2
+    print(s_nl_1)
     
+    a = 8/(3*np.pi)
+    
+    K = s + 0.75*s_nl_2 + a*s_nl_1
+
     lam, vec = la.eigh(K, m)
     
     lam_nl = lam[0]
+#    print(lam)
     
-    b1 = -0.5*s_nl_1_in.dot(res)
-    b2 = -0.25*s_nl_2_in.dot(res)
-    
-    b1 = remove_fixed_nodes_vector(b1, fixed_nodes_indicies, mesh.nodes_count())
-    b2 = remove_fixed_nodes_vector(b2, fixed_nodes_indicies, mesh.nodes_count())
-    
-    U1 = la.solve(K, b1)
-    U2 = la.solve(K - 4*lam_nl*m, b1)
-    U3 = la.solve(K - 9*lam_nl*m, b2)
-    
-    U1 = extend_with_fixed_nodes(U1, fixed_nodes_indicies, mesh.nodes_count())
-    U2 = extend_with_fixed_nodes(U2, fixed_nodes_indicies, mesh.nodes_count())
-    U3 = extend_with_fixed_nodes(U3, fixed_nodes_indicies, mesh.nodes_count())
-    
-    return lam_nl, res, U1, U2, U3
+    return lam_nl, res
 
-
-def convert_to_results(eigenvalues, eigenvectors, mesh, geometry):
-    
-    results = []
-    for i in range(eigenvalues.size):
-        freq = np.sqrt(eigenvalues[i])
-        u1 = eigenvectors[:, i][0:mesh.nodes_count()]
-        u3 = eigenvectors[:, i][mesh.nodes_count():2 * mesh.nodes_count()]
-        u2 = np.zeros((mesh.nodes_count()))
-        r = result.Result(freq, u1, u2, u3, mesh, geometry)
-        results.append(r)
-
-    return results
     
 
 def integrate_matrix(model, mesh, matrix_func):
@@ -217,8 +164,8 @@ def convertToGlobalMatrix(local_matrix, element, N):
     return global_matrix
 
 
-def normalize(v):
+def normalize(v, u_max):
     norm = np.linalg.norm(v)
     if norm == 0:
         return v
-    return v*0.5 / norm
+    return v*u_max / norm

@@ -133,3 +133,7 @@ class IsotropicMaterial(OrthotropicMaterial):
     @staticmethod
     def steel():
         return IsotropicMaterial(210000000000, 0.3, 8000)
+    
+    @staticmethod
+    def rubber():
+        return IsotropicMaterial(100000000, 0.45, 1200)

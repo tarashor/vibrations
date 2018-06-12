@@ -33,7 +33,7 @@ def i_exclude(fixed_nodes_indicies, nodes_count):
     fixed_u2_indicies = [nodes_count + x for x in fixed_nodes_indicies]
     return sorted(fixed_u1_indicies + fixed_u2_indicies)
 
-def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl_1, s_matrix_nl_2):
+def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl_1, s_matrix_nl_2, u_max):
 
     s = integrate_matrix(model, mesh, s_matrix)
     m = integrate_matrix(model, mesh, m_matrix)
@@ -46,25 +46,21 @@ def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl_1, s_matrix_nl_2):
 
 
     lam, vec = la.eigh(s, m)
-#
+
     vec = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count())
-#
+
     res = vec[:,0]
     print("Norm = {}".format(np.linalg.norm(res)))
-    res = normalize(res)
-#    lam_nl = lam[0]
-    
-#    res_prev = res
+    res = normalize(res, u_max)
     
     s_nl_2_in = integrate_matrix_with_disp(model, mesh, s_matrix_nl_2, res)
     s_nl_2 = remove_fixed_nodes(s_nl_2_in, fixed_nodes_indicies, mesh.nodes_count())
     
     s_nl_1_in = integrate_matrix_with_disp(model, mesh, s_matrix_nl_1, res)
-#    s_nl_1 = remove_fixed_nodes(s_nl_1_in, fixed_nodes_indicies, mesh.nodes_count())
     
-    K = s #- 0.75*s_nl_2
+    K = s + 0.75*s_nl_2
     
-#    lam, vec = la.eigh(K, m)
+    lam, vec = la.eigh(K, m)
     
     lam_nl = lam[0]
     
@@ -196,8 +192,8 @@ def convertToGlobalMatrix(local_matrix, element, N):
     return global_matrix
 
 
-def normalize(v):
+def normalize(v, u_max):
     norm = np.linalg.norm(v)
     if norm == 0:
         return v
-    return v*0.5 / norm
+    return v*u_max / norm

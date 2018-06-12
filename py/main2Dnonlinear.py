@@ -38,7 +38,10 @@ geometry = g.General(width, curvature, corrugation_amplitude, corrugation_freque
 N = 100
 M = 4
 
-mesh, lam_nl, res, U1, U2, U3 = solve(geometry, thickness, material, N, M)
+norm_koef = 0.1
+u_max = norm_koef*thickness
+
+mesh, lam_nl, res, U1, U2, U3 = solve(geometry, thickness, u_max, material, N, M)
 result = r.ResultNL.convert_to_result(lam_nl, res, U1, U2, U3, mesh, geometry)
 
 tN = 1000
@@ -64,7 +67,7 @@ for t in range(tN):
     u1 = u[0]
     u2 = u[4]
     u3 = u[8]
-    x.append(t)
+    x.append(time)
     y.append(u3)
     
 

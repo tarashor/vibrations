@@ -252,8 +252,10 @@ def stiffness_matrix_nl_1(material, geometry, x1, x2, x3, grad_u):
     B = deriv_to_grad(geometry, x1, x2, x3)
     gj = geometry.getJacobian(x1, x2, x3)
     E_NL = E_NL_1+E_NL_2
-    
+    print(grad_u)
     return (B.T.dot((E_NL).T).dot(C).dot(E).dot(B)+B.T.dot((E).T).dot(C).dot(E_NL_1).dot(B))* gj
+#    return (B.T.dot((E_NL).T).dot(C).dot(E).dot(B))* gj
+#    return (B.T.dot((E).T).dot(C).dot(E_NL_1).dot(B))* gj
 
 def stiffness_matrix_nl_2(material, geometry, x1, x2, x3, grad_u):
     E_NL_1 = deformations_nl_1(geometry, grad_u, x1, x2, x3)

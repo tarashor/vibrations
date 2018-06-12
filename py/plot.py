@@ -5,9 +5,34 @@ from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 from fem.general2D import matrices2D
 from matplotlib import animation
+import os
+import platform
 
 plot_x1_elements = 400
 plot_x2_elements = 20
+
+def init():
+    tex_path = '/usr/local/texlive/2017/bin/x86_64-darwin'
+    if (platform.system() == 'Windows'):
+        tex_path = "C:\Program Files\MiKTeX 2.9\miktex/bin/x64"
+    
+    os.environ["PATH"] += os.pathsep + tex_path
+    
+    plt.rc('text', usetex=True)
+       
+    plt.rc('font', family='serif')
+    
+    SMALL_SIZE = 24
+    MEDIUM_SIZE = 28
+    BIGGER_SIZE = 32
+    
+    plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
+    plt.rc('axes', titlesize=SMALL_SIZE)     # fontsize of the axes title
+    plt.rc('axes', labelsize=MEDIUM_SIZE)    # fontsize of the x and y labels
+    plt.rc('xtick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
+    plt.rc('ytick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
+    plt.rc('legend', fontsize=SMALL_SIZE)    # legend fontsize
+    plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
 
 
 def plot_strain(result, x1_start, x1_end, x2_start, x2_end, time, strain_index):
@@ -403,14 +428,18 @@ def plot_freq_from_corrugated_freq(g_v, w_min, N, M):
     plt.grid()
     plt.show()
     
-def plot_vibrations(time, y):
-    plt.plot(time, y, 'o-', linewidth=3.0, markersize=7, markeredgewidth=1, markeredgecolor='r', markerfacecolor='None')
-    plt.xlabel(r"$time$", fontsize=20)
-    plt.ylabel(r"$u_3$", fontsize=20)
+def plot_vibrations(time, u_linear, u_nonlinear, u_nonlinear2):
+    init()
+    plt.plot(time, u_linear, 'go-', linewidth=1.0, markersize=5, markeredgewidth=1, markeredgecolor='g', markerfacecolor='None', label = "linear")
+    plt.plot(time, u_nonlinear, 'rv:', linewidth=1.0, markersize=5, markeredgewidth=1, markeredgecolor='r', markerfacecolor='None', label = "nonlinear")
+    plt.plot(time, u_nonlinear2, 'bx--', linewidth=1.0, markersize=5, markeredgewidth=1, markeredgecolor='b', markerfacecolor='None', label = "nonlinear2")
+    plt.xlabel(r"$time, sec$")
+    plt.ylabel(r"$u_3, m$")
 
     # + r"($N={}, M={}$)".format(N, M))
-    plt.tick_params(axis='both', which='major', labelsize=20)
-    plt.tick_params(axis='both', which='minor', labelsize=16)
+    plt.legend(loc='best')
+#    plt.tick_params(axis='both', which='major', labelsize=20)
+#    plt.tick_params(axis='both', which='minor', labelsize=16)
 
     plt.grid()
     plt.show()

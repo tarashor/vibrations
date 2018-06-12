@@ -81,7 +81,6 @@ class Result:
         for i in range(eigenvalues.size):
             freq = np.sqrt(eigenvalues[i])
             U = eigenvectors[:, i]
-            U = sol.normalize(U)
             u1 = U[0:mesh.nodes_count()]
             u3 = U[mesh.nodes_count():2 * mesh.nodes_count()]
             u2 = np.zeros((mesh.nodes_count()))
@@ -89,3 +88,13 @@ class Result:
             results.append(r)
     
         return results
+    
+    @staticmethod
+    def convert_to_result(eigenvalue, eigenvector, mesh, geometry):
+        freq = np.sqrt(eigenvalue)
+        U = eigenvector
+        u1 = U[0:mesh.nodes_count()]
+        u3 = U[mesh.nodes_count():2 * mesh.nodes_count()]
+        u2 = np.zeros((mesh.nodes_count()))
+        return Result(freq, u1, u2, u3, mesh, geometry)
+            
