@@ -38,8 +38,10 @@ v = 0.3
 rho = 2000
 
 #E3f = 1000000000
-material = mat.IsotropicMaterial(E,v,rho)
+#material = mat.IsotropicMaterial(E,v,rho)
 #material.C[2,2] *= E3f
+
+material = mat.IsotropicMaterial.steel()
 
 width = 1
 curvature = 0
@@ -51,7 +53,7 @@ corrugation_frequency = 0
 geometry = g.General(width, curvature, corrugation_amplitude, corrugation_frequency)
 
 N = 100
-M = 4
+M = 6
 
 
 
@@ -67,33 +69,33 @@ result = results[results_index]
 
 #plot.plot_deformed_mesh(results[results_index], width, thickness)
 
-#to_print = 20
-#if (len(results) < to_print):
-#    to_print = len(results)
+to_print = 20
+if (len(results) < to_print):
+    to_print = len(results)
+
+for i in range(to_print):
+    print(results[i].freqHz())
+
+#tN = 1000
+#T = 0.03
 #
-#for i in range(to_print):
-#    print(results[i].freqHz())
-
-tN = 1000
-T = 0.03
-
-
-print(result.freqHz())
-
-
-x = []
-y = []
-
-deltat = T / tN
-
-for t in range(tN):
-    time = deltat*t
-    u = result.get_displacement_and_deriv(width/2, 0, 0, time)
-    u1 = u[0]
-    u2 = u[4]
-    u3 = u[8]
-    x.append(t)
-    y.append(u3)
-    
-
-plot.plot_vibrations(x,y)
+#
+#print(result.freqHz())
+#
+#
+#x = []
+#y = []
+#
+#deltat = T / tN
+#
+#for t in range(tN):
+#    time = deltat*t
+#    u = result.get_displacement_and_deriv(width/2, 0, 0, time)
+#    u1 = u[0]
+#    u2 = u[4]
+#    u3 = u[8]
+#    x.append(t)
+#    y.append(u3)
+#    
+#
+#plot.plot_vibrations(x,y)

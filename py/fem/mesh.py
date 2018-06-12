@@ -52,9 +52,12 @@ class Mesh(object):
                     nodes.add(top_right)
                     nodes.add(bottom_right)
                     nodes.add(bottom_left)
-
+                    
+                    
                     element = fe2D.FiniteElement2D(top_left, top_right, bottom_right, bottom_left, layer.material)
                     elements.add(element)
+                    
+#                    print(element)
 
                     x += d_x
                 y -= d_y

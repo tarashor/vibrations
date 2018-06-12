@@ -50,8 +50,8 @@ def solveNonlinear2(geometry, thickness, material, N, M, u_max):
     return r.Result.convert_to_result(lam_nl, res, mesh, geometry)
 
 
-E = 40000000000
-#E = 40000
+#E = 40000000000
+E = 40000
 v = 0.3
 rho = 2000
 
@@ -77,8 +77,8 @@ result = solveLinear(geometry, thickness, material, N, M, u_max)
 resultNl = solveNonlinear(geometry, thickness, material, N, M, u_max)
 resultNl2 = solveNonlinear2(geometry, thickness, material, N, M, u_max)
 
-tN = 1000
-T = 0.01
+tN = 200
+T = 6
 
 print(result.freqHz())
 print(resultNl.freqHz())

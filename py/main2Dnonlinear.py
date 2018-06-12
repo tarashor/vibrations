@@ -20,7 +20,7 @@ def solve(geometry, thickness, material, N, M):
     return mesh, lam_nl, res, U1, U2, U3
 
     
-E = 40000000000
+E = 40000
 v = 0.3
 rho = 2000
 
@@ -45,7 +45,7 @@ mesh, lam_nl, res, U1, U2, U3 = solve(geometry, thickness, u_max, material, N, M
 result = r.ResultNL.convert_to_result(lam_nl, res, U1, U2, U3, mesh, geometry)
 
 tN = 1000
-T = 0.03
+T = 6
 
 #plot.plot_animate_in_cartesian(result, 0, width, -thickness / 2, thickness / 2, T, tN, geometry.to_cartesian_coordinates)
 #

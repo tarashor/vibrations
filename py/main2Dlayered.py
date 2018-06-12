@@ -15,16 +15,17 @@ def solve(geometry, thickness1, thickness2, material1, material2, N, M):
     h = thickness1+thickness2+thickness1
     top = h/2
     layer1 = m.Layer(top - thickness1, top, material1, 0)
-    layer2 = m.Layer(top - thickness1-thickness2, top-thickness1, material2, 0)
-    layer3 = m.Layer(top - thickness1-thickness2 - thickness1, top - thickness1-thickness2, material1, 0)
+    layer2 = m.Layer(top - thickness1-thickness2, top-thickness1, material2, 1)
+    layer3 = m.Layer(top - thickness1-thickness2 - thickness1, top - thickness1-thickness2, material1, 2)
     layers.add(layer1)
     layers.add(layer2)
     layers.add(layer3)
+    print(layers)
     
 #    model = m.Model(geometry, layers, m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS)
     model = m.Model(geometry, layers, m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS)
     mesh = me.Mesh.generate2D(geometry.width, layers, N, M, model.boundary_conditions)
-    
+#    print(mesh.nodes)
     
     lam, vec = s.solve(model, mesh, stiffness_matrix, mass_matrix)
     
@@ -33,13 +34,13 @@ def solve(geometry, thickness1, thickness2, material1, material2, N, M):
 
 
 material1 = mat.IsotropicMaterial.steel()
-material2 = mat.IsotropicMaterial.steel()
+material2 = mat.IsotropicMaterial.rubber()
 
 width = 1
 curvature = 0
 thickness = 0.1
 
-rubber_h_coef = 0.8
+rubber_h_coef = 0.1
 rh = rubber_h_coef*thickness
 sh = (1-rubber_h_coef)*thickness/2
 
