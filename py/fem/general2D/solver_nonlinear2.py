@@ -39,31 +39,30 @@ def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl_1, s_matrix_nl_2, u_ma
 
 
     lam, vec = la.eigh(s, m)
+    
+    lam_nl = np.copy(lam)
 
-    vec = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count())
+    vec_ex = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count())
+    
+    for i in len(lam):
+        res = vec_ex[:,i]
+        r = vec[:,i]
+#        print("Norm = {}".format(np.linalg.norm(res)))
+        res = normalize(res, u_max)
+        r = normalize(r, u_max)
+        s_nl_2_in = integrate_matrix_with_disp(model, mesh, s_matrix_nl_2, res)
+        s_nl_2 = remove_fixed_nodes(s_nl_2_in, fixed_nodes_indicies, mesh.nodes_count())
+    
+        s_nl_1_in = integrate_matrix_with_disp(model, mesh, s_matrix_nl_1, res)
+        s_nl_1 = remove_fixed_nodes(s_nl_1_in, fixed_nodes_indicies, mesh.nodes_count())
+    
+        a = 8/(3*np.pi)
+    
+        lam_nl[i] += 0.75*r.T.dot(s_nl_2).dot(r) + a*r.T.dot(s_nl_1).dot(r)
+    
 
-    res = vec[:,0]
-    print("Norm = {}".format(np.linalg.norm(res)))
-    res = normalize(res, u_max)
     
-    s_nl_2_in = integrate_matrix_with_disp(model, mesh, s_matrix_nl_2, res)
-    s_nl_2 = remove_fixed_nodes(s_nl_2_in, fixed_nodes_indicies, mesh.nodes_count())
-    
-    s_nl_1_in = integrate_matrix_with_disp(model, mesh, s_matrix_nl_1, res)
-    s_nl_1 = remove_fixed_nodes(s_nl_1_in, fixed_nodes_indicies, mesh.nodes_count())
-    
-    print(s_nl_1)
-    
-    a = 8/(3*np.pi)
-    
-    K = s + 0.75*s_nl_2 + a*s_nl_1
-
-    lam, vec = la.eigh(K, m)
-    
-    lam_nl = lam[0]
-#    print(lam)
-    
-    return lam_nl, res
+    return lam_nl, vec_ex
 
     
 

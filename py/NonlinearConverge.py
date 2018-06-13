@@ -10,18 +10,20 @@ import fem.general2D.result2Dnonlinear as r_nl
 import fem.general2D.solver_nonlinear2 as s_nl2
 
 import fem.mesh as me
-import plot
+import os
+import platform
+import matplotlib.pyplot as plt
 
 from fem.general2D.matrices2D import stiffness_matrix, mass_matrix, stiffness_matrix_nl_1, stiffness_matrix_nl_2
 
 
-def solveLinear(geometry, thickness, material, N, M, u_max):
+def solveLinear(geometry, thickness, material, N, M):
     layers = m.Layer.generate_layers(thickness, [material])
     model = m.Model(geometry, layers, m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS)
 #    model = m.Model(geometry, layers, m.Model.FIXED_LEFT_RIGHT_EDGE)
     mesh = me.Mesh.generate2D(geometry.width, layers, N, M, model.boundary_conditions)
     
-    lam, vec = s.solve(model, mesh, stiffness_matrix, mass_matrix, u_max)
+    lam, vec = s.solve(model, mesh, stiffness_matrix, mass_matrix)
     
     results_index = 0
     results = r.Result.convert_to_results(lam, vec, mesh, geometry)
@@ -69,38 +71,59 @@ geometry = g.General(width, curvature, corrugation_amplitude, corrugation_freque
 N = 100
 M = 4
 
-norm_koef = 2
-u_max = norm_koef*thickness
+norm_koef = 0.2
 
-result = solveLinear(geometry, thickness, material, N, M, u_max)
-
-resultNl = solveNonlinear(geometry, thickness, material, N, M, u_max)
-#resultNl2 = solveNonlinear2(geometry, thickness, material, N, M, u_max)
-
-tN = 100
-T = 12
-
-print(result.freqHz())
-print(resultNl.freqHz())
-#print(resultNl2.freqHz())
-
+result = solveLinear(geometry, thickness, material, N, M)
 
 x = []
 y = []
-ynl = []
-ynl2 = []
 
-deltat = T / tN
+for i in range(25):
+    u_max = i*norm_koef*thickness
+    resultNl = solveNonlinear(geometry, thickness, material, N, M, u_max)
+    #resultNl2 = solveNonlinear2(geometry, thickness, material, N, M, u_max)
+    
+    x.append(i*norm_koef)
+    y.append(resultNl.freqHz()/result.freqHz())
+    
+    
+tex_path = '/usr/local/texlive/2017/bin/x86_64-darwin'
+if (platform.system() == 'Windows'):
+    tex_path = "C:\Program Files\MiKTeX 2.9\miktex/bin/x64"
 
-for t in range(tN):
-    time = deltat*t
-    u = result.get_displacement_and_deriv(width/2, 0, 0, time)
-    unl = resultNl.get_displacement_and_deriv(width/2, 0, 0, time)
-#    unl2 = resultNl2.get_displacement_and_deriv(width/2, 0, 0, time)
-    x.append(time)
-    y.append(u[8])
-    ynl.append(unl[8])
-#    ynl2.append(unl2[8])
+os.environ["PATH"] += os.pathsep + tex_path
+
+plt.rc('text', usetex=True)
+   
+plt.rc('font', family='serif')
+
+SMALL_SIZE = 24
+MEDIUM_SIZE = 28
+BIGGER_SIZE = 32
+
+plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
+plt.rc('axes', titlesize=SMALL_SIZE)     # fontsize of the axes title
+plt.rc('axes', labelsize=MEDIUM_SIZE)    # fontsize of the x and y labels
+plt.rc('xtick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
+plt.rc('ytick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
+plt.rc('legend', fontsize=SMALL_SIZE)    # legend fontsize
+plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
+
+#plt.plot(x, y, 'o-', linewidth=2.0, markersize=8, markeredgewidth=2, markeredgecolor='r', markerfacecolor='None', label = "General 2D theory")
+#plt.plot(x1D1, y1D1, 'x--', linewidth=2.0, markersize=8, markeredgewidth=2, markeredgecolor='b', markerfacecolor='None', label = "Mindlin-Reissner theory")
+plt.plot(y, x, 'ro-', linewidth=2.0, markersize=8, markeredgewidth=2, markeredgecolor='r', markerfacecolor='None', label = "Shell second order theory")
+plt.xlabel(r"$\frac{\omega_{NL}}{\omega_{L}}$")
+plt.ylabel(r"$\frac{w_{max}}{h}$")
+
+plt.xlim(xmin=0, xmax=2)
+plt.legend(loc='best')
+
+#plt.title(r"Shear influence")
+#plt.title(r"Convergence $\frac{E}{E_3} = 1$")
+#plt.title("Збіжність")
+
+plt.grid()
+plt.show()
+    
     
 
-plot.plot_vibrations(x,y,ynl)
