@@ -37,11 +37,10 @@ E = 40000000000
 v = 0.3
 rho = 2000
 
-#E3f = 1000000000
-#material = mat.IsotropicMaterial(E,v,rho)
-#material.C[2,2] *= E3f
-
-material = mat.IsotropicMaterial.steel()
+E3f = 0.2
+material = mat.IsotropicMaterial(E,v,rho)
+material.C[2,2] *= E3f
+material.C[4,4] *= E3f
 
 width = 1
 curvature = 0
@@ -53,7 +52,7 @@ corrugation_frequency = 0
 geometry = g.General(width, curvature, corrugation_amplitude, corrugation_frequency)
 
 N = 100
-M = 6
+M = 4
 
 
 
@@ -65,7 +64,7 @@ results_index = 0
 result = results[results_index]
 
 
-#plot.plot_init_and_deformed_geometry_in_cartesian(results[results_index], 0, width, -thickness / 2, thickness / 2, 0, geometry.to_cartesian_coordinates)
+plot.plot_init_and_deformed_geometry_in_cartesian(results[results_index], 0, width, -thickness / 2, thickness / 2, 0, geometry.to_cartesian_coordinates)
 
 #plot.plot_deformed_mesh(results[results_index], width, thickness)
 
@@ -96,6 +95,6 @@ for i in range(to_print):
 #    u3 = u[8]
 #    x.append(t)
 #    y.append(u3)
-#    
-#
+    
+
 #plot.plot_vibrations(x,y)
