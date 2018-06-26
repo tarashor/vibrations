@@ -9,22 +9,24 @@ import plot
 from fem.general2D.matrices2D import stiffness_matrix, mass_matrix, stiffness_matrix_nl_1, stiffness_matrix_nl_2
 
 
-def solve(geometry, thickness, material, N, M):
+def solve(geometry, thickness, material, N, M, u_max):
     layers = m.Layer.generate_layers(thickness, [material])
     model = m.Model(geometry, layers, m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS)
 #    model = m.Model(geometry, layers, m.Model.FIXED_LEFT_RIGHT_EDGE)
     mesh = me.Mesh.generate2D(geometry.width, layers, N, M, model.boundary_conditions)
     
-    lam_nl, res, U1, U2, U3 = s_nl.solve_nl(model, mesh, stiffness_matrix, mass_matrix, stiffness_matrix_nl_1, stiffness_matrix_nl_2)
+    lam_nl, res, U1, U2, U3 = s_nl.solve_nl(model, mesh, stiffness_matrix, mass_matrix, stiffness_matrix_nl_1, stiffness_matrix_nl_2, u_max)
     
     return mesh, lam_nl, res, U1, U2, U3
 
     
-E = 40000
-v = 0.3
-rho = 2000
-
-material = mat.IsotropicMaterial(E,v,rho)
+#E = 40000
+#v = 0.3
+#rho = 2000
+#
+#material = mat.IsotropicMaterial(E,v,rho)
+    
+material = mat.IsotropicMaterial.steel()
 
 width = 1
 curvature = 0
@@ -41,7 +43,7 @@ M = 4
 norm_koef = 0.1
 u_max = norm_koef*thickness
 
-mesh, lam_nl, res, U1, U2, U3 = solve(geometry, thickness, u_max, material, N, M)
+mesh, lam_nl, res, U1, U2, U3 = solve(geometry, thickness, material, N, M, u_max)
 result = r.ResultNL.convert_to_result(lam_nl, res, U1, U2, U3, mesh, geometry)
 
 tN = 1000

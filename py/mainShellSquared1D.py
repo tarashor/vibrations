@@ -21,11 +21,13 @@ def solve(geometry, thickness, material, N, M):
 
 
     
-E = 40000000000
-v = 0.3
-rho = 2000
-
-material = mat.IsotropicMaterial(E,v,rho)
+#E = 40000000000
+#v = 0.3
+#rho = 2000
+#
+#material = mat.IsotropicMaterial(E,v,rho)
+    
+material = mat.IsotropicMaterial.steel()
 
 width = 1
 curvature = 0

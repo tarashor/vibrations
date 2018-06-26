@@ -34,16 +34,18 @@ class OrthotropicMaterial:
     def matrix_C(self, geometry, x1, x2, x3):
         return self.C
     
-#    def create_from_E_and_v(E, v, G):
-#        D = (1- v[1,2]*v[2,1]-v[2,3]*v[3,2]-v[1,3]*v[3,1]-2*v[1,3]*v[2,1]*v[3,2])/(E[0]*E[1]*E[2])
-#        C11=(1-v[1,2]*v[2,1])/(D*E[0]*E[1])
-#        C12=(1-v[1,2]*v[2,1])/(D*E[0]*E[1])
-#        C13=(1-v[1,2]*v[2,1])/(D*E[0]*E[1])
-#        C22=(1-v[1,2]*v[2,1])/(D*E[0]*E[1])
-#        C23=(1-v[1,2]*v[2,1])/(D*E[0]*E[1])
-#        C33=(1-v[1,2]*v[2,1])/(D*E[0]*E[1])
-#        
-#        return OrthotropicMaterial(C11, C12, C13, C22, C23, C33, G[0], G[1], G[2])
+    @staticmethod
+    def create_from_E_and_v(E, v, G, rho):
+        D = (1- v[0,1]*v[1,0]-v[1,2]*v[2,1]-v[0,2]*v[2,0]-2*v[0,2]*v[1,0]*v[2,1])/(E[0]*E[1]*E[2])
+        C11=(1-v[1,2]*v[2,1])/(D*E[1]*E[2])
+        C22=(1-v[0,2]*v[2,0])/(D*E[0]*E[2])
+        C33=(1-v[0,1]*v[1,0])/(D*E[0]*E[1])
+        
+        C12=(v[1,0]+v[2,0]*v[1,2])/(D*E[1]*E[2])
+        C13=(v[2,0]+v[1,0]*v[2,1])/(D*E[1]*E[2])
+        C23=(v[2,1]+v[0,1]*v[2,0])/(D*E[0]*E[2])
+        
+        return OrthotropicMaterial(C11, C12, C13, C22, C23, C33, G[0], G[1], G[2], rho)
     
 
     

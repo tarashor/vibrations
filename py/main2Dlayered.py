@@ -40,7 +40,7 @@ width = 1
 curvature = 0
 thickness = 0.1
 
-rubber_h_coef = 0.1
+rubber_h_coef = 0.95
 rh = rubber_h_coef*thickness
 sh = (1-rubber_h_coef)*thickness/2
 
@@ -49,8 +49,8 @@ corrugation_frequency = 0
 
 geometry = g.General(width, curvature, corrugation_amplitude, corrugation_frequency)
 
-N = 100
-M = 4
+N = 50
+M = 2
 
 
 
