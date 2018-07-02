@@ -8,27 +8,33 @@ import numpy as np
 
 import utils
 
-import fem.shells1D.secondorder.shellsolver as s1D2
-import fem.shells1D.secondorder.result1D as r1D2
-import fem.shells1D.secondorder.matrices1D as matrix1D2
+import fem.general2D.solverlinear as s
+import fem.general2D.result2D as r
+
+import plot
+
+from fem.general2D.matrices2D import stiffness_matrix, mass_matrix, stiffness_matrix_nl_1, stiffness_matrix_nl_2
 
 
-def solve1D2(geometry, thickness, material, N):
+
+
+def solve(geometry, thickness, material, N, M):
     layers = m.Layer.generate_layers(thickness, [material])
     model = m.Model(geometry, layers, m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS)
-    mesh = me.Mesh.generate1D(geometry.width, layers, N, model.boundary_conditions)
+#    model = m.Model(geometry, layers, m.Model.FIXED_LEFT_RIGHT_EDGE)
+    mesh = me.Mesh.generate2D(geometry.width, layers, N, M, model.boundary_conditions)
     
-    lam, vec = s1D2.solve(model, mesh, matrix1D2.stiffness_matrix, matrix1D2.mass_matrix)
+    lam, vec = s.solve(model, mesh, stiffness_matrix, mass_matrix)
     
-    results = r1D2.Result.convert_to_results(lam, vec, mesh, geometry, thickness)
-    
-    return results
+    return lam, vec, mesh, geometry
 
-E = 10*(10**9)
+
+#E = 10*(10**9)
+E=1
 v = 0.25
 rho = 2000
 
-k = 40
+k = 3
 
 
 Es = [k*E, E, E]
@@ -59,10 +65,12 @@ corrugation_frequency = 0
 geometry = g.General(width, curvature, corrugation_amplitude, corrugation_frequency)
 
 N = 50
+M = 4
 
-results1D2 = solve1D2(geometry, thickness, material, N)
-    
-print("[1D2] w_min1 = {}".format(results1D2[0].freqHz()))
-print("[1D2] w_min2 = {}".format(results1D2[1].freqHz()))
-print("[1D2] w_min3 = {}".format(results1D2[2].freqHz()))
+lam, vec, mesh, geometry = solve(geometry, thickness, material, N, M)
+results = r.Result.convert_to_results(lam, vec, mesh, geometry)
+
+print("w_min1 = {}".format(results[0].freqHz()))
+print("w_min2 = {}".format(results[1].freqHz()))
+print("w_min3 = {}".format(results[2].freqHz()))
 

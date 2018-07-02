@@ -4,7 +4,7 @@ import fem.material as mat
 import fem.general2D.solverlinear as s
 import fem.general2D.result2D as r
 
-import fem.general2D.solver_nonlinear as s_nl
+import fem.general2D.solver_nonlinear3  as s_nl
 import fem.general2D.result2Dnonlinear as r_nl
 
 import fem.general2D.solver_nonlinear2 as s_nl2
@@ -13,6 +13,8 @@ import fem.mesh as me
 import os
 import platform
 import matplotlib.pyplot as plt
+
+import numpy as np
 
 from fem.general2D.matrices2D import stiffness_matrix, mass_matrix, stiffness_matrix_nl_1, stiffness_matrix_nl_2
 
@@ -52,10 +54,10 @@ def solveNonlinear(geometry, thickness, material, N, M, u_max):
 #    return r.Result.convert_to_result(lam_nl, res, mesh, geometry)
 
 
-E = 40000
+E = 210000000000
 #E = 40000
-v = 0.3
-rho = 2000
+v = 0.4
+rho = 8000
 
 material = mat.IsotropicMaterial(E,v,rho)
 
@@ -71,20 +73,31 @@ geometry = g.General(width, curvature, corrugation_amplitude, corrugation_freque
 N = 100
 M = 4
 
-norm_koef = 0.2
+norm_koef = 0.4
 
 result = solveLinear(geometry, thickness, material, N, M)
 
 x = []
 y = []
 
-for i in range(25):
+yv = []
+
+K = 3
+
+for i in range(5):
     u_max = i*norm_koef*thickness
     resultNl = solveNonlinear(geometry, thickness, material, N, M, u_max)
     #resultNl2 = solveNonlinear2(geometry, thickness, material, N, M, u_max)
     
-    x.append(i*norm_koef)
-    y.append(resultNl.freqHz()/result.freqHz())
+#    print('w_max = {}, w_l = {}, w_nl = {}'.format(u_max,result.freqHz(), resultNl.freqHz()))
+    
+    d = i*norm_koef
+    dy = resultNl.freqHz()/result.freqHz()
+    x.append(d)
+    y.append(dy)
+    yv.append(np.sqrt(1+0.75*K*d*d))
+    
+    print('{} = {}'.format(d, dy))
     
     
 tex_path = '/usr/local/texlive/2017/bin/x86_64-darwin'
@@ -112,10 +125,12 @@ plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
 #plt.plot(x, y, 'o-', linewidth=2.0, markersize=8, markeredgewidth=2, markeredgecolor='r', markerfacecolor='None', label = "General 2D theory")
 #plt.plot(x1D1, y1D1, 'x--', linewidth=2.0, markersize=8, markeredgewidth=2, markeredgecolor='b', markerfacecolor='None', label = "Mindlin-Reissner theory")
 plt.plot(y, x, 'ro-', linewidth=2.0, markersize=8, markeredgewidth=2, markeredgecolor='r', markerfacecolor='None', label = "Shell second order theory")
+
+plt.plot(yv, x, 'bv:', linewidth=2.0, markersize=8, markeredgewidth=2, markeredgecolor='r', markerfacecolor='None', label = "Volmir")
 plt.xlabel(r"$\frac{\omega_{NL}}{\omega_{L}}$")
 plt.ylabel(r"$\frac{w_{max}}{h}$")
 
-plt.xlim(xmin=0, xmax=2)
+plt.xlim(xmin=0, xmax=10)
 plt.legend(loc='best')
 
 #plt.title(r"Shear influence")

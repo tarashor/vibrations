@@ -59,6 +59,31 @@ def u_to_strain(geometry, x1, x2, x3, h):
 
     return E
 
+def u_to_rotations(geometry, x1, x2, x3, h):
+    A, K = geometry.get_A_and_K(x1, x2, x3)
+    
+    hInv= 1/h
+    
+    W = np.zeros((3, 12))
+    
+    W[0, 0] = -hInv + 3*K / 2
+    W[0, 2] = hInv - K / 2
+    W[0, 4] = 4*hInv - 2*K
+    
+    W[0, 7] = -1/A
+    
+    W[1, 0] = -hInv - K / 2
+    W[1, 2] = hInv + 3*K / 2
+    W[1, 4] = -4*hInv - 2*K
+    
+    W[1, 9] = -1/A
+    
+    W[2, 4] = 3*K
+    
+    W[2, 11] = -1/A
+    
+    return 0.5*W
+
 def get_index_conv(index):
     i = 0
     j = 0
@@ -160,6 +185,41 @@ def stiffness_matrix(material, geometry, x1, h):
     
     
     E=u_to_strain(geometry,x1,0,0, h)
+    
+#    print(E.T)
+    
+#    print(C)
+    
+    return E.T.dot(C).dot(E)
+
+def stiffness_matrix_nl_1(material, geometry, x1, h):
+    E_NL_1 = deformations_nl_1(geometry, grad_u, x1, x2, x3)
+    E_NL_2 = deformations_nl_2(geometry, grad_u, x1, x2, x3)
+    C = material.matrix_C(geometry, x1, x2, x3)
+    E = grad_to_strain()
+    B = deriv_to_grad(geometry, x1, x2, x3)
+    gj = geometry.getJacobian(x1, x2, x3)
+    E_NL = E_NL_1+E_NL_2
+#    print(grad_u)
+    return (B.T.dot((E_NL).T).dot(C).dot(E).dot(B)+B.T.dot((E).T).dot(C).dot(E_NL_1).dot(B))* gj
+#    return (B.T.dot((E_NL).T).dot(C).dot(E).dot(B))* gj
+#    return (B.T.dot((E).T).dot(C).dot(E_NL_1).dot(B))* gj
+
+def stiffness_matrix_nl_2(material, geometry, x1, x2, x3, grad_u):
+    E_NL_1 = deformations_nl_1(geometry, grad_u, x1, x2, x3)
+    E_NL_2 = deformations_nl_2(geometry, grad_u, x1, x2, x3)
+    C = material.matrix_C(geometry, x1, x2, x3)
+    B = deriv_to_grad(geometry, x1, x2, x3)
+    gj = geometry.getJacobian(x1, x2, x3)
+    E_NL = E_NL_1+E_NL_2
+    
+    return B.T.dot((E_NL).T).dot(C).dot(E_NL_1).dot(B)* gj
+
+def stiffness_matrix_nl(material, geometry, x1, h):
+    C = get_C(material, geometry, x1, h)
+    
+    
+    E_NL=u_to_strain(geometry,x1,0,0, h)
     
 #    print(E.T)
     
