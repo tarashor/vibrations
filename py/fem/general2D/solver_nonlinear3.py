@@ -51,7 +51,7 @@ def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl_1, s_matrix_nl_2, u_ma
 
     res = vec_ex[:,u_index]
 #    print("Norm = {}".format(np.linalg.norm(res)))
-    res = normalize(res, u_max)
+    res = normalize(res, 1)
     
     s_nl_2_in = integrate_matrix_with_disp(model, mesh, s_matrix_nl_2, res)
     
@@ -61,6 +61,7 @@ def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl_1, s_matrix_nl_2, u_ma
     
     K = s + 0.75*s_nl_2
     
+        
     K = vec[:,u_index].T.dot(K.dot(vec[:,u_index]))
     
     F = vec[:,u_index].T.dot(m.dot(vec[:,u_index]))
@@ -71,15 +72,16 @@ def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl_1, s_matrix_nl_2, u_ma
 #    print('max = {}'.format(l_max))
     
     print('=====K=====')
-    print(K)
+    print(K/lam[u_index])
 
     print('=====F=====')
     print(F)
+#    
+#    lam2 = K
     
-    lam2 = K
     
     
-    lam_nl = K
+    lam_nl = K*u_max*u_max
     
     b1 = -0.5*s_nl_1_in.dot(res)
     b2 = -0.25*s_nl_2_in.dot(res)

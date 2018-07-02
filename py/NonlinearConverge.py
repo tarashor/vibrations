@@ -4,7 +4,7 @@ import fem.material as mat
 import fem.general2D.solverlinear as s
 import fem.general2D.result2D as r
 
-import fem.general2D.solver_nonlinear3  as s_nl
+import fem.general2D.solver_nonlinear  as s_nl
 import fem.general2D.result2Dnonlinear as r_nl
 
 import fem.general2D.solver_nonlinear2 as s_nl2
@@ -43,20 +43,20 @@ def solveNonlinear(geometry, thickness, material, N, M, u_max):
     
     return r_nl.ResultNL.convert_to_result(lam_nl, res, U1, U2, U3, mesh, geometry)
 
-#def solveNonlinear2(geometry, thickness, material, N, M, u_max):
-#    layers = m.Layer.generate_layers(thickness, [material])
-#    model = m.Model(geometry, layers, m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS)
-##    model = m.Model(geometry, layers, m.Model.FIXED_LEFT_RIGHT_EDGE)
-#    mesh = me.Mesh.generate2D(geometry.width, layers, N, M, model.boundary_conditions)
-#    
-#    lam_nl, res = s_nl2.solve_nl(model, mesh, stiffness_matrix, mass_matrix, stiffness_matrix_nl_1, stiffness_matrix_nl_2, u_max)
-#    
-#    return r.Result.convert_to_result(lam_nl, res, mesh, geometry)
+def solveNonlinear2(geometry, thickness, material, N, M, u_max):
+    layers = m.Layer.generate_layers(thickness, [material])
+    model = m.Model(geometry, layers, m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS)
+#    model = m.Model(geometry, layers, m.Model.FIXED_LEFT_RIGHT_EDGE)
+    mesh = me.Mesh.generate2D(geometry.width, layers, N, M, model.boundary_conditions)
+    
+    lam_nl, res = s_nl2.solve_nl(model, mesh, stiffness_matrix, mass_matrix, stiffness_matrix_nl_1, stiffness_matrix_nl_2, u_max)
+    
+    return r.Result.convert_to_result(lam_nl, res, mesh, geometry)
 
 
 E = 210000000000
 #E = 40000
-v = 0.4
+v = 0.3
 rho = 8000
 
 material = mat.IsotropicMaterial(E,v,rho)
@@ -87,7 +87,7 @@ K = 3
 for i in range(5):
     u_max = i*norm_koef*thickness
     resultNl = solveNonlinear(geometry, thickness, material, N, M, u_max)
-    #resultNl2 = solveNonlinear2(geometry, thickness, material, N, M, u_max)
+#    resultNl2 = solveNonlinear2(geometry, thickness, material, N, M, u_max)
     
 #    print('w_max = {}, w_l = {}, w_nl = {}'.format(u_max,result.freqHz(), resultNl.freqHz()))
     

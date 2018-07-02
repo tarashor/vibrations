@@ -40,11 +40,13 @@ def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl_1, s_matrix_nl_2, u_ma
 
     lam, vec = la.eigh(s, m)
     
+    print(lam)
+    
     lam_nl = np.copy(lam)
 
     vec_ex = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count())
     
-    for i in len(lam):
+    for i in range(len(lam)):
         res = vec_ex[:,i]
         r = vec[:,i]
 #        print("Norm = {}".format(np.linalg.norm(res)))

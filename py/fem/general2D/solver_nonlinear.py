@@ -51,28 +51,20 @@ def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl_1, s_matrix_nl_2, u_ma
 
     res = vec[:,u_index]
 #    print("Norm = {}".format(np.linalg.norm(res)))
-    res = normalize(res, u_max)
+    res = normalize(res, 1)
     
     s_nl_2_in = integrate_matrix_with_disp(model, mesh, s_matrix_nl_2, res)
     s_nl_2 = remove_fixed_nodes(s_nl_2_in, fixed_nodes_indicies, mesh.nodes_count())
     
     s_nl_1_in = integrate_matrix_with_disp(model, mesh, s_matrix_nl_1, res)
     
-    l_max=np.amax(s)
-    nl_max=np.amax(s_nl_2)
-    
-    
-    
-    print('max = {}'.format(nl_max/l_max))
-    
-    K = s + 0.75*s_nl_2
+    K = s + 0.75*s_nl_2*u_max*u_max
     
     lam2, vec = la.eigh(K, m)
     
-    dl = np.linalg.norm(np.sqrt(lam2)-np.sqrt(lam))
+    print('=====lam2=====')
+    print(lam2[u_index])
     
-    print('=====dl=====')
-    print(dl)
     
     lam_nl = lam2[u_index]
     
@@ -208,4 +200,4 @@ def normalize(v, u_max):
     norm = np.linalg.norm(v)
     if norm == 0:
         return v
-    return v*u_max #/ norm
+    return v*u_max / norm
