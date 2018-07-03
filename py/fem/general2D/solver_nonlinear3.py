@@ -50,8 +50,8 @@ def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl_1, s_matrix_nl_2, u_ma
     vec_ex = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count())
 
     res = vec_ex[:,u_index]
-#    print("Norm = {}".format(np.linalg.norm(res)))
-    res = normalize(res, 1)
+    print("Norm = {}".format(np.linalg.norm(res)))
+#    res = normalize(res, 1)
     
     s_nl_2_in = integrate_matrix_with_disp(model, mesh, s_matrix_nl_2, res)
     
@@ -59,7 +59,9 @@ def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl_1, s_matrix_nl_2, u_ma
     
     s_nl_1_in = integrate_matrix_with_disp(model, mesh, s_matrix_nl_1, res)
     
-    K = s + 0.75*s_nl_2*u_max*u_max
+    n = np.linalg.norm(res)
+    
+    K = s + 0.75*s_nl_2*u_max*u_max/(n*n)
     
         
     K = vec[:,u_index].T.dot(K.dot(vec[:,u_index]))
@@ -71,9 +73,13 @@ def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl_1, s_matrix_nl_2, u_ma
 #    
 #    print('w2 = {}, K = {}'.format(lam[u_index], K))
 #    
-#    koef = vec[:,u_index].T.dot(s_nl_2.dot(vec[:,u_index])) / lam[u_index]
-#    
-#    print('koef = {}'.format(koef))
+    h = 0
+    for l in model.layers:
+        h = l.height()
+    koef = vec[:,u_index].T.dot(s_nl_2.dot(vec[:,u_index])) * h*h / (lam[u_index]*n*n)
+    
+    print('koef = {}'.format(koef))
+#    print('norm = {}'.format(n))
     
     res2 = normalize(vec[:,u_index], u_max)
     

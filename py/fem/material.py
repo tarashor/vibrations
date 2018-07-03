@@ -47,6 +47,53 @@ class OrthotropicMaterial:
         
         return OrthotropicMaterial(C11, C12, C13, C22, C23, C33, G[0], G[1], G[2], rho)
     
+    @staticmethod
+    def create_from_E_and_v_with_koef_E1(E, v, rho, kE1 = 1):
+        Es = [kE1*E, E, E]
+        vs = np.zeros((3,3))
+        
+        for i in range(3):
+            for j in range(3):
+                if (i != j):
+                    vs[i,j] = v
+                  
+        if (kE1 >= 1):
+            vs[2,0] = (v/kE1)
+            vs[1,0] = (v/kE1)
+        else:
+            vs[0,2] = (v*kE1)
+            vs[0,1] = (v*kE1)
+            
+        
+        G = 0.5*E
+        Gs = [G,G,G]
+        
+        return OrthotropicMaterial.create_from_E_and_v(Es,vs, Gs,rho)    
+    
+    @staticmethod
+    def create_from_E_and_v_with_koef_E3(E, v, rho, kE3 = 1):
+        Es = [E, E, kE3*E]
+        vs = np.zeros((3,3))
+        
+        for i in range(3):
+            for j in range(3):
+                if (i != j):
+                    vs[i,j] = v
+                  
+        if (kE3 >= 1):
+            vs[0,2] = (v/kE3)
+            vs[1,2] = (v/kE3)
+        else:
+            vs[2,0] = (v*kE3)
+            vs[2,1] = (v*kE3)
+            
+            
+        
+        G = E/(2*(1+v))
+        Gs = [G,G,G]
+        
+        return OrthotropicMaterial.create_from_E_and_v(Es,vs, Gs,rho)    
+    
 
     
 class IsotropicMaterial(OrthotropicMaterial):

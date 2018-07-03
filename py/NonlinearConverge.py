@@ -45,8 +45,8 @@ def solveNonlinear(geometry, thickness, material, N, M, u_max):
 
 def solveNonlinear2(geometry, thickness, material, N, M, u_max):
     layers = m.Layer.generate_layers(thickness, [material])
-    model = m.Model(geometry, layers, m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS)
-#    model = m.Model(geometry, layers, m.Model.FIXED_LEFT_RIGHT_EDGE)
+#    model = m.Model(geometry, layers, m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS)
+    model = m.Model(geometry, layers, m.Model.FIXED_LEFT_RIGHT_EDGE)
     mesh = me.Mesh.generate2D(geometry.width, layers, N, M, model.boundary_conditions)
     
     lam_nl, res = s_nl2.solve_nl(model, mesh, stiffness_matrix, mass_matrix, stiffness_matrix_nl_1, stiffness_matrix_nl_2, u_max)
@@ -56,14 +56,24 @@ def solveNonlinear2(geometry, thickness, material, N, M, u_max):
 
 E = 210*(10**9)
 #E = 40000
-v = 0.3
-rho = 2000
+v = 0.4
+rho = 8000
 
-material = mat.IsotropicMaterial(E,v,rho)
+#kE3 = 100000000
+kE3 = 1
+kG13 = 100000000
+#kG13 = 1
+
+material = mat.OrthotropicMaterial.create_from_E_and_v_with_koef_E3(E,v,rho, kE3)
+
+#material.C[2,2] *= kE3
+material.C[4,4] *= kG13
+
+print(material.C)
 
 width = 1
 curvature = 0
-thickness = 0.01
+thickness = 0.1
 
 corrugation_amplitude = 0
 corrugation_frequency = 0
@@ -93,7 +103,7 @@ for i in range(5):
     
     d = i*norm_koef
     dy = resultNl.freqHz()/result.freqHz()
-    dya = np.sqrt(1+0.75*K*A*A)
+    dya = np.sqrt(1+0.75*K*A*A/(thickness*thickness))
     x.append(d)
     y.append(dy)
     yv.append(dya)
