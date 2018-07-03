@@ -59,29 +59,28 @@ def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl_1, s_matrix_nl_2, u_ma
     
     s_nl_1_in = integrate_matrix_with_disp(model, mesh, s_matrix_nl_1, res)
     
-    K = s + 0.75*s_nl_2
+    K = s + 0.75*s_nl_2*u_max*u_max
     
         
     K = vec[:,u_index].T.dot(K.dot(vec[:,u_index]))
     
-    F = vec[:,u_index].T.dot(m.dot(vec[:,u_index]))
+#    F = vec[:,u_index].T.dot(m.dot(vec[:,u_index]))
     
 #    l_max=np.amin(K)-lam[0]
 #    nl_max=np.amax(s_nl_2)
 #    
-#    print('max = {}'.format(l_max))
-    
-    print('=====K=====')
-    print(K/lam[u_index])
-
-    print('=====F=====')
-    print(F)
+#    print('w2 = {}, K = {}'.format(lam[u_index], K))
 #    
-#    lam2 = K
+#    koef = vec[:,u_index].T.dot(s_nl_2.dot(vec[:,u_index])) / lam[u_index]
+#    
+#    print('koef = {}'.format(koef))
+    
+    res2 = normalize(vec[:,u_index], u_max)
+    
+    A =  vec[:,u_index].T.dot(m.dot(res2))
     
     
-    
-    lam_nl = K*u_max*u_max
+    lam_nl = K
     
     b1 = -0.5*s_nl_1_in.dot(res)
     b2 = -0.25*s_nl_2_in.dot(res)
@@ -97,7 +96,7 @@ def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl_1, s_matrix_nl_2, u_ma
     U2 = extend_with_fixed_nodes(U2, fixed_nodes_indicies, mesh.nodes_count())
     U3 = extend_with_fixed_nodes(U3, fixed_nodes_indicies, mesh.nodes_count())
     
-    return lam_nl, res, U1, U2, U3
+    return lam_nl, res, U1, U2, U3, A
 
 
 def convert_to_results(eigenvalues, eigenvectors, mesh, geometry):

@@ -4,7 +4,7 @@ import fem.material as mat
 import fem.general2D.solverlinear as s
 import fem.general2D.result2D as r
 
-import fem.general2D.solver_nonlinear  as s_nl
+import fem.general2D.solver_nonlinear3  as s_nl
 import fem.general2D.result2Dnonlinear as r_nl
 
 import fem.general2D.solver_nonlinear2 as s_nl2
@@ -39,9 +39,9 @@ def solveNonlinear(geometry, thickness, material, N, M, u_max):
 #    model = m.Model(geometry, layers, m.Model.FIXED_LEFT_RIGHT_EDGE)
     mesh = me.Mesh.generate2D(geometry.width, layers, N, M, model.boundary_conditions)
     
-    lam_nl, res, U1, U2, U3 = s_nl.solve_nl(model, mesh, stiffness_matrix, mass_matrix, stiffness_matrix_nl_1, stiffness_matrix_nl_2, u_max)
+    lam_nl, res, U1, U2, U3, A = s_nl.solve_nl(model, mesh, stiffness_matrix, mass_matrix, stiffness_matrix_nl_1, stiffness_matrix_nl_2, u_max)
     
-    return r_nl.ResultNL.convert_to_result(lam_nl, res, U1, U2, U3, mesh, geometry)
+    return r_nl.ResultNL.convert_to_result(lam_nl, res, U1, U2, U3, mesh, geometry), A
 
 def solveNonlinear2(geometry, thickness, material, N, M, u_max):
     layers = m.Layer.generate_layers(thickness, [material])
@@ -54,16 +54,16 @@ def solveNonlinear2(geometry, thickness, material, N, M, u_max):
     return r.Result.convert_to_result(lam_nl, res, mesh, geometry)
 
 
-E = 210000000000
+E = 210*(10**9)
 #E = 40000
 v = 0.3
-rho = 8000
+rho = 2000
 
 material = mat.IsotropicMaterial(E,v,rho)
 
 width = 1
 curvature = 0
-thickness = 0.1
+thickness = 0.01
 
 corrugation_amplitude = 0
 corrugation_frequency = 0
@@ -86,18 +86,20 @@ K = 3
 
 for i in range(5):
     u_max = i*norm_koef*thickness
-    resultNl = solveNonlinear(geometry, thickness, material, N, M, u_max)
+    resultNl, A = solveNonlinear(geometry, thickness, material, N, M, u_max)
 #    resultNl2 = solveNonlinear2(geometry, thickness, material, N, M, u_max)
     
 #    print('w_max = {}, w_l = {}, w_nl = {}'.format(u_max,result.freqHz(), resultNl.freqHz()))
     
     d = i*norm_koef
     dy = resultNl.freqHz()/result.freqHz()
+    dya = np.sqrt(1+0.75*K*A*A)
     x.append(d)
     y.append(dy)
-    yv.append(np.sqrt(1+0.75*K*d*d))
+    yv.append(dya)
     
-    print('{} = {}'.format(d, dy))
+    print('fem {} = {}'.format(d, dy))
+    print('anal {} = {}'.format(d, dya))
     
     
 tex_path = '/usr/local/texlive/2017/bin/x86_64-darwin'
@@ -130,7 +132,7 @@ plt.plot(yv, x, 'bv:', linewidth=2.0, markersize=8, markeredgewidth=2, markeredg
 plt.xlabel(r"$\frac{\omega_{NL}}{\omega_{L}}$")
 plt.ylabel(r"$\frac{w_{max}}{h}$")
 
-plt.xlim(xmin=0, xmax=10)
+plt.xlim(xmin=0)
 plt.legend(loc='best')
 
 #plt.title(r"Shear influence")
