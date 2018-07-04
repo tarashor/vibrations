@@ -4,7 +4,7 @@ import fem.material as mat
 import fem.general2D.solverlinear as s
 import fem.general2D.result2D as r
 
-import fem.general2D.solver_nonlinear3  as s_nl
+import fem.general2D.solver_nonlinear  as s_nl
 import fem.general2D.result2Dnonlinear as r_nl
 
 import fem.general2D.solver_nonlinear2 as s_nl2
@@ -39,14 +39,14 @@ def solveNonlinear(geometry, thickness, material, N, M, u_max):
 #    model = m.Model(geometry, layers, m.Model.FIXED_LEFT_RIGHT_EDGE)
     mesh = me.Mesh.generate2D(geometry.width, layers, N, M, model.boundary_conditions)
     
-    lam_nl, res, U1, U2, U3, A = s_nl.solve_nl(model, mesh, stiffness_matrix, mass_matrix, stiffness_matrix_nl_1, stiffness_matrix_nl_2, u_max)
+    lam_nl, res, U1, U2, U3, n = s_nl.solve_nl(model, mesh, stiffness_matrix, mass_matrix, stiffness_matrix_nl_1, stiffness_matrix_nl_2, u_max)
     
-    return r_nl.ResultNL.convert_to_result(lam_nl, res, U1, U2, U3, mesh, geometry), A
+    return r_nl.ResultNL.convert_to_result(lam_nl, res, U1, U2, U3, mesh, geometry), n
 
 def solveNonlinear2(geometry, thickness, material, N, M, u_max):
     layers = m.Layer.generate_layers(thickness, [material])
-#    model = m.Model(geometry, layers, m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS)
-    model = m.Model(geometry, layers, m.Model.FIXED_LEFT_RIGHT_EDGE)
+    model = m.Model(geometry, layers, m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS)
+#    model = m.Model(geometry, layers, m.Model.FIXED_LEFT_RIGHT_EDGE)
     mesh = me.Mesh.generate2D(geometry.width, layers, N, M, model.boundary_conditions)
     
     lam_nl, res = s_nl2.solve_nl(model, mesh, stiffness_matrix, mass_matrix, stiffness_matrix_nl_1, stiffness_matrix_nl_2, u_max)
@@ -54,26 +54,23 @@ def solveNonlinear2(geometry, thickness, material, N, M, u_max):
     return r.Result.convert_to_result(lam_nl, res, mesh, geometry)
 
 
-E = 210*(10**9)
+E = 40*(10**9)
 #E = 40000
-v = 0.4
+v = 0.3
 rho = 8000
 
 #kE3 = 100000000
 kE3 = 1
-kG13 = 100000000
-#kG13 = 1
+#kG13 = 100000000
+kG13 = 1
 
 material = mat.OrthotropicMaterial.create_from_E_and_v_with_koef_E3(E,v,rho, kE3)
 
-#material.C[2,2] *= kE3
 material.C[4,4] *= kG13
-
-print(material.C)
 
 width = 1
 curvature = 0
-thickness = 0.1
+thickness = 0.01
 
 corrugation_amplitude = 0
 corrugation_frequency = 0
@@ -83,7 +80,7 @@ geometry = g.General(width, curvature, corrugation_amplitude, corrugation_freque
 N = 100
 M = 4
 
-norm_koef = 0.4
+norm_koef = 0.2
 
 result = solveLinear(geometry, thickness, material, N, M)
 
@@ -94,16 +91,16 @@ yv = []
 
 K = 3
 
-for i in range(5):
+for i in range(20):
     u_max = i*norm_koef*thickness
-    resultNl, A = solveNonlinear(geometry, thickness, material, N, M, u_max)
+    resultNl, n = solveNonlinear(geometry, thickness, material, N, M, u_max)
 #    resultNl2 = solveNonlinear2(geometry, thickness, material, N, M, u_max)
     
 #    print('w_max = {}, w_l = {}, w_nl = {}'.format(u_max,result.freqHz(), resultNl.freqHz()))
     
-    d = i*norm_koef
+    d = i*norm_koef/n
     dy = resultNl.freqHz()/result.freqHz()
-    dya = np.sqrt(1+0.75*K*A*A/(thickness*thickness))
+    dya = np.sqrt(1+0.75*K*d*d)
     x.append(d)
     y.append(dy)
     yv.append(dya)

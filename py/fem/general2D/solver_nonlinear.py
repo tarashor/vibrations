@@ -50,20 +50,21 @@ def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl_1, s_matrix_nl_2, u_ma
     vec = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count())
 
     res = vec[:,u_index]
-#    print("Norm = {}".format(np.linalg.norm(res)))
-    res = normalize(res, 1)
+    n = np.linalg.norm(res)
+    print("Norm = {}".format(n))
+    res = normalize(res, u_max)
     
     s_nl_2_in = integrate_matrix_with_disp(model, mesh, s_matrix_nl_2, res)
     s_nl_2 = remove_fixed_nodes(s_nl_2_in, fixed_nodes_indicies, mesh.nodes_count())
     
     s_nl_1_in = integrate_matrix_with_disp(model, mesh, s_matrix_nl_1, res)
     
-    K = s + 0.75*s_nl_2*u_max*u_max
+    K = s + 0.75*s_nl_2
     
     lam2, vec = la.eigh(K, m)
     
-    print('=====lam2=====')
-    print(lam2[u_index])
+#    print('=====lam2=====')
+#    print(lam2[u_index])
     
     
     lam_nl = lam2[u_index]
@@ -82,7 +83,7 @@ def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl_1, s_matrix_nl_2, u_ma
     U2 = extend_with_fixed_nodes(U2, fixed_nodes_indicies, mesh.nodes_count())
     U3 = extend_with_fixed_nodes(U3, fixed_nodes_indicies, mesh.nodes_count())
     
-    return lam_nl, res, U1, U2, U3
+    return lam_nl, res, U1, U2, U3, n
 
 
 def convert_to_results(eigenvalues, eigenvectors, mesh, geometry):

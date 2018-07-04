@@ -59,6 +59,8 @@ def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl_1, s_matrix_nl_2, u_ma
     
     s_nl_1_in = integrate_matrix_with_disp(model, mesh, s_matrix_nl_1, res)
     
+    s_nl_1 = remove_fixed_nodes(s_nl_1_in, fixed_nodes_indicies, mesh.nodes_count())
+    
     n = np.linalg.norm(res)
     
     K = s + 0.75*s_nl_2*u_max*u_max/(n*n)
@@ -76,15 +78,19 @@ def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl_1, s_matrix_nl_2, u_ma
     h = 0
     for l in model.layers:
         h = l.height()
-    koef = vec[:,u_index].T.dot(s_nl_2.dot(vec[:,u_index])) * h*h / (lam[u_index]*n*n)
-    
+        
+#    al2 = vec[:,u_index].T.dot(s_nl_2.dot(vec[:,u_index])) * h * h / 2
+#    t1 = vec[:,u_index].T.dot(s_nl_1.dot(vec[:,u_index]))
+#    al1 = 5* t1 * t1 * h * h / 9
+#        
+#    koef = (al2 - al1) / (lam[u_index])
+#    
+#    print('koef = {}'.format(koef))
+
+    koef = vec[:,u_index].T.dot(s_nl_2.dot(vec[:,u_index])) * h * h / (lam[u_index])
+#    
     print('koef = {}'.format(koef))
-#    print('norm = {}'.format(n))
-    
-    res2 = normalize(vec[:,u_index], u_max)
-    
-    A =  vec[:,u_index].T.dot(m.dot(res2))
-    
+     
     
     lam_nl = K
     
@@ -102,7 +108,7 @@ def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl_1, s_matrix_nl_2, u_ma
     U2 = extend_with_fixed_nodes(U2, fixed_nodes_indicies, mesh.nodes_count())
     U3 = extend_with_fixed_nodes(U3, fixed_nodes_indicies, mesh.nodes_count())
     
-    return lam_nl, res, U1, U2, U3, A
+    return lam_nl, res, U1, U2, U3, n
 
 
 def convert_to_results(eigenvalues, eigenvectors, mesh, geometry):

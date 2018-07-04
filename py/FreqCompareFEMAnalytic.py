@@ -24,16 +24,16 @@ def solveLinear(geometry, thickness, material, N, M, u_max):
     
     lam, vec = s.solve(model, mesh, stiffness_matrix, mass_matrix, u_max)
     
-    results_index = 0
+#    results_index = 0
     results = r.Result.convert_to_results(lam, vec, mesh, geometry)
     
-    return results[results_index]
+    return results
 
 
 def wAnalyticalLin(geometry, thickness, material, N, M, u_max):
     
     ko = 14/15
-    G = material.mu()
+    G = material.C[4,4]
     LAM = ko * thickness * G
     
     c2 = np.sqrt(LAM/(rho*thickness))
@@ -52,15 +52,33 @@ def wAnalyticalLin(geometry, thickness, material, N, M, u_max):
     
     return w
 
+def wAnalyticalLin2(geometry, thickness, material, N, M, u_max):
+    
+    c = np.sqrt(E/rho)
+    
+    w = c*thickness*np.pi*np.pi/(np.sqrt(12*(1-v*v))*geometry.width*geometry.width)
+    
+    return w
 
 
 
-E = 40000
+
+E = 40*(10**9)
 #E = 40000
 v = 0.3
-rho = 2000
+rho = 8000
 
-material = mat.IsotropicMaterial(E,v,rho)
+kE3 = 100000000
+#kE3 = 1
+kG13 = 100000000
+#kG13 = 1
+
+material = mat.OrthotropicMaterial.create_from_E_and_v_with_koef_E3(E,v,rho)
+
+material.C[2,2] *= kE3
+material.C[4,4] *= kG13
+
+#material = mat.IsotropicMaterial(E,v,rho)
 
 width = 1
 curvature = 0
@@ -77,10 +95,18 @@ M = 4
 norm_koef = 2
 u_max = norm_koef*thickness
 
-result = solveLinear(geometry, thickness, material, N, M, u_max)
+results = solveLinear(geometry, thickness, material, N, M, u_max)
 
-wa = wAnalyticalLin(geometry, thickness, material, N, M, u_max)
+wa = wAnalyticalLin(geometry, thickness, material, N, M, u_max)/(np.pi)
+wa2 = wAnalyticalLin2(geometry, thickness, material, N, M, u_max)/(np.pi)
 
-print('FEM = {}'.format(result.freqHz()))
+print('FEM 1 = {}'.format(results[0].freqHz()))
+print('FEM 2 = {}'.format(results[1].freqHz()))
+print('FEM 3 = {}'.format(results[2].freqHz()))
+print('FEM 4 = {}'.format(results[3].freqHz()))
+print('FEM 5 = {}'.format(results[4].freqHz()))
+print('FEM 6 = {}'.format(results[5].freqHz()))
 
 print('Analyt = {}'.format(wa))
+
+print('Analyt2 = {}'.format(wa2))
