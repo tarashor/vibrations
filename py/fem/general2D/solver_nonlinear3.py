@@ -79,13 +79,18 @@ def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl_1, s_matrix_nl_2, u_ma
     for l in model.layers:
         h = l.height()
         
-#    al2 = vec[:,u_index].T.dot(s_nl_2.dot(vec[:,u_index])) * h * h / 2
-#    t1 = vec[:,u_index].T.dot(s_nl_1.dot(vec[:,u_index]))
-#    al1 = 5* t1 * t1 * h * h / 9
+#    t2 = vec[:,u_index].T.dot(s_nl_2.dot(vec[:,u_index])) * h * h / (lam[u_index])
+#    al2 = t2 / 2
+#    t1 = vec[:,u_index].T.dot(s_nl_1.dot(vec[:,u_index])) * h / (lam[u_index])
+#    al1 = 5 * t1 * t1 / 9 
 #        
-#    koef = (al2 - al1) / (lam[u_index])
+#    koef = (al2 - al1)
 #    
-#    print('koef = {}'.format(koef))
+#    print('koef = {}'.format(2*koef))
+#    
+#    print('a2 = {}'.format(t1))
+#    
+#    print('a3 = {}'.format(t2))
 
     koef = vec[:,u_index].T.dot(s_nl_2.dot(vec[:,u_index])) * h * h / (lam[u_index])
 #    

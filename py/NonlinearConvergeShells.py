@@ -1,13 +1,12 @@
 import fem.geometry as g
 import fem.model as m
 import fem.material as mat
-import fem.general2D.solverlinear as s
-import fem.general2D.result2D as r
+import fem.shells1D.secondorder.shellsolver as s
+import fem.shells1D.secondorder.result1D as r
 
-import fem.general2D.solver_nonlinear  as s_nl
-import fem.general2D.result2Dnonlinear as r_nl
+import fem.shells1D.secondorder.nonlinearshellsolver as s_nl
+import fem.shells1D.secondorder.result1Dnonlinear as r_nl
 
-import fem.general2D.solver_nonlinear2 as s_nl2
 
 import fem.mesh as me
 import os
@@ -16,42 +15,33 @@ import matplotlib.pyplot as plt
 
 import numpy as np
 
-from fem.general2D.matrices2D import stiffness_matrix, mass_matrix, stiffness_matrix_nl_1, stiffness_matrix_nl_2
+from fem.shells1D.secondorder.matrices1D import stiffness_matrix, mass_matrix, stiffness_matrix_nl_1, stiffness_matrix_nl_2
 
 
-def solveLinear(geometry, thickness, material, N, M):
+def solveLinear(geometry, thickness, material, N, bc):
     layers = m.Layer.generate_layers(thickness, [material])
-    model = m.Model(geometry, layers, m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS)
+    model = m.Model(geometry, layers, bc)
 #    model = m.Model(geometry, layers, m.Model.FIXED_LEFT_RIGHT_EDGE)
-    mesh = me.Mesh.generate2D(geometry.width, layers, N, M, model.boundary_conditions)
+    mesh = me.Mesh.generate1D(geometry.width, layers, N, model.boundary_conditions)
     
     lam, vec = s.solve(model, mesh, stiffness_matrix, mass_matrix)
     
     results_index = 0
-    results = r.Result.convert_to_results(lam, vec, mesh, geometry)
+    results = r.Result.convert_to_results(lam, vec, mesh, geometry, thickness)
     
     return results[results_index]
 
 
-def solveNonlinear(geometry, thickness, material, N, M, u_max):
+def solveNonlinear(geometry, thickness, material, N, u_max, bc):
     layers = m.Layer.generate_layers(thickness, [material])
-    model = m.Model(geometry, layers, m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS)
+    model = m.Model(geometry, layers, bc)
 #    model = m.Model(geometry, layers, m.Model.FIXED_LEFT_RIGHT_EDGE)
-    mesh = me.Mesh.generate2D(geometry.width, layers, N, M, model.boundary_conditions)
+    mesh = me.Mesh.generate1D(geometry.width, layers, N, model.boundary_conditions)
     
     lam_nl, res, U1, U2, U3, n = s_nl.solve_nl(model, mesh, stiffness_matrix, mass_matrix, stiffness_matrix_nl_1, stiffness_matrix_nl_2, u_max)
     
-    return r_nl.ResultNL.convert_to_result(lam_nl, res, U1, U2, U3, mesh, geometry), n
+    return r_nl.ResultNL.convert_to_result(lam_nl, res, mesh, geometry, thickness), n
 
-def solveNonlinear2(geometry, thickness, material, N, M, u_max):
-    layers = m.Layer.generate_layers(thickness, [material])
-    model = m.Model(geometry, layers, m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS)
-#    model = m.Model(geometry, layers, m.Model.FIXED_LEFT_RIGHT_EDGE)
-    mesh = me.Mesh.generate2D(geometry.width, layers, N, M, model.boundary_conditions)
-    
-    lam_nl, res = s_nl2.solve_nl(model, mesh, stiffness_matrix, mass_matrix, stiffness_matrix_nl_1, stiffness_matrix_nl_2, u_max)
-    
-    return r.Result.convert_to_result(lam_nl, res, mesh, geometry)
 
 
 E = 40*(10**9)
@@ -70,31 +60,37 @@ material.C[2,2] *= kE3
 material.C[4,4] *= kG13
 
 width = 1
-curvature = 0
+curvature = 0.8
 thickness = 0.01
 
 corrugation_amplitude = 0
 corrugation_frequency = 0
 
+bc = m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS
+
+#bc = m.Model.FIXED_LEFT_RIGHT_EDGE
+
 geometry = g.General(width, curvature, corrugation_amplitude, corrugation_frequency)
 
 N = 100
-M = 4
 
 norm_koef = 0.2
 
-result = solveLinear(geometry, thickness, material, N, M)
+result = solveLinear(geometry, thickness, material, N, bc)
 
 x = []
 y = []
 
 yv = []
 
-K = 3
+K = 3/4
+
+if (bc == m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS):
+    K = 3
 
 for i in range(20):
     u_max = i*norm_koef*thickness
-    resultNl, n = solveNonlinear(geometry, thickness, material, N, M, u_max)
+    resultNl, n = solveNonlinear(geometry, thickness, material, N, u_max, bc)
 #    resultNl2 = solveNonlinear2(geometry, thickness, material, N, M, u_max)
     
 #    print('w_max = {}, w_l = {}, w_nl = {}'.format(u_max,result.freqHz(), resultNl.freqHz()))

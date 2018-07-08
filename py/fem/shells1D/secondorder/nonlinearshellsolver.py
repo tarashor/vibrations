@@ -12,8 +12,8 @@ def remove_fixed_nodes(matrix, fixed_nodes_indicies, all_nodes_count, bc):
     free_nodes2 = [i for i in range(matrix.shape[1]) if i not in indicies_to_exclude]
     return matrix[np.ix_(free_nodes1, free_nodes2)]
 
-def remove_fixed_nodes_vector(v, fixed_nodes_indicies, all_nodes_count):
-    indicies_to_exclude = i_exclude(fixed_nodes_indicies, all_nodes_count)
+def remove_fixed_nodes_vector(v, fixed_nodes_indicies, all_nodes_count, bc):
+    indicies_to_exclude = i_exclude(fixed_nodes_indicies, all_nodes_count, bc)
 
     free_nodes1 = [i for i in range(v.shape[0]) if i not in indicies_to_exclude]
     return v[free_nodes1]
@@ -57,19 +57,21 @@ def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl_1, s_matrix_nl_2, u_ma
 
     fixed_nodes_indicies = mesh.get_fixed_nodes_indicies()
 
-    s = remove_fixed_nodes(s, fixed_nodes_indicies, mesh.nodes_count())
-    m = remove_fixed_nodes(m, fixed_nodes_indicies, mesh.nodes_count())
+    s = remove_fixed_nodes(s, fixed_nodes_indicies, mesh.nodes_count(), model.boundary_conditions)
+    m = remove_fixed_nodes(m, fixed_nodes_indicies, mesh.nodes_count(), model.boundary_conditions)
 
 
     lam, vec = la.eigh(s, m)
 
-    vec = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count())
+    vec = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count(), model.boundary_conditions)
 
     res = vec[:,u_index]
+    n = np.linalg.norm(res)
+    
     res = normalize(res, u_max)
     
     s_nl_2_in = integrate_matrix_with_disp(model, mesh, s_matrix_nl_2, res)
-    s_nl_2 = remove_fixed_nodes(s_nl_2_in, fixed_nodes_indicies, mesh.nodes_count())
+    s_nl_2 = remove_fixed_nodes(s_nl_2_in, fixed_nodes_indicies, mesh.nodes_count(), model.boundary_conditions)
     
     s_nl_1_in = integrate_matrix_with_disp(model, mesh, s_matrix_nl_1, res)
     
@@ -83,18 +85,18 @@ def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl_1, s_matrix_nl_2, u_ma
     b1 = -0.5*s_nl_1_in.dot(res)
     b2 = -0.25*s_nl_2_in.dot(res)
     
-    b1 = remove_fixed_nodes_vector(b1, fixed_nodes_indicies, mesh.nodes_count())
-    b2 = remove_fixed_nodes_vector(b2, fixed_nodes_indicies, mesh.nodes_count())
+    b1 = remove_fixed_nodes_vector(b1, fixed_nodes_indicies, mesh.nodes_count(), model.boundary_conditions)
+    b2 = remove_fixed_nodes_vector(b2, fixed_nodes_indicies, mesh.nodes_count(), model.boundary_conditions)
     
     U1 = la.solve(K, b1)
     U2 = la.solve(K - 4*lam_nl*m, b1)
     U3 = la.solve(K - 9*lam_nl*m, b2)
     
-    U1 = extend_with_fixed_nodes(U1, fixed_nodes_indicies, mesh.nodes_count())
-    U2 = extend_with_fixed_nodes(U2, fixed_nodes_indicies, mesh.nodes_count())
-    U3 = extend_with_fixed_nodes(U3, fixed_nodes_indicies, mesh.nodes_count())
+    U1 = extend_with_fixed_nodes(U1, fixed_nodes_indicies, mesh.nodes_count(), model.boundary_conditions)
+    U2 = extend_with_fixed_nodes(U2, fixed_nodes_indicies, mesh.nodes_count(), model.boundary_conditions)
+    U3 = extend_with_fixed_nodes(U3, fixed_nodes_indicies, mesh.nodes_count(), model.boundary_conditions)
     
-    return lam_nl, res, U1, U2, U3
+    return lam_nl, res, U1, U2, U3, n
     
 
 def integrate_matrix(model, mesh, matrix_func):
@@ -132,11 +134,13 @@ def element_func(ksi, element, geometry, matrix_func):
     return e
 
 
-def element_func_disp(ksi, teta, element, geometry, matrix_func, u_element):
-    x1, x3 = element.to_model_coordinates(ksi, teta)
+def element_func_disp(ksi, element, geometry, matrix_func, u_element):
+    x1 = element.to_model_coordinates(ksi)
+    x3 = 0
     x2 = 0
-    grad_u = matrices.get_grad_u(element, geometry, u_element, x1, x2, x3)
-    EM = matrix_func(element.material, geometry, x1, x2, x3, grad_u)
+    
+    u = matrices.get_u_deriv(element, u_element, x1, x2, x3)
+    EM = matrix_func(element.material, geometry, x1, element.thickness, u)
     H = matrices.element_aprox_functions(element, x1, x2, x3)
     J = element.jacobian_element_coordinates()
 
@@ -196,4 +200,4 @@ def normalize(v, u_max):
     norm = np.linalg.norm(v)
     if norm == 0:
         return v
-    return v*u_max #/ norm
+    return v*u_max / norm
