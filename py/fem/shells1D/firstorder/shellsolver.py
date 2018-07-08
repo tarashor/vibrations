@@ -44,37 +44,8 @@ def solve(model, mesh, s_matrix, m_matrix):
     s = remove_fixed_nodes(s, fixed_nodes_indicies, mesh.nodes_count())
     m = remove_fixed_nodes(m, fixed_nodes_indicies, mesh.nodes_count())
     
-#    print(m)
-    
-#    if (model.boundary_conditions == mod.FIXED_BOTTOM_LEFT_RIGHT_POINTS):
-#        cols = s.shape[1]
-#        
-#        s_h = np.zeros((2, cols))
-#        s_h[0,0] = 1
-#        s_h[0,2] = model.fixed_x3
-#        s_h[1,cols-3] = 1
-#        s_h[1,cols-2] = model.fixed_x3
-#        
-#        s = np.concatenate((s, s_h), axis=0)
-#        
-#        s_h = np.insert(s_h, s_h.shape[1], 0, axis=1)
-#        s_h = np.insert(s_h, s_h.shape[1], 0, axis=1)
-#        
-#        s = np.concatenate((s, s_h.T), axis=1)
-#        
-#        m = np.insert(m, m.shape[0], 0, axis=0)
-#        m = np.insert(m, m.shape[0], 0, axis=0)
-#        m = np.insert(m, m.shape[1], 0, axis=1)
-#        m = np.insert(m, m.shape[1], 0, axis=1)
-        
-#    print(m)
-#    evm = la.eigvalsh(m)
-#    print(evm)
-
-#    lam, vec = la.eig(s, m, left=False, right=True)
     lam, vec = la.eigh(s, m)
     
-#    print(lam)
 
     vec = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count())
     

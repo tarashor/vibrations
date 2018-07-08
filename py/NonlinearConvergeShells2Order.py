@@ -60,7 +60,7 @@ material.C[2,2] *= kE3
 material.C[4,4] *= kG13
 
 width = 1
-curvature = 0.8
+curvature = 0
 thickness = 0.01
 
 corrugation_amplitude = 0

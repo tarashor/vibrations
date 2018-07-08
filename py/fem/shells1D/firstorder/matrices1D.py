@@ -87,18 +87,19 @@ def get_index_conv(index):
 
 
 def get_u_element(element, u, nodes_count):
-    u_nodes = np.zeros((8))
-#    print(u[element.top_left_index])
+    u1 = u[range(0,3 * nodes_count,3)]
+    g = u[range(1,3 * nodes_count,3)]
+    w = u[range(2,3 * nodes_count,3)]
+    
+    u_nodes = np.zeros((6))
 
-    u_nodes[0] = u[element.top_left_index]
-    u_nodes[1] = u[element.top_right_index]
-    u_nodes[2] = u[element.bottom_right_index]
-    u_nodes[3] = u[element.bottom_left_index]
+    u_nodes[0] = u1[element.start_index]
+    u_nodes[1] = g[element.start_index]
+    u_nodes[2] = w[element.start_index]
 
-    u_nodes[4] = u[element.top_left_index + nodes_count]
-    u_nodes[5] = u[element.top_right_index + nodes_count]
-    u_nodes[6] = u[element.bottom_right_index + nodes_count]
-    u_nodes[7] = u[element.bottom_left_index + nodes_count]
+    u_nodes[3] = u1[element.end_index]
+    u_nodes[4] = g[element.end_index]
+    u_nodes[5] = w[element.end_index]
 
     return u_nodes
     
@@ -114,9 +115,68 @@ def get_grad_u(element,geometry,u_element, x1, x2, x3):
 
     return B.dot(h_e).dot(u_element)
 
+def u_to_rotations(geometry, x1, x2, x3):
+    A, K = geometry.get_A_and_K(x1, x2, x3)
+    
+    W = np.zeros((2, 6))
+    
+    W[0, 0] = K
+    W[0, 2] = 1
+    W[0, 5] = -1/A
+    
+    W[1, 2] = 2*K
+    
+    return 0.5*W
+
+def teta0(geometry, x1, x2, x3):
+    A, K = geometry.get_A_and_K(x1, x2, x3)
+    
+    T = np.zeros((2, 2))
+    
+    T[0,0] = 1
+    
+    return T/2
+
+def teta1(geometry, x1, x2, x3):
+    A, K = geometry.get_A_and_K(x1, x2, x3)
+    
+    T = np.zeros((2, 2))
+    
+    T[0,0] = -K
+    T[0,1] = T[1,0] = 1
+    
+    return T/2
 
 
-def stiffness_matrix(material, geometry, x1, h):
+def rotations_to_strain_nl(geometry, x1, x2, x3, u):
+    T11 = teta0(geometry, x1, x2, x3)
+    
+    Tk = teta1(geometry, x1, x2, x3)
+    
+    T13 = np.zeros((2, 2))
+    
+    T = np.concatenate((T11, Tk), axis=0)
+    
+    T = np.concatenate((T, T13), axis=0)
+    
+    W = u_to_rotations(geometry,x1,0,0)
+    
+    rotations = W.dot(u)
+    
+    w = np.zeros((3, 6))
+    
+    w[0,0] = rotations[0]
+    w[0,1] = rotations[1]
+    
+    w[1,2] = rotations[0]
+    w[1,3] = rotations[1]
+    
+    return w.dot(T).dot(W)
+
+
+def get_C(material, geometry, x1, h):
+    
+    A, K = geometry.get_A_and_K(x1, 0, 0)
     
     C = material.matrix_C(geometry, x1, 0, 0)
     
@@ -126,9 +186,34 @@ def stiffness_matrix(material, geometry, x1, h):
     C_[1,1] = (h**3)/12*C[0,0]
     C_[2,2] = h*C[4,4]
     
+
+    return C_*A
+
+
+def stiffness_matrix(material, geometry, x1, h):
+    C = get_C(material, geometry, x1, h)
+    
+    
     E=u_to_strain(geometry,x1,0,0)
     
-    return E.T.dot(C_).dot(E)
+    return E.T.dot(C).dot(E)
+
+def stiffness_matrix_nl_1(material, geometry, x1, h, u):
+    C = get_C(material, geometry, x1, h)
+    
+    E=u_to_strain(geometry,x1,0,0)
+    
+    E_NL = rotations_to_strain_nl(geometry, x1, 0, 0, u)
+
+    return 2*E_NL.T.dot(C).dot(E)+E.T.dot(C).dot(E_NL)
+
+def stiffness_matrix_nl_2(material, geometry, x1, h, u):
+    C = get_C(material, geometry, x1, h)
+    
+    E_NL = rotations_to_strain_nl(geometry, x1, 0, 0, u)
+
+    return 2*E_NL.T.dot(C).dot(E_NL)
+    
 
 
 def mass_matrix(material, geometry, x1, h):
