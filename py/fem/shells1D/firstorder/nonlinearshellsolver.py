@@ -58,12 +58,12 @@ def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl_1, s_matrix_nl_2, u_ma
 
     lam, vec = la.eigh(s, m)
     
-    print(len(vec[:,u_index]))
+#    print(len(vec[:,u_index]))
 
     vec = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count(), model.boundary_conditions)
 
 
-    print(len(vec[:,u_index]))
+#    print(len(vec[:,u_index]))
 
     res = vec[:,u_index]
     n = np.linalg.norm(res)
