@@ -29,9 +29,9 @@ def extend_with_fixed_nodes(eig_vectors, fixed_nodes_indicies, all_nodes_count, 
 
 
 def i_exclude(fixed_nodes_indicies, nodes_count, bound_cond):
-    fixed_indicies1 = [3 * x for x in fixed_nodes_indicies]
+    fixed_indicies1 = [3 * x + 1 for x in fixed_nodes_indicies]
     fixed_indicies2 = []
-    fixed_indicies3 = [3 * x + 2 for x in fixed_nodes_indicies]
+    fixed_indicies3 = []
     
     if (bound_cond == mod.FIXED_LEFT_RIGHT_EDGE):
         fixed_indicies1 = [3 * x for x in fixed_nodes_indicies]
@@ -58,9 +58,6 @@ def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl_1, s_matrix_nl_2, u_ma
 
     lam, vec = la.eigh(s, m)
     
-#    print(sol)
-#    print(lam[u_index])
-    
 #    print(len(vec[:,u_index]))
 
     vec = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count(), model.boundary_conditions)
@@ -80,13 +77,6 @@ def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl_1, s_matrix_nl_2, u_ma
     
     
     K = s + 0.75*s_nl_2
-    
-    h = 0
-    for l in model.layers:
-        h = l.height()
-    
-    print('koef ==========')
-    print(vec[:,u_index].T.dot(s_nl_2_in).dot(vec[:,u_index])*h*h*n*n/(u_max*u_max)/lam[u_index])
     
     lam2, vec = la.eigh(K, m)
     

@@ -3,6 +3,10 @@ import fem.model as m
 import fem.material as mat
 import fem.mesh as me
 
+import fem.shells1D.KirchhoffLove.shellsolver as sKL
+import fem.shells1D.KirchhoffLove.result1D as rKL
+import fem.shells1D.KirchhoffLove.matrices1D as matKL
+
 import fem.shells1D.firstorder.shellsolver as s1D1O
 import fem.shells1D.firstorder.result1D as r1D1O
 import fem.shells1D.firstorder.matrices1D as mat1D1O
@@ -23,6 +27,16 @@ import plot
 import numpy as np
 
 
+def solveLinearShellKirchhoffLove(geometry, thickness, material, N, bc):
+    layers = m.Layer.generate_layers(thickness, [material])
+    model = m.Model(geometry, layers, bc)
+    mesh = me.Mesh.generate1D(geometry.width, layers, N, model.boundary_conditions)
+    
+    lam, vec = sKL.solve(model, mesh, matKL.stiffness_matrix, matKL.mass_matrix)
+    
+    results = rKL.Result.convert_to_results(lam, vec, mesh, geometry)
+    
+    return results
 
 def solveLinearShell1Order(geometry, thickness, material, N, bc):
     layers = m.Layer.generate_layers(thickness, [material])
@@ -30,7 +44,7 @@ def solveLinearShell1Order(geometry, thickness, material, N, bc):
     mesh = me.Mesh.generate1D(geometry.width, layers, N, model.boundary_conditions)
     
     lam, vec = s1D1O.solve(model, mesh, mat1D1O.stiffness_matrix, mat1D1O.mass_matrix)
-    
+    print(lam)
     results = r1D1O.Result.convert_to_results(lam, vec, mesh, geometry)
     
     return results
@@ -82,10 +96,10 @@ def wAnalyticalLin(geometry, thickness, material, N, M, u_max):
     return w
 
 def wAnalyticalLin2(geometry, thickness, material, bc):
+    Dh = material.C[0,0]
+    c = np.sqrt(Dh/rho)
     
-    c = np.sqrt(E/rho)
-    
-    w = c*thickness*np.pi*np.pi/(np.sqrt(1-v*v)*geometry.width*geometry.width)
+    w = c*thickness*np.pi*np.pi/(geometry.width*geometry.width)
     
     if (bc == m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS):
         w = w*1/np.sqrt(12)
@@ -109,8 +123,8 @@ def wAnalyticalLin3(geometry, thickness, material, results_count):
     for i in range(1, results_count):
         a = i*np.pi/geometry.width
         
-        res1 = G*a*(1+a)/(rho*h)
-        res2 = (D*a*a+G*(1+a))/(rho*h)
+        res1 = G*a*(1+a)/(rho)
+        res2 = (D*a*a+h*G*(1+a))*12/(rho*h*h*h)
         
         results.append(np.sqrt(res1)/(2*np.pi))
         results.append(np.sqrt(res2)/(2*np.pi))
@@ -125,15 +139,15 @@ E = 40*(10**9)
 v = 0.3
 rho = 8000
 
-kE3 = 100000000
-#kE3 = 1
+#kE3 = 100000000
+kE3 = 1
 #kG13 = 100000000
 kG13 = 1
 
 material = mat.OrthotropicMaterial.create_from_E_and_v_with_koef_E3(E,v,rho, kE3)
 
 
-#material.C[2,2] *= kE3
+material.C[2,2] *= kE3
 material.C[4,4] *= kG13
 
 print(material.C)
@@ -149,11 +163,11 @@ corrugation_frequency = 0
 
 geometry = g.General(width, curvature, corrugation_amplitude, corrugation_frequency)
 
-N = 100
-M = 4
+N = 50
+M = 1
 
-#bc = m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS
-bc = m.Model.FIXED_LEFT_RIGHT_EDGE
+bc = m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS
+#bc = m.Model.FIXED_LEFT_RIGHT_EDGE
 
 norm_koef = 2
 u_max = norm_koef*thickness
@@ -161,20 +175,22 @@ u_max = norm_koef*thickness
 results2D = solveLinear2D(geometry, thickness, material, N, M, bc)
 results1D2O = solveLinearShell2Order(geometry, thickness, material, N, bc)
 results1D1O = solveLinearShell1Order(geometry, thickness, material, N, bc)
+resultsKL = solveLinearShellKirchhoffLove(geometry, thickness, material, N, bc)
 
 #wa = wAnalyticalLin(geometry, thickness, material, N, M, u_max)/(2*np.pi)
 wa2 = wAnalyticalLin2(geometry, thickness, material, bc)/(2*np.pi)
 
 results_count = 6
 
-#wa3 = wAnalyticalLin3(geometry, thickness, material, results_count)
+wa3 = wAnalyticalLin3(geometry, thickness, material, results_count)
 
 for i in range(results_count):
     print('2D {} = {}'.format(i, results2D[i].freqHz()))
     print('1D2O {} = {}'.format(i, results1D2O[i].freqHz()))
     print('1D1O {} = {}'.format(i, results1D1O[i].freqHz()))
+    print('KL {} = {}'.format(i, resultsKL[i].freqHz()))
 
-#print (wa3)
+print (sorted(wa3))
 
 #print('Analyt = {}'.format(wa))
 

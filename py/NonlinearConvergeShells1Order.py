@@ -61,7 +61,7 @@ material.C[4,4] *= kG13
 
 width = 1
 curvature = 0
-thickness = 0.01
+thickness = 0.001
 
 corrugation_amplitude = 0
 corrugation_frequency = 0
@@ -94,6 +94,8 @@ for i in range(20):
 #    resultNl2 = solveNonlinear2(geometry, thickness, material, N, M, u_max)
     
 #    print('w_max = {}, w_l = {}, w_nl = {}'.format(u_max,result.freqHz(), resultNl.freqHz()))
+    
+    print(n)
     
     d = i*norm_koef/n
     dy = resultNl.freqHz()/result.freqHz()
