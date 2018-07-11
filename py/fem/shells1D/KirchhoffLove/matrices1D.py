@@ -37,6 +37,8 @@ def element_aprox_functions(element, x1, x2, x3):
 def u_to_strain(geometry, x1, x2, x3):
     E = np.zeros((3,4))
     A, K = geometry.get_A_and_K(x1, x2, x3)
+#    A = 1
+#    K = 0
     
     E[0,2]=K
     
@@ -163,6 +165,8 @@ def get_C(material, geometry, x1, h):
     
     A, K = geometry.get_A_and_K(x1, 0, 0)
     
+#    A = 1
+    
     C = material.matrix_C(geometry, x1, 0, 0)
     
     C_ = np.zeros((3,3))
@@ -204,6 +208,8 @@ def stiffness_matrix_nl_2(material, geometry, x1, h, u):
 def mass_matrix(material, geometry, x1, h):
     
     A, K = geometry.get_A_and_K(x1, 0, 0)
+#    A = 1
+    
     rho = material.rho
     h3=h**3
     

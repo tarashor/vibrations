@@ -115,11 +115,34 @@ def wAnalyticalLin2(geometry, thickness, material, bc):
     return w
 
 
+def wAnalyticalLin3(geometry, thickness, material, rGW, i):
+    
+    h = thickness
+    
+    G = material.C[4,4]*h
+    
+    print('G = {}'.format(G))
+    
+    h3 = h*h*h
+    
+    D = material.C[0,0]*h3/12
+    print('D = {}'.format(D))
+    
+    a = i*np.pi/geometry.width
+    
+    res1 = G*a*(rGW+a)
+    
+    res2 = (D*a*a+G*(1+a/rGW))
+        
+    return np.sqrt(res1)/(2*np.pi), np.sqrt(res2)/(2*np.pi)
+    
+
 
 
 E = 40*(10**9)
+#E = 1
 v = 0.3
-rho = 80
+rho = 8000
 
 #kE3 = 100000000
 kE3 = 1
@@ -132,12 +155,13 @@ material = mat.OrthotropicMaterial.create_from_E_and_v_with_koef_E3(E,v,rho, kE3
 material.C[2,2] *= kE3
 material.C[4,4] *= kG13
 
+print(material.C)
 
 #material = mat.IsotropicMaterial(E,v,rho)
 
-width = 2
+width = 1
 curvature = 0
-thickness = 0.01
+thickness = 0.1
 
 corrugation_amplitude = 0
 corrugation_frequency = 0
@@ -162,17 +186,90 @@ resultsKL = solveLinearShellKirchhoffLove(geometry, thickness, material, N, bc)
 #wa = wAnalyticalLin(geometry, thickness, material, N, M, u_max)/(2*np.pi)
 wa2 = wAnalyticalLin2(geometry, thickness, material, bc)/(2*np.pi)
 
-results_count = 6
+results_count = len(resultsKL)
+
+#wa3 = wAnalyticalLin3(geometry, thickness, material, results_count)
+
+i = 0
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!CHANGE Mas matrix to 1 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+print('KL {} = {}'.format(i, resultsKL[i].freqHz()))
+
+Gni = np.argmax(np.absolute(resultsKL[i].g))
+Wni = np.argmax(np.absolute(resultsKL[i].w))
+
+x1s = sorted([n.x1 for n in resultsKL[i].mesh.nodes])
+
+Gmax = resultsKL[i].g[Gni]/np.cos((i+1)*np.pi*x1s[Gni]/geometry.width)
+
+Wmax = resultsKL[i].w[Wni]/np.sin((i+1)*np.pi*x1s[Wni]/geometry.width)
+
+print(Gmax)
+print(Wmax)
+    
+GW = Gmax/Wmax
 
 
+x = sorted([n.index for n in resultsKL[i].mesh.nodes])
+plt.figure()
+plt.plot(x, resultsKL[i].g, 'r')
+plt.plot(x, resultsKL[i].w, 'g')
+plt.grid()
+plt.show()
 
-for i in range(results_count):
-    print('2D {} = {}'.format(i, results2D[i].freqHz()))
-    print('1D2O {} = {}'.format(i, results1D2O[i].freqHz()))
-    print('1D1O {} = {}'.format(i, results1D1O[i].freqHz()))
-    print('KL {} = {}'.format(i, resultsKL[i].freqHz()))
-   
+res1, res2 = wAnalyticalLin3(geometry, thickness, material, GW, i+1)
 
-print('Analyt Volmir = {}'.format(wa2))
+print('res1 = {}'.format(res1))
+print('res2 = {}'.format(res2))
+#
+#i = results_count//2
+#print('KL {} = {}'.format(i, resultsKL[i].freqHz()))
+
+#x = sorted([n.index for n in resultsKL[i].mesh.nodes])
+#plt.figure()
+#plt.plot(x, resultsKL[i].g, 'r')
+#plt.plot(x, resultsKL[i].w, 'g')
+
+#for i in range(results_count):
+#    print('2D {} = {}'.format(i, results2D[i].freqHz()))
+#    print('1D2O {} = {}'.format(i, results1D2O[i].freqHz()))
+#    print('1D1O {} = {}'.format(i, results1D1O[i].freqHz()))
+    
+#    
+    
+#    print(resultsKL[i].g)
+#    print(resultsKL[i].w)
+    
+#    print("i = {}".format(i))
+#    
+#    x = sorted([n.index for n in resultsKL[i].mesh.nodes])
+#    
+#    plt.figure()
+#    
+#    plt.plot(x, resultsKL[i].g, 'r')
+#    
+#    plt.plot(x, resultsKL[i].w, 'g')
+#
+#    
+#    plt.grid()
+#    plt.show()
+    
+    
+#    Gni = np.argmax(np.absolute(resultsKL[i].g))
+#    Wni = np.argmax(np.absolute(resultsKL[i].w))
+#    
+#    GW = resultsKL[i].g[Gni]/resultsKL[i].w[Wni]
+#    print(GW)
+#    
+#    res1, res2 = wAnalyticalLin3(geometry, thickness, material, GW, i+1)
+#    
+#    print('KL {} = {}'.format(i, resultsKL[i].freqHz()))
+#    print('res1 {} = {}'.format(i, res1))
+#    print('res2 {} = {}'.format(i, res2))
+
+#print (sorted(wa3))
+
+#print('Analyt = {}'.format(wa))
+
+#print('Analyt Volmir = {}'.format(wa2))
 
 

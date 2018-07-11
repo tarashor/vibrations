@@ -62,8 +62,8 @@ def solve(model, mesh, s_matrix, m_matrix):
     
     m = integrate_matrix(model, mesh, m_matrix)
     
-    print("======source=======")
-    print (s)
+#    print("======source=======")
+#    print (s)
 #    print(m)
 
     fixed_nodes_indicies = mesh.get_fixed_nodes_indicies()
@@ -71,24 +71,43 @@ def solve(model, mesh, s_matrix, m_matrix):
     s = copy_nodes(s, fixed_nodes_indicies, mesh.nodes_count(), model.boundary_conditions)
     m = copy_nodes(m, fixed_nodes_indicies, mesh.nodes_count(), model.boundary_conditions)
     
-    print("======copied=======")
-    print (s)
+#    print("======copied=======")
+#    print (s)
 #    print(m)
 
     s = remove_fixed_nodes(s, fixed_nodes_indicies, mesh.nodes_count(), model.boundary_conditions)
     m = remove_fixed_nodes(m, fixed_nodes_indicies, mesh.nodes_count(), model.boundary_conditions)
     
-    print("======removed=======")
-    print (s)
+#    print("======removed=======")
+#    print (s)
 #    print(m)
     
     
     lam, vec = la.eigh(s, m)
     
+#    t = np.diag((20, 2, 3))
+    
+#    tl1, tv1 = la.eigh(s)
+#    
+#    tl2, tv2 = np.linalg.eig(s)
+#    
+#    
+#    tl2 = sorted(tl2)
+#    print(tl1[0])
+#    print(tl2[0])
+#    
+#    l1 = tv1[:,0].conj().dot(s).dot(tv1[:,0])
+##    l1 = s.dot(tv1[:,0]) - tl1[0]*tv1[:,0]
+##    l2 = s.dot(tv2[:,0]) - tl2[0]*tv2[:,0]
+#    print(l1)
+#    print(tl2)
+    
 
     vec = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count(), model.boundary_conditions)
     
-    print(lam)
+    
+    
+    
     return lam, vec
 
     
