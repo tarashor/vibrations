@@ -61,7 +61,7 @@ material.C[4,4] *= kG13
 
 width = 1
 curvature = 0
-thickness = 0.001
+thickness = 0.01
 
 corrugation_amplitude = 0
 corrugation_frequency = 0

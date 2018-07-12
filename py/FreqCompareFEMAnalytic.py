@@ -79,7 +79,7 @@ def solveLinear2D(geometry, thickness, material, N, M, bc):
 
 def wAnalyticalLin(geometry, thickness, material, N, M, u_max):
     
-    ko = 14/15
+    ko = 5/6
     G = material.C[4,4]
     LAM = ko * thickness * G
     

@@ -121,8 +121,8 @@ def u_to_rotations(geometry, x1, x2, x3):
     W = np.zeros((2, 6))
     
     W[0, 0] = K
-    W[0, 2] = 1
-    W[0, 5] = -1/A
+    W[0, 2] = 0
+    W[0, 5] = -2/A
     
     W[1, 2] = 2*K
     
@@ -186,8 +186,8 @@ def get_C(material, geometry, x1, h):
     C_ = np.zeros((3,3))
     
     C_[0,0] = h*C[0,0]
-    C_[1,1] = (h**3)/12*C[0,0]
-    C_[2,2] = h*C[4,4]
+    C_[1,1] = (h**3)/12*C[0,0]  
+    C_[2,2] = 5*h*C[4,4]/6
     
 
     return C_*A
