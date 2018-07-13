@@ -50,9 +50,11 @@ def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl_1, s_matrix_nl_2, u_ma
     vec = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count())
 
     res = vec[:,u_index]
+    u3_max = get_max_u3(res, mesh)
     n = np.linalg.norm(res)
     print("Norm = {}".format(n))
-    res = normalize(res, u_max)
+    print("U3_max = {}".format(u3_max))
+    res = normalize_u3_only(res, u_max, u3_max)
     
     s_nl_2_in = integrate_matrix_with_disp(model, mesh, s_matrix_nl_2, res)
     s_nl_2 = remove_fixed_nodes(s_nl_2_in, fixed_nodes_indicies, mesh.nodes_count())
@@ -83,7 +85,7 @@ def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl_1, s_matrix_nl_2, u_ma
     U2 = extend_with_fixed_nodes(U2, fixed_nodes_indicies, mesh.nodes_count())
     U3 = extend_with_fixed_nodes(U3, fixed_nodes_indicies, mesh.nodes_count())
     
-    return lam_nl, res, U1, U2, U3, n
+    return lam_nl, res, U1, U2, U3, u3_max
 
 
 def convert_to_results(eigenvalues, eigenvectors, mesh, geometry):
@@ -202,3 +204,15 @@ def normalize(v, u_max):
     if norm == 0:
         return v
     return v*u_max / norm
+
+def normalize_u3_only(v, u_max, u3_max):
+    
+    if u3_max == 0:
+        return v
+    return v*u_max / u3_max
+
+def get_max_u3(v, mesh):
+    u3 = v[mesh.nodes_count():2 * mesh.nodes_count()]
+    Wni = np.argmax(np.absolute(u3))
+    return np.abs(u3[Wni])
+

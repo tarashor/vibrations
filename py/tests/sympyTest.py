@@ -17,9 +17,46 @@ from IPython.display import display
 N = CoordSys3D('N')
 x1, x2, x3 = symbols("x_1 x_2 x_3")
 alpha1, alpha2, alpha3 = symbols("alpha_1 alpha_2 alpha_3")
-R, L, ga, gv = symbols("R L g_a g_v")
+R, L, ga, gv = symbols("R L g_a g_v", positive = True, real = True)
 init_printing()
 
+
+
+w = cos(pi/L*alpha1)**2
+
+e1 = w*w
+e1_i = integrate(e1, (alpha1, 0, L))
+display(e1_i)
+
+e2 = cos(2*pi/L*alpha1)*w
+e2_i = integrate(e2, (alpha1, 0, L))
+display(e2_i)
+
+e3 = sin(2*pi/L*alpha1)*sin(2*pi/L*alpha1)*cos(2*pi/L*alpha1)*w
+e3_i = integrate(e3, (alpha1, 0, L))
+display(e3_i)
+
+#%% 
+
+
+e4 = cos(4*pi/L*alpha1)*cos(2*pi/L*alpha1)*w
+e4_i = integrate(e4, (alpha1, 0, L))
+display(e4_i)
+
+#%% 
+
+e5 = sin(4*pi/L*alpha1)*sin(2*pi/L*alpha1)*w
+e5_i = integrate(e5, (alpha1, 0, L))
+display(e5_i)
+
+
+#%% 
+
+dw = trigsimp(diff(w, alpha1))
+display(dw)
+
+ddw = trigsimp(diff(dw, alpha1))
+display(ddw)
 
 # ## Cylindrical coordinates
 

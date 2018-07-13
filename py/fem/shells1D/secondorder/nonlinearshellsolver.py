@@ -201,3 +201,14 @@ def normalize(v, u_max):
     if norm == 0:
         return v
     return v*u_max / norm
+
+def normalize_w_only(v, u_max, mesh):
+    w_max = get_max_w(v, mesh)
+    if w_max == 0:
+        return v
+    return v*u_max / w_max
+
+def get_max_w(v, mesh):
+    w = v[range(2,3 * mesh.nodes_count(),3)]
+    Wni = np.argmax(np.absolute(w))
+    return w[Wni]

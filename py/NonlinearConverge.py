@@ -92,14 +92,14 @@ yv = []
 
 K = 3
 
-for i in range(20):
+for i in range(5):
     u_max = i*norm_koef*thickness
     resultNl, n = solveNonlinear(geometry, thickness, material, N, M, u_max)
 #    resultNl2 = solveNonlinear2(geometry, thickness, material, N, M, u_max)
     
 #    print('w_max = {}, w_l = {}, w_nl = {}'.format(u_max,result.freqHz(), resultNl.freqHz()))
     
-    d = i*norm_koef/n
+    d = i*norm_koef
     dy = resultNl.freqHz()/result.freqHz()
     dya = np.sqrt(1+0.75*K*d*d)
     x.append(d)

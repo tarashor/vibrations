@@ -79,7 +79,7 @@ def solveLinear2D(geometry, thickness, material, N, M, bc):
 
 def wAnalyticalLin(geometry, thickness, material, N, M, u_max):
     
-    ko = 14/15
+    ko = 5/6
     G = material.C[4,4]
     LAM = ko * thickness * G
     
@@ -95,9 +95,11 @@ def wAnalyticalLin(geometry, thickness, material, N, M, u_max):
     
     k12 = LAM / D 
     
-    w = c2*lam*lam/(np.sqrt(k12+lam*lam))
+    w = 4/np.sqrt(3)*c2*lam*lam/(np.sqrt(k12+4*lam*lam))
     
-    return w
+    u = 2*lam*np.sqrt(B/((thickness*rho)))
+    
+    return w, u
 
 def wAnalyticalLin2(geometry, thickness, material, bc):
     Dh = material.C[0,0]
@@ -127,6 +129,9 @@ def wAnalyticalLin3(geometry, thickness, material, rGW, i):
     
     D = material.C[0,0]*h3/12
     print('D = {}'.format(D))
+    
+    lamb = np.pi/geometry.width
+    print('Diff = {}'.format( (5*G*np.pi)/(geometry.width*(5*G+24*lamb*lamb*D))))
     
     a = i*np.pi/geometry.width
     
@@ -172,8 +177,8 @@ N = 100
 
 M = 1
 
-bc = m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS
-#bc = m.Model.FIXED_LEFT_RIGHT_EDGE
+#bc = m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS
+bc = m.Model.FIXED_LEFT_RIGHT_EDGE
 
 norm_koef = 2
 u_max = norm_koef*thickness
@@ -183,7 +188,7 @@ results1D2O = solveLinearShell2Order(geometry, thickness, material, N, bc)
 results1D1O = solveLinearShell1Order(geometry, thickness, material, N, bc)
 resultsKL = solveLinearShellKirchhoffLove(geometry, thickness, material, N, bc)
 
-#wa = wAnalyticalLin(geometry, thickness, material, N, M, u_max)/(2*np.pi)
+wa, ua = wAnalyticalLin(geometry, thickness, material, N, M, u_max)
 wa2 = wAnalyticalLin2(geometry, thickness, material, bc)/(2*np.pi)
 
 results_count = len(resultsKL)
@@ -192,7 +197,7 @@ results_count = len(resultsKL)
 
 i = 0
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!CHANGE Mas matrix to 1 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-print('KL {} = {}'.format(i, resultsKL[i].freqHz()))
+print('KL {} = {}'.format(i, results1D1O[i].freqHz()))
 
 Gni = np.argmax(np.absolute(resultsKL[i].g))
 Wni = np.argmax(np.absolute(resultsKL[i].w))
@@ -209,10 +214,11 @@ print(Wmax)
 GW = Gmax/Wmax
 
 
-x = sorted([n.index for n in resultsKL[i].mesh.nodes])
+x = sorted([n.index for n in results1D1O[i].mesh.nodes])
 plt.figure()
-plt.plot(x, resultsKL[i].g, 'r')
-plt.plot(x, resultsKL[i].w, 'g')
+plt.plot(x, results1D1O[i].u, 'y')
+plt.plot(x, results1D1O[i].g, 'r')
+plt.plot(x, results1D1O[i].w, 'g')
 plt.grid()
 plt.show()
 
@@ -220,6 +226,8 @@ res1, res2 = wAnalyticalLin3(geometry, thickness, material, GW, i+1)
 
 print('res1 = {}'.format(res1))
 print('res2 = {}'.format(res2))
+
+print('anal wa, ua = {}'.format((wa/(2*np.pi), ua/(2*np.pi))))
 #
 #i = results_count//2
 #print('KL {} = {}'.format(i, resultsKL[i].freqHz()))

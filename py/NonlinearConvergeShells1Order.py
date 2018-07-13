@@ -61,14 +61,14 @@ material.C[4,4] *= kG13
 
 width = 1
 curvature = 0
-thickness = 0.01
+thickness = 0.1
 
 corrugation_amplitude = 0
 corrugation_frequency = 0
 
-#bc = m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS
+bc = m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS
 
-bc = m.Model.FIXED_LEFT_RIGHT_EDGE
+#bc = m.Model.FIXED_LEFT_RIGHT_EDGE
 
 geometry = g.General(width, curvature, corrugation_amplitude, corrugation_frequency)
 
@@ -77,6 +77,8 @@ N = 100
 norm_koef = 0.2
 
 result = solveLinear(geometry, thickness, material, N, bc)
+
+
 
 x = []
 y = []
@@ -88,7 +90,7 @@ K = 3/4
 if (bc == m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS):
     K = 3
 
-for i in range(20):
+for i in range(5):
     u_max = i*norm_koef*thickness
     resultNl, n = solveNonlinear(geometry, thickness, material, N, u_max, bc)
 #    resultNl2 = solveNonlinear2(geometry, thickness, material, N, M, u_max)
@@ -97,7 +99,7 @@ for i in range(20):
     
     print(n)
     
-    d = i*norm_koef/n
+    d = i*norm_koef
     dy = resultNl.freqHz()/result.freqHz()
     dya = np.sqrt(1+0.75*K*d*d)
     x.append(d)
