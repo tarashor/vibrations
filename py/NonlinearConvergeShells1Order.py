@@ -72,14 +72,14 @@ material.C[4,4] *= kG13
 
 width = 1
 curvature = 0
-thickness = 0.1
+thickness = 0.01
 
 corrugation_amplitude = 0
 corrugation_frequency = 0
 
-bc = m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS
+#bc = m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS
 
-#bc = m.Model.FIXED_LEFT_RIGHT_EDGE
+bc = m.Model.FIXED_LEFT_RIGHT_EDGE
 
 geometry = g.General(width, curvature, corrugation_amplitude, corrugation_frequency)
 

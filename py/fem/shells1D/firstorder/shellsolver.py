@@ -5,16 +5,16 @@ import numpy as np
 from scipy import linalg as la
 
 
-def remove_fixed_nodes(matrix, fixed_nodes_indicies, all_nodes_count):
-    indicies_to_exclude = i_exclude(fixed_nodes_indicies, all_nodes_count)
+def remove_fixed_nodes(matrix, fixed_nodes_indicies, all_nodes_count, bc):
+    indicies_to_exclude = i_exclude(fixed_nodes_indicies, all_nodes_count, bc)
 
     free_nodes1 = [i for i in range(matrix.shape[0]) if i not in indicies_to_exclude]
     free_nodes2 = [i for i in range(matrix.shape[1]) if i not in indicies_to_exclude]
     return matrix[np.ix_(free_nodes1, free_nodes2)]
 
 
-def extend_with_fixed_nodes(eig_vectors, fixed_nodes_indicies, all_nodes_count):
-    indicies_to_exclude = i_exclude(fixed_nodes_indicies, all_nodes_count)
+def extend_with_fixed_nodes(eig_vectors, fixed_nodes_indicies, all_nodes_count, bc):
+    indicies_to_exclude = i_exclude(fixed_nodes_indicies, all_nodes_count, bc)
     res = eig_vectors
     for i in indicies_to_exclude:
         res = np.insert(res, i, 0, axis=0)
@@ -22,14 +22,19 @@ def extend_with_fixed_nodes(eig_vectors, fixed_nodes_indicies, all_nodes_count):
     return res
 
 
-def i_exclude(fixed_nodes_indicies, nodes_count):
-    fixed_indicies3 = [3 * x + 2 for x in fixed_nodes_indicies]
+def i_exclude(fixed_nodes_indicies, nodes_count, bound_cond):
     fixed_indicies1 = [3 * x for x in fixed_nodes_indicies]
-#    fixed_indicies2 = [3 * x + 1 for x in fixed_nodes_indicies]
-    
-#    fixed_indicies1 = []
     fixed_indicies2 = []
-    return sorted(fixed_indicies1+fixed_indicies2+fixed_indicies3)
+    fixed_indicies3 = [3 * x + 2 for x in fixed_nodes_indicies]
+    
+    if (bound_cond == mod.FIXED_LEFT_RIGHT_EDGE):
+        fixed_indicies1 = [3 * x for x in fixed_nodes_indicies]
+        fixed_indicies2 = [3 * x + 1 for x in fixed_nodes_indicies]
+        fixed_indicies3 = [3 * x + 2 for x in fixed_nodes_indicies]
+    
+    return sorted(fixed_indicies1+
+                  fixed_indicies2+
+                  fixed_indicies3)
 
 
 def solve(model, mesh, s_matrix, m_matrix):
@@ -41,14 +46,13 @@ def solve(model, mesh, s_matrix, m_matrix):
 
     fixed_nodes_indicies = mesh.get_fixed_nodes_indicies()
 
-    s = remove_fixed_nodes(s, fixed_nodes_indicies, mesh.nodes_count())
-    m = remove_fixed_nodes(m, fixed_nodes_indicies, mesh.nodes_count())
+    s = remove_fixed_nodes(s, fixed_nodes_indicies, mesh.nodes_count(), model.boundary_conditions)
+    m = remove_fixed_nodes(m, fixed_nodes_indicies, mesh.nodes_count(), model.boundary_conditions)
     
     
     lam, vec = la.eigh(s, m)
     
-
-    vec = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count())
+    vec = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count(), model.boundary_conditions)
     
     return lam, vec
 

@@ -35,7 +35,7 @@ def solve(model, mesh, s_matrix, m_matrix, u_max=None):
     vec = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count())
     
     if (u_max is not None):
-        vec = normalize(vec, u_max)
+        vec = normalize(vec, u_max, mesh)
     
     return lam, vec
 
@@ -120,11 +120,18 @@ def convertToGlobalMatrix(local_matrix, element, N):
 
     return global_matrix
 
-def normalize(vec, u_max):
+def normalize(vec, u_max, mesh):
     for i in range(vec.shape[1]):
         U = vec[:, i]
-        norm = np.linalg.norm(U)
-        if norm != 0:
-            vec[:, i] *= u_max/norm
+        u3_max = get_max_u3(U, mesh)
+        
+    
+        if u3_max != 0:
+            vec[:, i] *= u_max/u3_max
             
     return vec
+
+def get_max_u3(v, mesh):
+    u3 = v[mesh.nodes_count():2 * mesh.nodes_count()]
+    Wni = np.argmax(np.absolute(u3))
+    return u3[Wni]

@@ -214,5 +214,5 @@ def normalize_u3_only(v, u_max, u3_max):
 def get_max_u3(v, mesh):
     u3 = v[mesh.nodes_count():2 * mesh.nodes_count()]
     Wni = np.argmax(np.absolute(u3))
-    return np.abs(u3[Wni])
+    return u3[Wni]
 

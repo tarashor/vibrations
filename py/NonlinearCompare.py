@@ -15,10 +15,9 @@ import plot
 from fem.general2D.matrices2D import stiffness_matrix, mass_matrix, stiffness_matrix_nl_1, stiffness_matrix_nl_2
 
 
-def solveLinear(geometry, thickness, material, N, M, u_max):
+def solveLinear(geometry, thickness, material, N, M, u_max, bc):
     layers = m.Layer.generate_layers(thickness, [material])
-    model = m.Model(geometry, layers, m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS)
-#    model = m.Model(geometry, layers, m.Model.FIXED_LEFT_RIGHT_EDGE)
+    model = m.Model(geometry, layers, bc)
     mesh = me.Mesh.generate2D(geometry.width, layers, N, M, model.boundary_conditions)
     
     lam, vec = s.solve(model, mesh, stiffness_matrix, mass_matrix, u_max)
@@ -29,13 +28,12 @@ def solveLinear(geometry, thickness, material, N, M, u_max):
     return results[results_index]
 
 
-def solveNonlinear(geometry, thickness, material, N, M, u_max):
+def solveNonlinear(geometry, thickness, material, N, M, u_max, bc):
     layers = m.Layer.generate_layers(thickness, [material])
-    model = m.Model(geometry, layers, m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS)
-#    model = m.Model(geometry, layers, m.Model.FIXED_LEFT_RIGHT_EDGE)
+    model = m.Model(geometry, layers, bc)
     mesh = me.Mesh.generate2D(geometry.width, layers, N, M, model.boundary_conditions)
     
-    lam_nl, res, U1, U2, U3 = s_nl.solve_nl(model, mesh, stiffness_matrix, mass_matrix, stiffness_matrix_nl_1, stiffness_matrix_nl_2, u_max)
+    lam_nl, res, U1, U2, U3, um = s_nl.solve_nl(model, mesh, stiffness_matrix, mass_matrix, stiffness_matrix_nl_1, stiffness_matrix_nl_2, u_max)
     
     return r_nl.ResultNL.convert_to_result(lam_nl, res, U1, U2, U3, mesh, geometry)
 
@@ -69,16 +67,20 @@ geometry = g.General(width, curvature, corrugation_amplitude, corrugation_freque
 N = 100
 M = 4
 
+#bc = m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS
+
+bc = m.Model.FIXED_LEFT_RIGHT_EDGE
+
 norm_koef = 2
 u_max = norm_koef*thickness
 
-result = solveLinear(geometry, thickness, material, N, M, u_max)
+result = solveLinear(geometry, thickness, material, N, M, u_max, bc)
 
-resultNl = solveNonlinear(geometry, thickness, material, N, M, u_max)
+resultNl = solveNonlinear(geometry, thickness, material, N, M, u_max, bc)
 #resultNl2 = solveNonlinear2(geometry, thickness, material, N, M, u_max)
 
-tN = 100
-T = 12
+tN = 400
+T = 6
 
 print(result.freqHz())
 print(resultNl.freqHz())
@@ -101,6 +103,7 @@ for t in range(tN):
     y.append(u[8])
     ynl.append(unl[8])
 #    ynl2.append(unl2[8])
+    
     
 
 plot.plot_vibrations(x,y,ynl)
