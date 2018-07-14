@@ -42,6 +42,17 @@ def solveNonlinear(geometry, thickness, material, N, u_max, bc):
     
     return r_nl.ResultNL.convert_to_result(lam_nl, res, mesh, geometry), n
 
+def getK(geometry, thickness, material, bc):
+    K = 3/4
+
+    if (bc == m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS):
+        K = 3
+        
+    l = thickness/geometry.width
+    
+    K += np.pi*np.pi*l*l*material.C[0,0]/material.C[4,4]/4
+        
+    return K
 
 
 E = 40*(10**9)
@@ -85,10 +96,7 @@ y = []
 
 yv = []
 
-K = 3/4
-
-if (bc == m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS):
-    K = 3
+K = getK(geometry, thickness, material, bc)
 
 for i in range(5):
     u_max = i*norm_koef*thickness

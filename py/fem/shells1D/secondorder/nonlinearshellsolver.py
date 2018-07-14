@@ -68,7 +68,7 @@ def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl_1, s_matrix_nl_2, u_ma
     res = vec[:,u_index]
     n = np.linalg.norm(res)
     
-    res = normalize(res, u_max)
+    res = normalize_w_only(res, u_max, mesh)
     
     s_nl_2_in = integrate_matrix_with_disp(model, mesh, s_matrix_nl_2, res)
     s_nl_2 = remove_fixed_nodes(s_nl_2_in, fixed_nodes_indicies, mesh.nodes_count(), model.boundary_conditions)
@@ -209,6 +209,12 @@ def normalize_w_only(v, u_max, mesh):
     return v*u_max / w_max
 
 def get_max_w(v, mesh):
-    w = v[range(2,3 * mesh.nodes_count(),3)]
+    u30 = v[range(3,6 * mesh.nodes_count(),6)]
+    u31 = v[range(4,6 * mesh.nodes_count(),6)]
+    u32 = v[range(5,6 * mesh.nodes_count(),6)]
+    
+    w = u30+u31+u32
+    
+    
     Wni = np.argmax(np.absolute(w))
     return w[Wni]

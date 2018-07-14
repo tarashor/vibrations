@@ -42,7 +42,17 @@ def solveNonlinear(geometry, thickness, material, N, u_max, bc):
     
     return r_nl.ResultNL.convert_to_result(lam_nl, res, mesh, geometry, thickness), n
 
+def getK(geometry, thickness, material, bc):
+    K = 3/4
 
+    if (bc == m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS):
+        K = 3
+        
+    l = thickness/geometry.width
+    
+    K += np.pi*np.pi*l*l*material.C[0,0]/material.C[4,4]/4
+        
+    return K
 
 E = 40*(10**9)
 #E = 40000
@@ -61,7 +71,7 @@ material.C[4,4] *= kG13
 
 width = 1
 curvature = 0
-thickness = 0.01
+thickness = 0.1
 
 corrugation_amplitude = 0
 corrugation_frequency = 0
@@ -83,19 +93,18 @@ y = []
 
 yv = []
 
-K = 3/4
+K = getK(geometry, thickness, material, bc)
 
-if (bc == m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS):
-    K = 3
+print(K)
 
-for i in range(20):
+for i in range(5):
     u_max = i*norm_koef*thickness
     resultNl, n = solveNonlinear(geometry, thickness, material, N, u_max, bc)
 #    resultNl2 = solveNonlinear2(geometry, thickness, material, N, M, u_max)
     
 #    print('w_max = {}, w_l = {}, w_nl = {}'.format(u_max,result.freqHz(), resultNl.freqHz()))
     
-    d = i*norm_koef/n
+    d = i*norm_koef
     dy = resultNl.freqHz()/result.freqHz()
     dya = np.sqrt(1+0.75*K*d*d)
     x.append(d)
