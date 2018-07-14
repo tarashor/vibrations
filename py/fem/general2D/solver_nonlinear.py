@@ -49,12 +49,10 @@ def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl_1, s_matrix_nl_2, u_ma
 
     vec = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count())
 
-    res = vec[:,u_index]
-    u3_max = get_max_u3(res, mesh)
-    n = np.linalg.norm(res)
-    print("Norm = {}".format(n))
-    print("U3_max = {}".format(u3_max))
-    res = normalize_u3_only(res, u_max, u3_max)
+    q = vec[:,u_index]
+    u3_max = get_max_u3(q, mesh)
+    
+    res = normalize_u3_only(q, u_max, u3_max)
     
     s_nl_2_in = integrate_matrix_with_disp(model, mesh, s_matrix_nl_2, res)
     s_nl_2 = remove_fixed_nodes(s_nl_2_in, fixed_nodes_indicies, mesh.nodes_count())
@@ -63,10 +61,21 @@ def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl_1, s_matrix_nl_2, u_ma
     
     K = s + 0.75*s_nl_2
     
-    lam2, vec = la.eigh(K, m)
+    h = 0
+    for l in model.layers:
+        h = l.height()
     
-#    print('=====lam2=====')
-#    print(lam2[u_index])
+    print('=====koef 2D =====')
+    koef = q.T.dot(s_nl_2_in).dot(q)
+    A = u_max / h
+    A /= u3_max
+    
+    print('A = {}'.format(A))
+    koef /= A*A
+    
+    print(koef / lam[u_index])
+    
+    lam2, vec = la.eigh(K, m)
     
     
     lam_nl = lam2[u_index]
@@ -206,7 +215,6 @@ def normalize(v, u_max):
     return v*u_max / norm
 
 def normalize_u3_only(v, u_max, u3_max):
-    
     if u3_max == 0:
         return v
     return v*u_max / u3_max

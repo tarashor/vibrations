@@ -65,10 +65,11 @@ def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl_1, s_matrix_nl_2, u_ma
 
     vec = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count(), model.boundary_conditions)
 
-    res = vec[:,u_index]
-    n = np.linalg.norm(res)
+    q = vec[:,u_index]
+    n = np.linalg.norm(q)
     
-    res = normalize_w_only(res, u_max, mesh)
+    w_max = get_max_w(q, mesh)
+    res = normalize_w_only(q, u_max, w_max)
     
     s_nl_2_in = integrate_matrix_with_disp(model, mesh, s_matrix_nl_2, res)
     s_nl_2 = remove_fixed_nodes(s_nl_2_in, fixed_nodes_indicies, mesh.nodes_count(), model.boundary_conditions)
@@ -77,6 +78,14 @@ def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl_1, s_matrix_nl_2, u_ma
     
     
     K = s + 0.75*s_nl_2
+    
+    h = 0
+    for l in model.layers:
+        h = l.height()
+    
+    print('=====koef 1D2O =====')
+    print(q.T.dot(s_nl_2_in).dot(q) / lam[u_index] / (u_max*u_max / (w_max*w_max*h*h)))
+    
     
     lam2, vec = la.eigh(K, m)
     
@@ -202,8 +211,7 @@ def normalize(v, u_max):
         return v
     return v*u_max / norm
 
-def normalize_w_only(v, u_max, mesh):
-    w_max = get_max_w(v, mesh)
+def normalize_w_only(v, u_max, w_max):
     if w_max == 0:
         return v
     return v*u_max / w_max

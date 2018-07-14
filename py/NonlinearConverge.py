@@ -1,45 +1,101 @@
 import fem.geometry as g
 import fem.model as m
 import fem.material as mat
-import fem.general2D.solverlinear as s
-import fem.general2D.result2D as r
-
-import fem.general2D.solver_nonlinear  as s_nl
-import fem.general2D.result2Dnonlinear as r_nl
-
-import fem.general2D.solver_nonlinear2 as s_nl2
-
 import fem.mesh as me
+
+import fem.shells1D.firstorder.shellsolver as s1D1O
+import fem.shells1D.firstorder.result1D as r1D1O
+import fem.shells1D.firstorder.matrices1D as mat1D1O
+import fem.shells1D.firstorder.nonlinearshellsolver as s1D1Onl
+import fem.shells1D.firstorder.result1Dnonlinear as r1D1Onl
+
+import fem.shells1D.secondorder.shellsolver as s1D2O
+import fem.shells1D.secondorder.result1D as r1D2O
+import fem.shells1D.secondorder.matrices1D as mat1D2O
+import fem.shells1D.secondorder.nonlinearshellsolver as s1D2Onl
+import fem.shells1D.secondorder.result1Dnonlinear as r1D2Onl
+
+import fem.general2D.solverlinear as s2D
+import fem.general2D.result2D as r2D
+import fem.general2D.matrices2D as mat2D
+import fem.general2D.solver_nonlinear as s2Dnl
+import fem.general2D.result2Dnonlinear as r2Dnl
+
 import os
 import platform
 import matplotlib.pyplot as plt
 
 import numpy as np
 
-from fem.general2D.matrices2D import stiffness_matrix, mass_matrix, stiffness_matrix_nl_1, stiffness_matrix_nl_2
-
-
-def solveLinear(geometry, thickness, material, N, M, bc):
+def solveLinear2D(geometry, thickness, material, N, M, bc):
     layers = m.Layer.generate_layers(thickness, [material])
     model = m.Model(geometry, layers, bc)
     mesh = me.Mesh.generate2D(geometry.width, layers, N, M, model.boundary_conditions)
     
-    lam, vec = s.solve(model, mesh, stiffness_matrix, mass_matrix)
+    lam, vec = s2D.solve(model, mesh, mat2D.stiffness_matrix, mat2D.mass_matrix)
     
     results_index = 0
-    results = r.Result.convert_to_results(lam, vec, mesh, geometry)
+    results = r2D.Result.convert_to_results(lam, vec, mesh, geometry)
     
     return results[results_index]
 
 
-def solveNonlinear(geometry, thickness, material, N, M, u_max, bc):
+def solveNonlinear2D(geometry, thickness, material, N, M, u_max, bc):
     layers = m.Layer.generate_layers(thickness, [material])
     model = m.Model(geometry, layers, bc)
     mesh = me.Mesh.generate2D(geometry.width, layers, N, M, model.boundary_conditions)
     
-    lam_nl, res, U1, U2, U3, n = s_nl.solve_nl(model, mesh, stiffness_matrix, mass_matrix, stiffness_matrix_nl_1, stiffness_matrix_nl_2, u_max)
+    lam_nl, res, U1, U2, U3, n = s2Dnl.solve_nl(model, mesh, mat2D.stiffness_matrix, mat2D.mass_matrix, mat2D.stiffness_matrix_nl_1, mat2D.stiffness_matrix_nl_2, u_max)
     
-    return r_nl.ResultNL.convert_to_result(lam_nl, res, U1, U2, U3, mesh, geometry), n
+    return r2Dnl.ResultNL.convert_to_result(lam_nl, res, U1, U2, U3, mesh, geometry), n
+
+def solveLinear1D1O(geometry, thickness, material, N, bc):
+    layers = m.Layer.generate_layers(thickness, [material])
+    model = m.Model(geometry, layers, bc)
+    mesh = me.Mesh.generate1D(geometry.width, layers, N, model.boundary_conditions)
+    
+    lam, vec = s1D1O.solve(model, mesh, mat1D1O.stiffness_matrix, mat1D1O.mass_matrix)
+    
+    results_index = 0
+    results = r1D1O.Result.convert_to_results(lam, vec, mesh, geometry)
+    
+    return results[results_index]
+
+
+def solveNonlinear1D1O(geometry, thickness, material, N, u_max, bc):
+    layers = m.Layer.generate_layers(thickness, [material])
+    model = m.Model(geometry, layers, bc)
+#    model = m.Model(geometry, layers, m.Model.FIXED_LEFT_RIGHT_EDGE)
+    mesh = me.Mesh.generate1D(geometry.width, layers, N, model.boundary_conditions)
+    
+    lam_nl, res, U1, U2, U3, n = s1D1Onl.solve_nl(model, mesh, mat1D1O.stiffness_matrix, mat1D1O.mass_matrix, mat1D1O.stiffness_matrix_nl_1, mat1D1O.stiffness_matrix_nl_2, u_max)
+    
+    return r1D1Onl.ResultNL.convert_to_result(lam_nl, res, mesh, geometry), n
+
+def solveLinear1D2O(geometry, thickness, material, N, bc):
+    layers = m.Layer.generate_layers(thickness, [material])
+    model = m.Model(geometry, layers, bc)
+#    model = m.Model(geometry, layers, m.Model.FIXED_LEFT_RIGHT_EDGE)
+    mesh = me.Mesh.generate1D(geometry.width, layers, N, model.boundary_conditions)
+    
+    lam, vec = s1D2O.solve(model, mesh, mat1D2O.stiffness_matrix, mat1D2O.mass_matrix)
+    
+    results_index = 0
+    results = r1D2O.Result.convert_to_results(lam, vec, mesh, geometry, thickness)
+    
+    return results[results_index]
+
+
+def solveNonlinear1D2O(geometry, thickness, material, N, u_max, bc):
+    layers = m.Layer.generate_layers(thickness, [material])
+    model = m.Model(geometry, layers, bc)
+#    model = m.Model(geometry, layers, m.Model.FIXED_LEFT_RIGHT_EDGE)
+    mesh = me.Mesh.generate1D(geometry.width, layers, N, model.boundary_conditions)
+    
+    lam_nl, res, U1, U2, U3, n = s1D2Onl.solve_nl(model, mesh, mat1D2O.stiffness_matrix, mat1D2O.mass_matrix, mat1D2O.stiffness_matrix_nl_1, mat1D2O.stiffness_matrix_nl_2, u_max)
+    
+    return r1D2Onl.ResultNL.convert_to_result(lam_nl, res, mesh, geometry, thickness), n
+
 
 def getK(geometry, thickness, material, bc):
     K = 3/4
@@ -53,7 +109,7 @@ def getK(geometry, thickness, material, bc):
         
     return K
 
-E = 40*(10**9)
+E = 40*(10**3)
 #E = 40000
 v = 0.3
 rho = 8000
@@ -70,7 +126,7 @@ material.C[4,4] *= kG13
 
 width = 1
 curvature = 0
-thickness = 0.01
+thickness = 0.1
 
 corrugation_amplitude = 0
 corrugation_frequency = 0
@@ -78,39 +134,50 @@ corrugation_frequency = 0
 geometry = g.General(width, curvature, corrugation_amplitude, corrugation_frequency)
 
 N = 100
-M = 6
+M = 4
 
-#bc = m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS
+bc = m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS
 
-bc = m.Model.FIXED_LEFT_RIGHT_EDGE
+#bc = m.Model.FIXED_LEFT_RIGHT_EDGE
 
 
-norm_koef = 0.2
+norm_koef = 0.4
 
-result = solveLinear(geometry, thickness, material, N, M, bc)
+result2D = solveLinear2D(geometry, thickness, material, N, M, bc)
+result1D2O = solveLinear1D2O(geometry, thickness, material, N, bc)
+result1D1O = solveLinear1D1O(geometry, thickness, material, N, bc)
 
 x = []
-y = []
 
-yv = []
+y2D = []
+y1D2O = []
+y1D1O = []
+ya = []
 
 K = getK(geometry, thickness, material, bc)
 
 for i in range(5):
     u_max = i*norm_koef*thickness
-    resultNl, n = solveNonlinear(geometry, thickness, material, N, M, u_max, bc)
-#    resultNl2 = solveNonlinear2(geometry, thickness, material, N, M, u_max)
-    
-#    print('w_max = {}, w_l = {}, w_nl = {}'.format(u_max,result.freqHz(), resultNl.freqHz()))
+    result2Dnl, n = solveNonlinear2D(geometry, thickness, material, N, M, u_max, bc)
+    result1D1Onl, n = solveNonlinear1D1O(geometry, thickness, material, N, u_max, bc)
+    result1D2Onl, n = solveNonlinear1D2O(geometry, thickness, material, N, u_max, bc)
     
     d = i*norm_koef
-    dy = resultNl.freqHz()/result.freqHz()
-    dya = np.sqrt(1+0.75*K*d*d)
-    x.append(d)
-    y.append(dy)
-    yv.append(dya)
+    dy2D = result2Dnl.freqHz()/result2D.freqHz()
+    dy1D2O = result1D2Onl.freqHz()/result1D2O.freqHz()
+    dy1D1O = result1D1Onl.freqHz()/result1D1O.freqHz()
     
-    print('fem {} = {}'.format(d, dy))
+    dya = np.sqrt(1+0.75*K*d*d)
+    
+    x.append(d)
+    y2D.append(dy2D)
+    y1D2O.append(dy1D2O)
+    y1D1O.append(dy1D1O)
+    ya.append(dya)
+    
+    print('2D {} = {}'.format(d, dy2D))
+    print('1D2O {} = {}'.format(d, dy1D2O))
+    print('1D1O {} = {}'.format(d, dy1D1O))
     print('anal {} = {}'.format(d, dya))
     
     
@@ -136,11 +203,11 @@ plt.rc('ytick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
 plt.rc('legend', fontsize=SMALL_SIZE)    # legend fontsize
 plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
 
-#plt.plot(x, y, 'o-', linewidth=2.0, markersize=8, markeredgewidth=2, markeredgecolor='r', markerfacecolor='None', label = "General 2D theory")
-#plt.plot(x1D1, y1D1, 'x--', linewidth=2.0, markersize=8, markeredgewidth=2, markeredgecolor='b', markerfacecolor='None', label = "Mindlin-Reissner theory")
-plt.plot(y, x, 'ro-', linewidth=2.0, markersize=8, markeredgewidth=2, markeredgecolor='r', markerfacecolor='None', label = "Shell second order theory")
+plt.plot(y2D, x, 'ro-', linewidth=2.0, markersize=7, markeredgewidth=2, markeredgecolor='r', markerfacecolor='r', label = "Total nonlinearity")
+plt.plot(y1D2O, x, 'gs--', linewidth=2.0, markersize=7, markeredgewidth=2, markeredgecolor='g', markerfacecolor='g', label = "Second order")
+plt.plot(y1D1O, x, 'bx-.', linewidth=2.0, markersize=7, markeredgewidth=2, markeredgecolor='b', markerfacecolor='b', label = "Mindlin-Reisner")
 
-plt.plot(yv, x, 'bv:', linewidth=2.0, markersize=8, markeredgewidth=2, markeredgecolor='r', markerfacecolor='None', label = "Volmir")
+plt.plot(ya, x, 'mv:', linewidth=2.0, markersize=7, markeredgewidth=2, markeredgecolor='m', markerfacecolor='m', label = "Analytical")
 plt.xlabel(r"$\frac{\omega_{NL}}{\omega_{L}}$")
 plt.ylabel(r"$\frac{w_{max}}{h}$")
 
