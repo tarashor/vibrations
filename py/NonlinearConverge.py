@@ -136,12 +136,12 @@ geometry = g.General(width, curvature, corrugation_amplitude, corrugation_freque
 N = 100
 M = 4
 
-bc = m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS
+#bc = m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS
 
-#bc = m.Model.FIXED_LEFT_RIGHT_EDGE
+bc = m.Model.FIXED_LEFT_RIGHT_EDGE
 
 
-norm_koef = 0.4
+norm_koef = 1
 
 result2D = solveLinear2D(geometry, thickness, material, N, M, bc)
 result1D2O = solveLinear1D2O(geometry, thickness, material, N, bc)
@@ -156,7 +156,9 @@ ya = []
 
 K = getK(geometry, thickness, material, bc)
 
-for i in range(5):
+print(K)
+
+for i in range(12):
     u_max = i*norm_koef*thickness
     result2Dnl, n = solveNonlinear2D(geometry, thickness, material, N, M, u_max, bc)
     result1D1Onl, n = solveNonlinear1D1O(geometry, thickness, material, N, u_max, bc)

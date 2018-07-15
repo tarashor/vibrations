@@ -71,7 +71,7 @@ M = 4
 
 bc = m.Model.FIXED_LEFT_RIGHT_EDGE
 
-norm_koef = 2
+norm_koef = 3
 u_max = norm_koef*thickness
 
 result = solveLinear(geometry, thickness, material, N, M, u_max, bc)

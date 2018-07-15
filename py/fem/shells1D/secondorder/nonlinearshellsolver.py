@@ -63,9 +63,9 @@ def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl_1, s_matrix_nl_2, u_ma
 
     lam, vec = la.eigh(s, m)
 
-    vec = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count(), model.boundary_conditions)
+    vec_ex = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count(), model.boundary_conditions)
 
-    q = vec[:,u_index]
+    q = vec_ex[:,u_index]
     n = np.linalg.norm(q)
     
     w_max = get_max_w(q, mesh)
@@ -79,17 +79,18 @@ def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl_1, s_matrix_nl_2, u_ma
     
     K = s + 0.75*s_nl_2
     
-    h = 0
-    for l in model.layers:
-        h = l.height()
+#    h = 0
+#    for l in model.layers:
+#        h = l.height()
     
-    print('=====koef 1D2O =====')
-    print(q.T.dot(s_nl_2_in).dot(q) / lam[u_index] / (u_max*u_max / (w_max*w_max*h*h)))
+#    print('=====koef 1D2O =====')
+#    print(q.T.dot(s_nl_2_in).dot(q) / lam[u_index] / (u_max*u_max / (h*h)))
     
     
-    lam2, vec = la.eigh(K, m)
     
-    lam_nl = lam2[u_index]
+    lam_nl = vec[:,u_index].T.dot(K).dot(vec[:,u_index])
+    
+#    lam_nl = lam2[u_index]
     
     b1 = -0.5*s_nl_1_in.dot(res)
     b2 = -0.25*s_nl_2_in.dot(res)

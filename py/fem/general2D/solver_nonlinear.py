@@ -47,9 +47,9 @@ def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl_1, s_matrix_nl_2, u_ma
 
     lam, vec = la.eigh(s, m)
 
-    vec = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count())
+    vec_ex = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count())
 
-    q = vec[:,u_index]
+    q = vec_ex[:,u_index]
     u3_max = get_max_u3(q, mesh)
     
     res = normalize_u3_only(q, u_max, u3_max)
@@ -61,24 +61,35 @@ def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl_1, s_matrix_nl_2, u_ma
     
     K = s + 0.75*s_nl_2
     
-    h = 0
-    for l in model.layers:
-        h = l.height()
+#    h = 0
+#    for l in model.layers:
+#        h = l.height()
     
-    print('=====koef 2D =====')
-    koef = q.T.dot(s_nl_2_in).dot(q)
-    A = u_max / h
-    A /= u3_max
+#    print('=====koef 2D =====')
+#    koef = q.T.dot(s_nl_2_in).dot(q)
+#    A = u_max / h
+#    
+#    print('A = {}'.format(A))
+#    koef /= A*A
+#    
+#    print(koef / lam[u_index])
     
-    print('A = {}'.format(A))
-    koef /= A*A
+#    lam2, vec2 = la.eigh(K, m)
+#    
+#    
+#    lam_nl = lam2[u_index]
+#    
+#    vec2 = extend_with_fixed_nodes(vec2, fixed_nodes_indicies, mesh.nodes_count())
+#
+#    res2 = vec2[:,u_index]
+#    
+#    u3_max2 = get_max_u3(res2, mesh)
+#    
+#    res2 = normalize_u3_only(res2, u_max, u3_max2)
     
-    print(koef / lam[u_index])
+#    print(la.norm(res-res2))
     
-    lam2, vec = la.eigh(K, m)
-    
-    
-    lam_nl = lam2[u_index]
+    lam_nl = vec[:,u_index].T.dot(K).dot(vec[:,u_index])
     
     b1 = -0.5*s_nl_1_in.dot(res)
     b2 = -0.25*s_nl_2_in.dot(res)

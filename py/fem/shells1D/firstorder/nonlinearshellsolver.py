@@ -46,21 +46,21 @@ def i_exclude(fixed_nodes_indicies, nodes_count, bound_cond):
 
 def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl_1, s_matrix_nl_2, u_max, u_index = 0):
 
-    s = integrate_matrix(model, mesh, s_matrix)
-    m = integrate_matrix(model, mesh, m_matrix)
+    s_ex = integrate_matrix(model, mesh, s_matrix)
+    m_ex = integrate_matrix(model, mesh, m_matrix)
     
 
     fixed_nodes_indicies = mesh.get_fixed_nodes_indicies()
 
-    s = remove_fixed_nodes(s, fixed_nodes_indicies, mesh.nodes_count(), model.boundary_conditions)
-    m = remove_fixed_nodes(m, fixed_nodes_indicies, mesh.nodes_count(), model.boundary_conditions)
+    s = remove_fixed_nodes(s_ex, fixed_nodes_indicies, mesh.nodes_count(), model.boundary_conditions)
+    m = remove_fixed_nodes(m_ex, fixed_nodes_indicies, mesh.nodes_count(), model.boundary_conditions)
 
 
     lam, vec = la.eigh(s, m)
 
-    vec = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count(), model.boundary_conditions)
+    vec_ex = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count(), model.boundary_conditions)
 
-    q = vec[:,u_index]
+    q = vec_ex[:,u_index]
     n = np.linalg.norm(q)
     
     w_max = get_max_w(q, mesh)
@@ -75,19 +75,46 @@ def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl_1, s_matrix_nl_2, u_ma
     
     K = s + 0.75*s_nl_2
     
-    h = 0
-    for l in model.layers:
-        h = l.height()
+#    h = 0
+#    for l in model.layers:
+#        h = l.height()
+#    
+#    
+#    A = u_max / h
+#    print('=====koef 1D1O =====')
+#    k1 = q.T.dot(s_ex).dot(q)
+##    k2 = 0
+##    if (A != 0):
+#    k2 = q.T.dot(s_nl_2_in).dot(q)# / (A*A)
+#    koef = (k1 + 0.75*k2)#/ lam[u_index])
+#    print(vec[:,u_index].T.dot(K).dot(vec[:,u_index]))
+#    print(koef)
+#    print(vec[:,u_index].T.dot(m).dot(vec[:,u_index]))
+#    
+#    
+
+    lam_nl = vec[:,u_index].T.dot(K).dot(vec[:,u_index])
     
+
+#    
+#    print('=====lam 1D1O =====')
+#    
+#    print(lam_nl)
     
-    A = u_max / (w_max*h)
-    print('=====koef 1D1O =====')
-    print(q.T.dot(s_nl_2_in).dot(q) / lam[u_index] / (A*A))
+#    lam2, vec2 = la.eigh(K, m)
+#    
+#    lam_nl = lam2[u_index]
+#    
+#    vec2 = extend_with_fixed_nodes(vec2, fixed_nodes_indicies, mesh.nodes_count(), model.boundary_conditions)
+#
+#    res2 = vec2[:,u_index]
+#    
+#    w_max2 = get_max_w(res2, mesh)
+#    
+#    res2 = normalize_w_only(res2, u_max, w_max2)
+#    
+#    print(la.norm(res-res2))
     
-    
-    lam2, vec = la.eigh(K, m)
-    
-    lam_nl = lam2[u_index]
     
     b1 = -0.5*s_nl_1_in.dot(res)
     b2 = -0.25*s_nl_2_in.dot(res)
