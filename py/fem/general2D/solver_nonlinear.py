@@ -91,6 +91,16 @@ def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl_1, s_matrix_nl_2, u_ma
     
     lam_nl = vec[:,u_index].T.dot(K).dot(vec[:,u_index])
     
+    k1 = vec_ex[:,u_index].T.dot(s_nl_1_in).dot(res)/lam_nl
+    x1 = -0.5*k1
+    x2 = k1/6
+    k2=vec_ex[:,u_index].T.dot(s_nl_2_in).dot(res)/lam_nl
+    x3 = k2/32
+    print('x1={}'.format(x1*u3_max))
+    print('x2={}'.format(x2*u3_max))
+    print('x3={}'.format(x3*u3_max))
+    
+    
     b1 = -0.5*s_nl_1_in.dot(res)
     b2 = -0.25*s_nl_2_in.dot(res)
     
@@ -233,5 +243,6 @@ def normalize_u3_only(v, u_max, u3_max):
 def get_max_u3(v, mesh):
     u3 = v[mesh.nodes_count():2 * mesh.nodes_count()]
     Wni = np.argmax(np.absolute(u3))
+    print(Wni)
     return u3[Wni]
 

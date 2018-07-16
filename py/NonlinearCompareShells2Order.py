@@ -1,29 +1,28 @@
 import fem.geometry as g
 import fem.model as m
 import fem.material as mat
-import fem.general2D.solverlinear as s
-import fem.general2D.result2D as r
+import fem.shells1D.secondorder.shellsolver as s
+import fem.shells1D.secondorder.result1D as r
 
-import fem.general2D.solver_nonlinear as s_nl
-import fem.general2D.result2Dnonlinear as r_nl
+import fem.shells1D.secondorder.nonlinearshellsolver as s_nl
+import fem.shells1D.secondorder.result1Dnonlinear as r_nl
 
-import fem.general2D.solver_nonlinear2 as s_nl2
 
 import fem.mesh as me
 import plot
 import numpy as np
 
-from fem.general2D.matrices2D import stiffness_matrix, mass_matrix, stiffness_matrix_nl_1, stiffness_matrix_nl_2
+from fem.shells1D.secondorder.matrices1D import stiffness_matrix, mass_matrix, stiffness_matrix_nl_1, stiffness_matrix_nl_2
 
 
-def solveLinear(geometry, thickness, material, N, M, u_max, bc):
+def solveLinear(geometry, thickness, material, N, u_max, bc):
     layers = m.Layer.generate_layers(thickness, [material])
     model = m.Model(geometry, layers, bc)
     mesh = me.Mesh.generate2D(geometry.width, layers, N, M, model.boundary_conditions)
     
     lam, vec = s.solve(model, mesh, stiffness_matrix, mass_matrix, u_max)
     
-    results_index = 0
+    results_index = 10
     results = r.Result.convert_to_results(lam, vec, mesh, geometry)
     
     return results[results_index]
@@ -34,7 +33,7 @@ def solveNonlinear(geometry, thickness, material, N, M, u_max, bc):
     model = m.Model(geometry, layers, bc)
     mesh = me.Mesh.generate2D(geometry.width, layers, N, M, model.boundary_conditions)
     
-    lam_nl, res, U1, U2, U3, um = s_nl.solve_nl(model, mesh, stiffness_matrix, mass_matrix, stiffness_matrix_nl_1, stiffness_matrix_nl_2, u_max)
+    lam_nl, res, U1, U2, U3, um = s_nl.solve_nl(model, mesh, stiffness_matrix, mass_matrix, stiffness_matrix_nl_1, stiffness_matrix_nl_2, u_max, 10)
     
 #    print('norms')
 #    print(np.linalg.norm(res))
@@ -44,8 +43,6 @@ def solveNonlinear(geometry, thickness, material, N, M, u_max, bc):
 #    print(np.linalg.norm(U1+U2+U3))
     
     print('maxs')
-    print(um)
-    
     print(get_max_u3(res, mesh))
     print(get_max_u3(U1, mesh))
     print(get_max_u3(U2, mesh))
@@ -80,7 +77,7 @@ material = mat.IsotropicMaterial(E,v,rho)
 
 width = 1
 curvature = 0
-thickness = 0.1
+thickness = 0.01
 
 corrugation_amplitude = 0
 corrugation_frequency = 0
@@ -113,28 +110,20 @@ print("freqNL = {}".format(resultNl.freq))
 x = []
 y = []
 ynl = []
-ynl2 = None
-#ynl2=[]
+ynl2 = []
 
 deltat = T / tN
 
 for t in range(tN):
     time = deltat*t
     u = result.get_displacement_and_deriv(width/2, 0, 0, time)
-#    unl = resultNl.get_displacement_and_deriv(width/2, 0, 0, time)
+    unl = resultNl.get_displacement_and_deriv(width/2, 0, 0, time)
 #    unl2 = resultNl2.get_displacement_and_deriv(width/2, 0, 0, time)
-    
     x.append(time)
     y.append(u[8])
-    x_sol = ((u_max-0.002954240169575907)*np.cos(resultNl.freq*time)+(0.002954240169575907)*np.cos(3*resultNl.freq*time))
+    ynl.append(unl[8])
+#    ynl2.append(unl2[8])
     
-    ynl.append(x_sol)
-#    ynl2.append(np.cos(3*resultNl.freq*time))
-    
-    
-#    y.append(u[8])
-#    ynl.append(unl[8])
-#    
     
 
-plot.plot_vibrations(x,y,ynl,ynl2)
+plot.plot_vibrations(x,y,ynl)

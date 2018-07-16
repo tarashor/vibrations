@@ -429,6 +429,7 @@ def plot_freq_from_corrugated_freq(g_v, w_min, N, M):
     plt.show()
     
 def plot_vibrations(time, u_linear, u_nonlinear, u_nonlinear2=None):
+    plt.figure()
     init()
     plt.plot(time, u_linear, 'go:', linewidth=1.0, markersize=5, markeredgewidth=2, markeredgecolor='g', markerfacecolor='g', label = "linear")
     plt.plot(time, u_nonlinear, 'rv-', linewidth=1.0, markersize=7, markeredgewidth=2, markeredgecolor='r', markerfacecolor='r', label = "nonlinear")
