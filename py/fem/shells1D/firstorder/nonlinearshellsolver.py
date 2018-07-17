@@ -75,20 +75,18 @@ def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl_1, s_matrix_nl_2, u_ma
     
     K = s + 0.75*s_nl_2
     
-#    h = 0
-#    for l in model.layers:
-#        h = l.height()
-#    
-#    
-#    A = u_max / h
-#    print('=====koef 1D1O =====')
-#    k1 = q.T.dot(s_ex).dot(q)
-##    k2 = 0
-##    if (A != 0):
-#    k2 = q.T.dot(s_nl_2_in).dot(q)# / (A*A)
-#    koef = (k1 + 0.75*k2)#/ lam[u_index])
-#    print(vec[:,u_index].T.dot(K).dot(vec[:,u_index]))
-#    print(koef)
+    h = 0
+    for l in model.layers:
+        h = l.height()
+    
+    
+    A = u_max / h
+    print('=====koef 1D1O =====')
+    koef = 0
+    if (A != 0):
+        k2 = q.T.dot(s_nl_2_in).dot(q) / (A*A)
+        koef = (k2 / lam[u_index])
+    print(koef)
 #    print(vec[:,u_index].T.dot(m).dot(vec[:,u_index]))
 #    
 #    

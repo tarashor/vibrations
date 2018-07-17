@@ -1,5 +1,5 @@
 from . import matrices2D as matrices
-from . import result2D as r
+from . import result2D
 import numpy as np
 # from . import mesh as m
 from scipy import linalg as la
@@ -11,12 +11,6 @@ def remove_fixed_nodes(matrix, fixed_nodes_indicies, all_nodes_count):
     free_nodes1 = [i for i in range(matrix.shape[0]) if i not in indicies_to_exclude]
     free_nodes2 = [i for i in range(matrix.shape[1]) if i not in indicies_to_exclude]
     return matrix[np.ix_(free_nodes1, free_nodes2)]
-
-def remove_fixed_nodes_vector(v, fixed_nodes_indicies, all_nodes_count):
-    indicies_to_exclude = i_exclude(fixed_nodes_indicies, all_nodes_count)
-
-    free_nodes1 = [i for i in range(v.shape[0]) if i not in indicies_to_exclude]
-    return v[free_nodes1]
 
 
 def extend_with_fixed_nodes(eig_vectors, fixed_nodes_indicies, all_nodes_count):
@@ -33,12 +27,11 @@ def i_exclude(fixed_nodes_indicies, nodes_count):
     fixed_u2_indicies = [nodes_count + x for x in fixed_nodes_indicies]
     return sorted(fixed_u1_indicies + fixed_u2_indicies)
 
-def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl_1, s_matrix_nl_2, u_max, u_index = 0):
+def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl_1, s_matrix_nl_2, u_max):
 
     s = integrate_matrix(model, mesh, s_matrix)
     m = integrate_matrix(model, mesh, m_matrix)
     
-
     fixed_nodes_indicies = mesh.get_fixed_nodes_indicies()
 
     s = remove_fixed_nodes(s, fixed_nodes_indicies, mesh.nodes_count())
@@ -46,48 +39,33 @@ def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl_1, s_matrix_nl_2, u_ma
 
 
     lam, vec = la.eigh(s, m)
+    
+    print(lam)
+    
+    lam_nl = np.copy(lam)
 
     vec_ex = extend_with_fixed_nodes(vec, fixed_nodes_indicies, mesh.nodes_count())
+    
+    for i in range(len(lam)):
+        res = vec_ex[:,i]
+        r = vec[:,i]
+#        print("Norm = {}".format(np.linalg.norm(res)))
+        res = normalize(res, u_max)
+        r = normalize(r, u_max)
+        s_nl_2_in = integrate_matrix_with_disp(model, mesh, s_matrix_nl_2, res)
+        s_nl_2 = remove_fixed_nodes(s_nl_2_in, fixed_nodes_indicies, mesh.nodes_count())
+    
+        s_nl_1_in = integrate_matrix_with_disp(model, mesh, s_matrix_nl_1, res)
+        s_nl_1 = remove_fixed_nodes(s_nl_1_in, fixed_nodes_indicies, mesh.nodes_count())
+    
+        a = 8/(3*np.pi)
+    
+        lam_nl[i] += 0.75*r.T.dot(s_nl_2).dot(r) + a*r.T.dot(s_nl_1).dot(r)
+    
 
-    q = vec_ex[:,u_index]
-    u3_max = get_max_u3(q, mesh)
     
-    res = normalize_u3_only(q, u_max, u3_max)
-    
-    s_nl_2_in = integrate_matrix_with_disp(model, mesh, s_matrix_nl_2, res)
-    s_nl_2 = remove_fixed_nodes(s_nl_2_in, fixed_nodes_indicies, mesh.nodes_count())
-    
-    s_nl_1_in = integrate_matrix_with_disp(model, mesh, s_matrix_nl_1, res)
-    
-    K = s + 0.75*s_nl_2
-    
-    lam_nl = vec[:,u_index].T.dot(K).dot(vec[:,u_index])
-    
-    k1 = vec_ex[:,u_index].T.dot(s_nl_1_in).dot(res)/lam_nl
-    x1 = -0.5*k1
-    x2 = k1/6
-    k2=vec_ex[:,u_index].T.dot(s_nl_2_in).dot(res)/lam_nl
-    x3 = k2/32
-    
-    U1 = x1*q
-    U2 = x2*q
-    U3 = x3*q
-    
-    return lam_nl, res, U1, U2, U3, u3_max
+    return lam_nl, vec_ex
 
-
-def convert_to_results(eigenvalues, eigenvectors, mesh, geometry):
-    
-    results = []
-    for i in range(eigenvalues.size):
-        freq = np.sqrt(eigenvalues[i])
-        u1 = eigenvectors[:, i][0:mesh.nodes_count()]
-        u3 = eigenvectors[:, i][mesh.nodes_count():2 * mesh.nodes_count()]
-        u2 = np.zeros((mesh.nodes_count()))
-        res = r.Result(freq, u1, u2, u3, mesh, geometry)
-        results.append(res)
-
-    return results
     
 
 def integrate_matrix(model, mesh, matrix_func):
@@ -192,15 +170,3 @@ def normalize(v, u_max):
     if norm == 0:
         return v
     return v*u_max / norm
-
-def normalize_u3_only(v, u_max, u3_max):
-    if u3_max == 0:
-        return v
-    return v*u_max / u3_max
-
-def get_max_u3(v, mesh):
-    u3 = v[mesh.nodes_count():2 * mesh.nodes_count()]
-    Wni = np.argmax(np.absolute(u3))
-    print(Wni)
-    return u3[Wni]
-

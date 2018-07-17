@@ -4,10 +4,11 @@ import fem.material as mat
 import fem.general2D.solverlinear as s
 import fem.general2D.result2D as r
 
-import fem.general2D.solver_nonlinear as s_nl
+#import fem.general2D.solver_nonlinear as s_nl
+import fem.general2D.solver_nonlinear2 as s_nl
 import fem.general2D.result2Dnonlinear as r_nl
 
-import fem.general2D.solver_nonlinear2 as s_nl2
+#import fem.general2D.solver_nonlinear2 as s_nl2
 
 import fem.mesh as me
 import plot
@@ -94,7 +95,7 @@ M = 4
 
 bc = m.Model.FIXED_LEFT_RIGHT_EDGE
 
-norm_koef = 1
+norm_koef = 2
 u_max = norm_koef*thickness
 
 result = solveLinear(geometry, thickness, material, N, M, u_max, bc)
@@ -121,19 +122,19 @@ deltat = T / tN
 for t in range(tN):
     time = deltat*t
     u = result.get_displacement_and_deriv(width/2, 0, 0, time)
-#    unl = resultNl.get_displacement_and_deriv(width/2, 0, 0, time)
+    unl = resultNl.get_displacement_and_deriv(width/2, 0, 0, time)
 #    unl2 = resultNl2.get_displacement_and_deriv(width/2, 0, 0, time)
     
     x.append(time)
     y.append(u[8])
-    x_sol = ((u_max-0.002954240169575907)*np.cos(resultNl.freq*time)+(0.002954240169575907)*np.cos(3*resultNl.freq*time))
+#    x_sol = ((u_max-0.002954240169575907)*np.cos(resultNl.freq*time)+(0.002954240169575907)*np.cos(3*resultNl.freq*time))
     
-    ynl.append(x_sol)
+#    ynl.append(x_sol)
 #    ynl2.append(np.cos(3*resultNl.freq*time))
     
     
 #    y.append(u[8])
-#    ynl.append(unl[8])
+    ynl.append(unl[8])
 #    
     
 
