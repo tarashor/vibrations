@@ -61,37 +61,9 @@ def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl_1, s_matrix_nl_2, u_ma
     
     K = s + 0.75*s_nl_2
     
-#    h = 0
-#    for l in model.layers:
-#        h = l.height()
-    
-#    print('=====koef 2D =====')
-#    koef = q.T.dot(s_nl_2_in).dot(q)
-#    A = u_max / h
-#    
-#    print('A = {}'.format(A))
-#    koef /= A*A
-#    
-#    print(koef / lam[u_index])
-    
-#    lam2, vec2 = la.eigh(K, m)
-#    
-#    
-#    lam_nl = lam2[u_index]
-#    
-#    vec2 = extend_with_fixed_nodes(vec2, fixed_nodes_indicies, mesh.nodes_count())
-#
-#    res2 = vec2[:,u_index]
-#    
-#    u3_max2 = get_max_u3(res2, mesh)
-#    
-#    res2 = normalize_u3_only(res2, u_max, u3_max2)
-    
-#    print(la.norm(res-res2))
-    
     h = 0
     for l in model.layers:
-        h = l.height()
+        h += l.height()
         
     A = u_max / h
     print('=====koef 2D =====')
@@ -103,31 +75,19 @@ def solve_nl(model, mesh, s_matrix, m_matrix, s_matrix_nl_1, s_matrix_nl_2, u_ma
     
     lam_nl = vec[:,u_index].T.dot(K).dot(vec[:,u_index])
     
+    
     k1 = vec_ex[:,u_index].T.dot(s_nl_1_in).dot(res)/lam_nl
     x1 = -0.5*k1
     x2 = k1/6
     k2=vec_ex[:,u_index].T.dot(s_nl_2_in).dot(res)/lam_nl
     x3 = k2/32
-    print('x1={}'.format(x1*u3_max))
-    print('x2={}'.format(x2*u3_max))
-    print('x3={}'.format(x3*u3_max))
     
-    
-    b1 = -0.5*s_nl_1_in.dot(res)
-    b2 = -0.25*s_nl_2_in.dot(res)
-    
-    b1 = remove_fixed_nodes_vector(b1, fixed_nodes_indicies, mesh.nodes_count())
-    b2 = remove_fixed_nodes_vector(b2, fixed_nodes_indicies, mesh.nodes_count())
-    
-    U1 = la.solve(K, b1)
-    U2 = la.solve(K - 4*lam_nl*m, b1)
-    U3 = la.solve(K - 9*lam_nl*m, b2)
-    
-    U1 = extend_with_fixed_nodes(U1, fixed_nodes_indicies, mesh.nodes_count())
-    U2 = extend_with_fixed_nodes(U2, fixed_nodes_indicies, mesh.nodes_count())
-    U3 = extend_with_fixed_nodes(U3, fixed_nodes_indicies, mesh.nodes_count())
+    U1 = x1*q
+    U2 = x2*q
+    U3 = x3*q
     
     return lam_nl, res, U1, U2, U3, u3_max
+    
 
 
 def convert_to_results(eigenvalues, eigenvectors, mesh, geometry):
