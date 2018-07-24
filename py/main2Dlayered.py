@@ -9,17 +9,7 @@ import plot
 from fem.general2D.matrices2D import stiffness_matrix, mass_matrix
 
 
-def solve(geometry, thickness1, thickness2, material1, material2, N, M):
-    
-    layers = set()
-    h = thickness1+thickness2+thickness1
-    top = h/2
-    layer1 = m.Layer(top - thickness1, top, material1, 0)
-    layer2 = m.Layer(top - thickness1-thickness2, top-thickness1, material2, 1)
-    layer3 = m.Layer(top - thickness1-thickness2 - thickness1, top - thickness1-thickness2, material1, 2)
-    layers.add(layer1)
-    layers.add(layer2)
-    layers.add(layer3)
+def solve(geometry, layers, N, M):
     print(layers)
     
 #    model = m.Model(geometry, layers, m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS)
@@ -40,9 +30,38 @@ width = 1
 curvature = 0
 thickness = 0.1
 
-rubber_h_coef = 0.95
+rubber_h_coef = 0.91
 rh = rubber_h_coef*thickness
 sh = (1-rubber_h_coef)*thickness/2
+
+layers = set()
+if (rubber_h_coef != 0 and rubber_h_coef != 1):
+    rh = rubber_h_coef*thickness
+    sh = (1-rubber_h_coef)*thickness/2
+    
+    h = sh+rh+sh
+    top = h/2
+    layer1 = m.Layer(top - sh, top, material1, 0)
+    layer2 = m.Layer(top - sh-rh, top-sh, material2, 1)
+    layer3 = m.Layer(top - sh-rh - sh, top - sh-rh, material1, 2)
+    layers.add(layer1)
+    layers.add(layer2)
+    layers.add(layer3)
+elif (rubber_h_coef == 0):
+    sh = thickness
+    
+    top = thickness/2
+    layer1 = m.Layer(top - sh, top, material1, 0)
+    
+    layers.add(layer1)
+    
+elif (rubber_h_coef == 1):
+    rh = thickness
+    
+    top = thickness/2
+    layer1 = m.Layer(top - rh, top, material2, 0)
+    
+    layers.add(layer1)
 
 corrugation_amplitude = 0
 corrugation_frequency = 0
@@ -54,7 +73,7 @@ M = 2
 
 
 
-lam, vec, mesh, geometry = solve(geometry, sh, rh, material1, material2, N, M)
+lam, vec, mesh, geometry = solve(geometry, layers, N, M)
 results = r.Result.convert_to_results(lam, vec, mesh, geometry)
 
 results_index = 0

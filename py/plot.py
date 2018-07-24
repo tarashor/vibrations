@@ -256,7 +256,7 @@ def plot_init_and_deformed_geometry_in_cartesian(result, x1_start, x1_end, x3_st
     X_deformed.append(X_deformed[0])
     Y_deformed.append(Y_deformed[0])
 
-    plt.plot(X_init, Y_init, "r", label="init configuration")
+    plt.plot(X_init, Y_init, "r--", label="init configuration")
     plt.plot(X_deformed, Y_deformed, "b", label="current configuration")
     plt.title("Displacement related to minimal natural frequency")
     # plt.title(r"Форма панелі $L={}, h={}, K={}, g_A={}, g_v={}$".format(x1_end - x1_start, x2_end - x2_start, result.geometry.curvature, result.geometry.corrugation_amplitude, result.geometry.corrugation_frequency))

@@ -14,9 +14,8 @@ import os
 import platform
 import matplotlib.pyplot as plt
 
-import numpy as np
+import utils
 
-import plot as p
 
 def solveLinear2D(geometry, layers, N, M, bc):
     model = m.Model(geometry, layers, bc)
@@ -33,7 +32,6 @@ def solveLinear2D(geometry, layers, N, M, bc):
 def solveNonlinear2D(geometry, layers, N, M, u_max, bc):
     model = m.Model(geometry, layers, bc)
     mesh = me.Mesh.generate2D(geometry.width, layers, N, M, model.boundary_conditions)
-#    p.plot_mesh(mesh, 1, 0.1)
     
     lam_nl, res, U1, U2, U3, n = s2Dnl.solve_nl(model, mesh, mat2D.stiffness_matrix, mat2D.mass_matrix, mat2D.stiffness_matrix_nl_1, mat2D.stiffness_matrix_nl_2, u_max)
     
@@ -63,6 +61,8 @@ material1 = mat.IsotropicMaterial.steel()
 material2 = mat.IsotropicMaterial.rubber()
 
 rubber_coefs = [0, 0.4, 0.6, 0.8, 0.9, 0.95, 1]
+
+
 
 #rubber_coefs = [0.2, 0.4, 0.6]
 
@@ -131,53 +131,12 @@ for rubber_h_coef in rubber_coefs:
     y_per_hr[rubber_h_coef] = y2D
     x_per_hr[rubber_h_coef] = x
         
-        
-    
-plt.figure()
-    
-tex_path = '/usr/local/texlive/2017/bin/x86_64-darwin'
-if (platform.system() == 'Windows'):
-    tex_path = "C:\Program Files\MiKTeX 2.9\miktex/bin/x64"
 
-os.environ["PATH"] += os.pathsep + tex_path
+folder = "./results/layered/"
 
-plt.rc('text', usetex=True)
-plt.rc('font', family='serif')
+utils.save_results(folder+"y_per_hr", y_per_hr)
+utils.save_results(folder+"x_per_hr", x_per_hr)
 
-SMALL_SIZE = 24
-MEDIUM_SIZE = 28
-BIGGER_SIZE = 32
-
-plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
-plt.rc('axes', titlesize=SMALL_SIZE)     # fontsize of the axes title
-plt.rc('axes', labelsize=MEDIUM_SIZE)    # fontsize of the x and y labels
-plt.rc('xtick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
-plt.rc('ytick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
-plt.rc('legend', fontsize=SMALL_SIZE)    # legend fontsize
-plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
-
-#plt.plot(y2D, x, 'ro-', linewidth=2.0, markersize=7, markeredgewidth=2, markeredgecolor='r', markerfacecolor='r', label = "Total nonlinearity")
-#plt.plot(y1D2O, x, 'gs--', linewidth=2.0, markersize=7, markeredgewidth=2, markeredgecolor='g', markerfacecolor='g', label = "Second order")
-#plt.plot(y1D1O, x, 'bx-.', linewidth=2.0, markersize=7, markeredgewidth=2, markeredgecolor='b', markerfacecolor='b', label = "Mindlin-Reisner")
-
-#plt.plot(ya, x, 'mv:', linewidth=2.0, markersize=7, markeredgewidth=2, markeredgecolor='m', markerfacecolor='m', label = "Analytical")
-
-for hr in rubber_coefs:
-    print('===========')
-    print(hr)
-    print(y_per_hr[hr])
-    print(x_per_hr[hr])
-    
-    plt.plot(y_per_hr[hr], x_per_hr[hr], label = r"$h_r = {}$".format(hr))
-
-plt.xlabel(r"$\frac{\omega_{NL}}{\omega_{L}}$")
-plt.ylabel(r"$\frac{w_{max}}{h}$")
-
-plt.xlim(xmin=0)
-plt.legend(loc='best')
-
-plt.grid()
-plt.show()
     
     
 
