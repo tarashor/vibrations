@@ -10,7 +10,7 @@ folder = "./results/curved/"
 y_per_hr = utils.load_results(folder+"y_per_hr")
 x_per_hr = utils.load_results(folder+"x_per_hr")
 
-markers = ['o', '*', 'd', 'v', 's']
+markers = ['x', 'o', '*', 'd', 'v', 's']
     
 plt.figure()
     

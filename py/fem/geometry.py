@@ -33,7 +33,7 @@ class General:
     def get_A_and_K(self, x1, x2, x3):
         a1, a2 = self.__get_trig_args(x1, x2, x3)
         
-        z = self.corrugation_amplitude * self.corrugation_frequency * np.sin(self.corrugation_frequency*a1)*self.inverted_radius
+        z = self.corrugation_amplitude * self.corrugation_frequency * np.sin(self.corrugation_frequency * a1)*self.inverted_radius
         w = 1 +  self.corrugation_amplitude * self.inverted_radius * np.cos(self.corrugation_frequency * a1)
         
         A = np.sqrt(w*w+z*z)
@@ -76,7 +76,7 @@ class General:
     
     def getJacobian(self, x1, x2, x3):
         A,K = self.get_A_and_K(x1, x2, x3)
-        return A#*(1+x3*K)
+        return A*(1+x3*K)
 
     def __str__(self):
         return "L={}, 1/R={}, g_a={}, g_v={}".format(self.width, self.inverted_radius, self.corrugation_amplitude, self.corrugation_frequency)

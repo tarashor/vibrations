@@ -9,7 +9,7 @@ import fem.shells1D.secondorder.result1D as r
 from fem.shells1D.secondorder.matrices1D import stiffness_matrix, mass_matrix
 
 
-def solve(geometry, thickness, material, N, M):
+def solve(geometry, thickness, material, N):
     layers = m.Layer.generate_layers(thickness, [material])
     model = m.Model(geometry, layers, m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS)
     model.fixed_x3 = -thickness/2
@@ -30,8 +30,8 @@ def solve(geometry, thickness, material, N, M):
 material = mat.IsotropicMaterial.steel()
 
 width = 1
-curvature = 0
-thickness = 0.1
+curvature = 2
+thickness = 0.01
 
 corrugation_amplitude = 0
 corrugation_frequency = 0
@@ -41,7 +41,7 @@ geometry = g.General(width, curvature, corrugation_amplitude, corrugation_freque
 N = 200
 
 
-lam, vec, mesh, geometry = solve(geometry, thickness, material, N, M)
+lam, vec, mesh, geometry = solve(geometry, thickness, material, N)
 results = r.Result.convert_to_results(lam, vec, mesh, geometry, thickness)
 
 results_index = 0

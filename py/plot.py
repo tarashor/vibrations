@@ -210,6 +210,8 @@ def plot_init_and_deformed_geometry(result, x1_start, x1_end, x3_start, x3_end, 
     plt.show()
     
 def plot_init_and_deformed_geometry_in_cartesian(result, x1_start, x1_end, x3_start, x3_end, time, to_cartesian_coordinates=None):
+    plt.figure()
+    init()
     
     alphas_toward = np.vstack((np.linspace(x1_start, x1_end, num=plot_x1_elements), np.linspace(x3_end,x3_end,plot_x1_elements)))
     alphas_backward = np.vstack((np.linspace(x1_end, x1_start, num=plot_x1_elements), np.linspace(x3_start,x3_start,plot_x1_elements)))
@@ -258,12 +260,12 @@ def plot_init_and_deformed_geometry_in_cartesian(result, x1_start, x1_end, x3_st
 
     plt.plot(X_init, Y_init, "r--", label="init configuration")
     plt.plot(X_deformed, Y_deformed, "b", label="current configuration")
-    plt.title("Displacement related to minimal natural frequency")
+#    plt.title("Displacement related to minimal natural frequency")
     # plt.title(r"Форма панелі $L={}, h={}, K={}, g_A={}, g_v={}$".format(x1_end - x1_start, x2_end - x2_start, result.geometry.curvature, result.geometry.corrugation_amplitude, result.geometry.corrugation_frequency))
     plt.axes().set_aspect('equal', 'datalim')
     plt.legend(loc='best')
-    plt.xlabel(r"$x_1$, m", fontsize=12)
-    plt.ylabel(r"$x_3$, m", fontsize=12)
+    plt.xlabel(r"$x_1$, m")
+    plt.ylabel(r"$x_3$, m")
     plt.grid()
     plt.show()
     
