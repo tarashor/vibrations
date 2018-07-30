@@ -8,6 +8,13 @@ import fem.shells1D.secondorder.shellsolver as s1D2O
 import fem.shells1D.secondorder.result1D as r1D2O
 import fem.shells1D.secondorder.matrices1D as mat1D2O
 
+import matplotlib.pyplot as plt
+from matplotlib import cm
+import numpy as np
+
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib.ticker import LinearLocator, FormatStrFormatter
+
 
 def solveLinear1D2O(geometry, layers, N, bc):
     model = m.Model(geometry, layers, bc)
@@ -47,34 +54,48 @@ N = 50
 bc = m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS
 #bc = m.Model.FIXED_LEFT_RIGHT_EDGE
 
-thicknesses = [0.01, 0.05, 0.1, 0.2]
+thicknesses = [0.001, 0.005, 0.01, 0.05, 0.1, 0.2]
 
-curvatures_coef = range(1,200,20)
+thicknesses = np.arange(0.001, 0.155, 0.005)
 
-y_per_hr = {}
-x_per_hr = {}
+#curvatures = [0, 0.01, 0.1, 0.2, 0.3, 0.5,  0.8, 1, 1.2, 1.5, 2]
+curvatures = np.arange(0, 2.1, 0.1)
+
+v = np.zeros((len(thicknesses), len(curvatures)))
+
+i= 0
 
 for thickness in thicknesses:
     layers = m.Layer.generate_layers(thickness, [material])
-    
-    print('========== H = {} ============='.format(thickness))
-    
-    for cc in curvatures_coef:
+    j = 0
+    for curvature in curvatures:
         
-        curvature = cc*thickness
         geometry = g.General(width, curvature, corrugation_amplitude, corrugation_frequency)
         
         
         result2D = solveLinear1D2O(geometry, layers, N, bc)
         
-        print('--------------------------------------')
-        print(cc)
-        print(curvature)
-        print(result2D.freqHz())
-        print('--------------------------------------')
+        v[i, j] = result2D.freqHz()
+        
+        j+=1
     
-    
-    print('========================')
+    i+=1
+        
+
+fig=plt.figure()
+
+(X1, X2) = np.meshgrid(thicknesses, curvatures)
+surf = plt.contourf(X1, X2, v.T, 25)
+plt.ylabel(r"$K, m^{-1}$")
+plt.xlabel(r"$h, m$")
+plt.colorbar(surf)
+plt.grid()
+plt.show()
+
+#ax = fig.gca(projection='3d')
+#surf = ax.plot_surface(X1, X2, v.T, cmap=cm.rainbow)
+#ax.yaxis.set_major_formatter(FormatStrFormatter('%.02f'))
+#plt.show()
         
     
         
