@@ -8,6 +8,8 @@ import fem.shells1D.secondorder.shellsolver as s1D2O
 import fem.shells1D.secondorder.result1D as r1D2O
 import fem.shells1D.secondorder.matrices1D as mat1D2O
 
+import plot
+
 import matplotlib.pyplot as plt
 from matplotlib import cm
 import numpy as np
@@ -48,6 +50,7 @@ material = mat.OrthotropicMaterial.create_from_E_and_v_with_koef_E1(E,v,rho, kE1
 
 material.C[4,4] *= kG13
 
+#material = mat.IsotropicMaterial.steel()
 
 N = 50
 
@@ -56,7 +59,7 @@ bc = m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS
 
 thicknesses = [0.001, 0.005, 0.01, 0.05, 0.1, 0.2]
 
-thicknesses = np.arange(0.001, 0.155, 0.005)
+thicknesses = np.arange(0.005, 0.205, 0.005)
 
 #curvatures = [0, 0.01, 0.1, 0.2, 0.3, 0.5,  0.8, 1, 1.2, 1.5, 2]
 curvatures = np.arange(0, 2.1, 0.1)
@@ -81,13 +84,15 @@ for thickness in thicknesses:
     
     i+=1
         
-
+plot.init()
 fig=plt.figure()
 
 (X1, X2) = np.meshgrid(thicknesses, curvatures)
-surf = plt.contourf(X1, X2, v.T, 25)
+surf = plt.contourf(X1, X2, v.T, 30)
+#surf = plt.contourf(X1, X2, v.T)
 plt.ylabel(r"$K, m^{-1}$")
 plt.xlabel(r"$h, m$")
+#plt.clabel(surf, inline=1, fontsize=16)
 plt.colorbar(surf)
 plt.grid()
 plt.show()

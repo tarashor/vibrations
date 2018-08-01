@@ -416,8 +416,9 @@ def plot_init_geometry_2(x1_start, x1_end, x3_start, x3_end, to_cartesian_coordi
     plt.savefig('plot1.png')
 
 
-def plot_freq_from_corrugated_freq(g_v, w_min, N, M):
-    plt.plot(g_v, w_min, 'o-', linewidth=3.0, markersize=7, markeredgewidth=1, markeredgecolor='r', markerfacecolor='None')
+def plot_freq_from_corrugated_freq(g_v, w_min):
+    plt.figure()
+    plt.plot(g_v, w_min, 'o-', linewidth=3.0, markersize=7, markeredgewidth=2, markeredgecolor='r', markerfacecolor='None')
     plt.xlabel(r"$g_v$", fontsize=20)
     plt.ylabel(r"$\omega_{min}$, Гц", fontsize=20)
 

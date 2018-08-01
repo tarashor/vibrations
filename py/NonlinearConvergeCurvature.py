@@ -43,7 +43,7 @@ def solveNonlinear2D(geometry, layers, N, M, u_max, bc):
 
 
 width = 1
-thickness = 0.01
+thickness = 0.1
 
 corrugation_amplitude = 0
 corrugation_frequency = 0
@@ -70,7 +70,7 @@ bc = m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS
 #bc = m.Model.FIXED_LEFT_RIGHT_EDGE
 
 
-curvatures = [0, 0.5, 1, 1.5, 2]
+curvatures = [0.5, 0.8, 1, 1.5, 2]
 #curvatures = [0.05]
 
 y_per_hr = {}
@@ -94,7 +94,7 @@ for curvature in curvatures:
     y2D = []
     
     
-    for i in range(2):
+    for i in range(7):
         u_max = i*norm_koef*thickness
         result2Dnl, n = solveNonlinear2D(geometry, layers, N, M, u_max, bc)
         
