@@ -334,6 +334,8 @@ def plot_deformed_mesh(result, L, h):
 
 def plot_init_geometry(geometry, x1_start, x1_end, x3_start, x3_end, time):
 
+    plt.figure()
+    init()
     dx1 = (x1_end - x1_start) / plot_x1_elements
 
     X_init = []
@@ -361,7 +363,7 @@ def plot_init_geometry(geometry, x1_start, x1_end, x3_start, x3_end, time):
     X_init.append(X_init[0])
     Y_init.append(Y_init[0])
 
-    plt.plot(X_init, Y_init, "r", label="init configuration")
+    plt.plot(X_init, Y_init, "r")
 
 #    geometry_title = str(geometry)
 #    plot_title = r"Форма панелі $L={}, h={}$".format(x1_end - x1_start, x3_end - x3_start)
@@ -370,14 +372,15 @@ def plot_init_geometry(geometry, x1_start, x1_end, x3_start, x3_end, time):
 
 #    plt.title(plot_title)
     plt.axes().set_aspect('equal', 'datalim')
-    plt.legend(loc='best')
-    plt.xlabel(r"$x_1$, m", fontsize=12)
-    plt.ylabel(r"$x_3$, m", fontsize=12)
+#    plt.legend(loc='best')
+    plt.xlabel(r"$x_1$, m")
+    plt.ylabel(r"$x_3$, m")
     plt.grid()
     plt.show()
     
 def plot_init_geometry_2(x1_start, x1_end, x3_start, x3_end, to_cartesian_coordinates):
-
+    plt.figure()
+    init()
     dx1 = (x1_end - x1_start) / plot_x1_elements
 
     X_init = []
@@ -604,4 +607,85 @@ def plot_animate_in_cartesian(result, x1_start, x1_end, x3_start, x3_end, T, cou
 #    init()
     
     
+    plt.show()
+    
+def plot_midpane_in_cartesian(x1_start, x1_end, x3_start, x3_end, to_cartesian_coordinates1, to_cartesian_coordinates2):
+    plt.figure()
+    init()
+    
+    alphas_toward = np.vstack((np.linspace(x1_start, x1_end, num=plot_x1_elements), np.linspace(x3_end,x3_end,plot_x1_elements)))
+#    alphas_backward = np.vstack((np.linspace(x1_end, x1_start, num=plot_x1_elements), np.linspace(x3_start,x3_start,plot_x1_elements)))
+    
+#    alphas = np.concatenate((alphas_toward,alphas_backward), axis=1)
+    
+    alphas=alphas_toward
+    rows, cols = alphas.shape
+    
+    X_1 = []
+    Y_1 = []
+    X_2 = []
+    Y_2 = []
+
+    x2 = 0
+    
+    for i in range(cols):
+        x1 = alphas[0, i]
+        x3 = alphas[1, i]
+
+        x=x1
+        y=x2
+        z=x3
+        
+        x,y,z=to_cartesian_coordinates1(x1,x2,x3)
+            
+        
+        X_1.append(x)
+        Y_1.append(z)
+        
+    for i in range(cols):
+        x1 = alphas[0, i]
+        x3 = alphas[1, i]
+
+        x=x1
+        y=x2
+        z=x3
+        
+        x,y,z=to_cartesian_coordinates2(x1,x2,x3)
+            
+        
+        X_2.append(x)
+        Y_2.append(z)
+        
+
+
+    plt.plot(X_1, Y_1, "b")
+    plt.plot(X_2, Y_2, "r--")
+    
+#    plt.gca().annotate("",
+#            xy=(0.4,1.0),
+#            xytext=(0.4,0.0),
+#            arrowprops={'arrowstyle':'<->', 'color':'C7' },
+#            label='distance')
+#    plt.gca().annotate("", 
+#                   xy=(1,1),
+#                   xytext=(0,0),
+#                   arrowprops={'arrowstyle':'<->', 'color':'C7'},
+#                   label='distance')
+#    plt.annotate('', (0, 0), (0.8, 0.8), arrowprops={'arrowstyle':'<->'})
+#    plt.annotate('D = 1', xy=(1, 9), xycoords='data',
+#                 xytext=(5, 0), textcoords='offset points')
+#    plt.title("Displacement related to minimal natural frequency")
+    # plt.title(r"Форма панелі $L={}, h={}, K={}, g_A={}, g_v={}$".format(x1_end - x1_start, x2_end - x2_start, result.geometry.curvature, result.geometry.corrugation_amplitude, result.geometry.corrugation_frequency))
+    plt.axes().set_aspect('equal', 'datalim')
+#    plt.legend(loc='best')
+    plt.xlabel(r"$x_1$, m")
+    plt.ylabel(r"$x_3$, m")
+    
+#    plt.gca().annotate("",
+#            xy=(0,0),
+#            xytext=(X_2[len(X_2)//4*3],Y_2[len(X_2)//4*3]),
+#            arrowprops={'arrowstyle':'<->', 'color':'C7' },
+#            label='distance')
+    
+    plt.grid()
     plt.show()
