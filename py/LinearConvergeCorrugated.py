@@ -40,13 +40,13 @@ layers = m.Layer.generate_layers(thickness, [material])
 
 N = 200
 
-bc = m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS
-#bc = m.Model.FIXED_LEFT_RIGHT_EDGE
+#bc = m.Model.FIXED_BOTTOM_LEFT_RIGHT_POINTS
+bc = m.Model.FIXED_LEFT_RIGHT_EDGE
 
 #corrugation_frequencies = range(2, 50, 2)
-#corrugation_frequencies = [2, 4, 6, 8, 15, 20, 50, 80, 100, 200, 300, 500]
+corrugation_frequencies = [2, 4, 6, 8, 15, 20, 50, 80, 100, 200, 300, 500]
 #corrugation_frequencies = [10, 20]
-corrugation_frequencies = [50]
+#corrugation_frequencies = [50]
 
 v = []
 

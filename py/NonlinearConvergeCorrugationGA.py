@@ -72,7 +72,7 @@ def solveNonlinear1D2O(geometry, layers, N, u_max, bc):
 
 
 width = 2
-curvature = 0.8
+curvature = 1.25
 thickness = 0.05
 corrugation_frequency = 20
 
@@ -101,8 +101,8 @@ for corrugation_amplitude in corrugation_amplitudes:
     
     norm_koef = 0.5
     
-#    result2D = solveLinear2D(geometry, layers, N, M, bc)
-    result2D = solveLinear1D2O(geometry, layers, N, bc)
+    result2D = solveLinear2D(geometry, layers, N, M, bc)
+#    result2D = solveLinear1D2O(geometry, layers, N, bc)
     
     
     print('========================')
@@ -114,10 +114,10 @@ for corrugation_amplitude in corrugation_amplitudes:
     y2D = []
     
     
-    for i in range(7):
+    for i in range(1):
         u_max = i*norm_koef*thickness
-#        result2Dnl, n = solveNonlinear2D(geometry, layers, N, M, u_max, bc)
-        result2Dnl, n = solveNonlinear1D2O(geometry, layers, N, u_max, bc)
+        result2Dnl, n = solveNonlinear2D(geometry, layers, N, M, u_max, bc)
+#        result2Dnl, n = solveNonlinear1D2O(geometry, layers, N, u_max, bc)
         
         d = i*norm_koef
         dy2D = result2Dnl.freqHz()/result2D.freqHz()
